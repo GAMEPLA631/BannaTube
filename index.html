@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BannaTube - Unlocked Player</title>
+    <style>
+        :root {
+            --primary: #f1c40f; /* Banna Yellow */
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --text: #ffffff;
+            --gray: #333;
+            --error: #e74c3c;
+            --success: #2ecc71;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- SETTINGS BTN --- */
+        .settings-btn {
+            position: fixed; top: 20px; right: 20px; font-size: 30px;
+            cursor: pointer; z-index: 2000; transition: transform 0.3s;
+            background: rgba(0,0,0,0.5); width: 50px; height: 50px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        .settings-btn:hover { transform: rotate(90deg); background: rgba(255,255,255,0.1); }
+
+        /* --- AUTH --- */
+        .auth-container {
+            max-width: 450px; margin: 80px auto; background: var(--darker);
+            padding: 30px; border-radius: 10px; border: 1px solid var(--primary);
+            text-align: center; box-shadow: 0 0 20px rgba(241, 196, 15, 0.1);
+        }
+        .hidden { display: none !important; }
+
+        input {
+            width: 100%; padding: 12px; margin: 10px 0; background: var(--gray);
+            border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;
+        }
+        button {
+            background: var(--primary); color: var(--darker); border: none;
+            padding: 12px 20px; cursor: pointer; font-weight: bold;
+            border-radius: 5px; width: 100%; margin-top: 10px; transition: 0.2s;
+        }
+        button:hover { background: #d4ac0d; }
+
+        .camera-box {
+            width: 100%; height: 250px; background: #000; margin: 10px 0;
+            display: flex; align-items: center; justify-content: center; border: 1px dashed #555;
+        }
+        video, canvas { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- APP UI --- */
+        header {
+            background: var(--darker); padding: 20px; display: flex;
+            justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--primary); padding-right: 80px;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary); }
+        
+        .video-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px; padding: 20px;
+        }
+        .video-card {
+            background: var(--darker); cursor: pointer; border-radius: 8px;
+            overflow: hidden; transition: transform 0.2s;
+        }
+        .video-card:hover { transform: scale(1.03); }
+        .video-card img { width: 100%; height: 160px; object-fit: cover; }
+        .video-info { padding: 10px; }
+        .video-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+
+        /* --- PLAYER MODAL --- */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2500;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .player-wrapper {
+            width: 90%; max-width: 1000px; background: #000;
+            position: relative; border: 1px solid var(--primary);
+            box-shadow: 0 0 30px rgba(241,196,15,0.3);
+            display: flex; flex-direction: column;
+        }
+        /* Responsívny iframe 16:9 */
+        .video-container {
+            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+        }
+        .video-container iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        
+        .close-btn {
+            position: absolute; top: -40px; right: 0; color: white;
+            font-size: 30px; cursor: pointer; z-index: 2600;
+        }
+
+        /* --- SETTINGS MODAL --- */
+        .settings-wrapper {
+            width: 90%; max-width: 400px; background: var(--darker);
+            padding: 20px; border-radius: 10px; border: 1px solid var(--primary);
+            text-align: center; position: relative;
+        }
+        .close-settings {
+            position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #aaa;
+        }
+        .status-ok { color: var(--success); }
+        .status-bad { color: var(--error); }
+
+    </style>
+</head>
+<body>
+
+    <!-- SETTINGS BUTTON -->
+    <div class="settings-btn" onclick="app.openSettings()" title="Nastavenia">⚙️</div>
+
+    <!-- AUTH SECTION -->
+    <div id="auth-section" class="auth-container">
+        <h1 class="logo">BannaTube</h1>
+        <div id="login-form">
+            <h2>Prihlásenie</h2>
+            <input type="email" id="login-email" placeholder="Email">
+            <input type="password" id="login-password" placeholder="Heslo">
+            <button onclick="app.login()">Prihlásiť sa</button>
+            <p style="margin-top:15px;">Nemáš účet? <a href="#" onclick="app.toggleAuth()" style="color:var(--primary)">Registrovať sa</a></p>
+        </div>
+        <div id="register-form" class="hidden">
+            <h2>Registrácia</h2>
+            <input type="email" id="reg-email" placeholder="Email">
+            <input type="password" id="reg-password" placeholder="Heslo">
+            <p style="text-align:left; margin:10px 0 5px;">Dátum narodenia:</p>
+            <input type="date" id="reg-dob">
+            <p style="text-align:left; margin:10px 0 5px;">Overenie (Selfie):</p>
+            <div class="camera-box">
+                <video id="webcam" autoplay playsinline class="hidden"></video>
+                <canvas id="canvas" class="hidden"></canvas>
+                <div id="cam-placeholder" style="color:#777">Kamera vypnutá</div>
+            </div>
+            <button type="button" style="background:#333; color:white; border:1px solid #555;" onclick="app.startCamera()">1. Zapnúť kameru</button>
+            <button type="button" style="background:#333; color:white; border:1px solid #555;" onclick="app.takeSnapshot()">2. Odfotiť</button>
+            <button onclick="app.register()" style="margin-top:20px;">Dokončiť registráciu</button>
+            <p style="margin-top:15px;">Máš účet? <a href="#" onclick="app.toggleAuth()" style="color:var(--primary)">Prihlásiť sa</a></p>
+        </div>
+        <p id="msg-box" style="color:var(--error); margin-top:10px;"></p>
+    </div>
+
+    <!-- APP SECTION -->
+    <div id="app-section" class="hidden">
+        <header>
+            <div class="logo">BannaTube</div>
+            <div style="text-align:right;">
+                <div style="background:#333; padding:5px 15px; border-radius:15px; display:inline-block; margin-right:10px; border:1px solid #444;">
+                    Kredity: <span id="credit-display" style="color:var(--primary); font-weight:bold;">0</span>
+                </div>
+                <button onclick="app.logout()" style="width:auto; padding:6px 15px; font-size:12px; background:transparent; color:var(--error); border:1px solid var(--error);">Odhlásiť</button>
+            </div>
+        </header>
+        <div style="max-width:1100px; margin:20px auto; padding:0 20px;">
+            <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                <input type="text" id="search-input" placeholder="Hľadaj videá (napr. Minecraft)...">
+                <button onclick="app.search()" style="width:120px;">Hľadať</button>
+            </div>
+            <div id="results-area" class="video-grid"></div>
+        </div>
+    </div>
+
+    <!-- PLAYER MODAL -->
+    <div id="player-modal" class="modal hidden">
+        <div class="close-btn" onclick="app.closePlayer()">&times;</div>
+        <div class="player-wrapper">
+            <div class="video-container" id="iframe-container">
+                <!-- Iframe tu -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="settings-wrapper">
+            <div class="close-settings" onclick="app.closeSettings()">&times;</div>
+            <h2 style="color:var(--primary)">Nastavenia</h2>
+            <p>Vlož YouTube API Key pre funkčnosť vyhľadávania.</p>
+            <input type="text" id="api-key-input" placeholder="Vlož API Key (AIza...)">
+            <button onclick="app.saveApiKey()">Uložiť</button>
+            <div id="api-status-msg" style="margin-top:10px; font-size:12px;">Stav: -</div>
+        </div>
+    </div>
+
+    <script>
+        const CREDITS_MAX = 2500;
+        const SEARCH_COST = 5;
+
+        const app = {
+            currentUser: null,
+            stream: null,
+            apiKey: localStorage.getItem('banna_api_key') || '',
+
+            // --- SETTINGS ---
+            openSettings: () => {
+                document.getElementById('settings-modal').classList.remove('hidden');
+                document.getElementById('api-key-input').value = app.apiKey;
+                app.updateApiStatus();
+            },
+            closeSettings: () => { document.getElementById('settings-modal').classList.add('hidden'); },
+            saveApiKey: () => {
+                const key = document.getElementById('api-key-input').value.trim();
+                if (key.length < 5) return alert("Neplatný kľúč.");
+                app.apiKey = key;
+                localStorage.setItem('banna_api_key', key);
+                app.updateApiStatus();
+                alert("Uložené!");
+                app.closeSettings();
+            },
+            updateApiStatus: () => {
+                const el = document.getElementById('api-status-msg');
+                el.innerHTML = app.apiKey ? '<span class="status-ok">Pripojené</span>' : '<span class="status-bad">Chýba kľúč!</span>';
+            },
+
+            // --- DB / AUTH ---
+            getDB: () => JSON.parse(localStorage.getItem('bannaUsers') || '[]'),
+            saveDB: (users) => localStorage.setItem('bannaUsers', JSON.stringify(users)),
+
+            toggleAuth: () => {
+                const l = document.getElementById('login-form');
+                const r = document.getElementById('register-form');
+                if (l.classList.contains('hidden')) { l.classList.remove('hidden'); r.classList.add('hidden'); app.stopCamera(); }
+                else { l.classList.add('hidden'); r.classList.remove('hidden'); }
+            },
+            startCamera: async () => {
+                try {
+                    app.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    const v = document.getElementById('webcam');
+                    v.srcObject = app.stream; v.classList.remove('hidden');
+                    document.getElementById('canvas').classList.add('hidden');
+                    document.getElementById('cam-placeholder').classList.add('hidden');
+                } catch (e) { alert("Chyba kamery."); }
+            },
+            stopCamera: () => { if (app.stream) app.stream.getTracks().forEach(t => t.stop()); },
+            takeSnapshot: () => {
+                if (!app.stream) return alert("Zapni kameru!");
+                const v = document.getElementById('webcam');
+                const c = document.getElementById('canvas');
+                c.width = v.videoWidth; c.height = v.videoHeight;
+                c.getContext('2d').drawImage(v, 0, 0);
+                v.classList.add('hidden'); c.classList.remove('hidden');
+                c.setAttribute('data-photo', 'true'); app.stopCamera();
+            },
+
+            register: () => {
+                const email = document.getElementById('reg-email').value;
+                const pass = document.getElementById('reg-password').value;
+                const dob = document.getElementById('reg-dob').value;
+                const hasPhoto = document.getElementById('canvas').getAttribute('data-photo');
+                if (!email || !pass || !dob) return alert("Vyplň všetko!");
+                if (!hasPhoto) return alert("Odfoť sa!");
+                if ((new Date().getFullYear() - new Date(dob).getFullYear()) < 13) return alert("Musíš mať 13+.");
+                
+                const users = app.getDB();
+                if (users.find(u => u.email === email)) return alert("Email už existuje.");
+                users.push({ email, pass, dob, credits: CREDITS_MAX, lastReset: new Date().toISOString() });
+                app.saveDB(users);
+                alert("Hotovo. Prihlás sa."); app.toggleAuth();
+            },
+
+            login: () => {
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
+                const users = app.getDB();
+                const user = users.find(u => u.email === email && u.pass === pass);
+                if (!user) return alert("Zlé údaje.");
+
+                // Credit reset
+                const diff = (new Date() - new Date(user.lastReset)) / (1000 * 60 * 60 * 24);
+                if (diff > 30) {
+                    user.credits = CREDITS_MAX; user.lastReset = new Date().toISOString();
+                    users[users.findIndex(u => u.email === email)] = user;
+                    app.saveDB(users); alert("Kredity resetované!");
+                }
+
+                app.currentUser = user;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('app-section').classList.remove('hidden');
+                app.updateUI();
+                if (!app.apiKey) setTimeout(() => alert("Nastav API Key (⚙️)!"), 500);
+            },
+
+            logout: () => {
+                app.currentUser = null;
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('app-section').classList.add('hidden');
+                document.getElementById('results-area').innerHTML = '';
+            },
+            updateUI: () => { document.getElementById('credit-display').innerText = app.currentUser.credits; },
+
+            // --- SEARCH ---
+            search: async () => {
+                if (!app.apiKey) return alert("Vlož API Key (⚙️)!");
+                if (app.currentUser.credits < SEARCH_COST) return alert("Bez kreditu.");
+                const query = document.getElementById('search-input').value;
+                if (!query) return;
+
+                app.currentUser.credits -= SEARCH_COST;
+                const users = app.getDB();
+                users[users.findIndex(u => u.email === app.currentUser.email)] = app.currentUser;
+                app.saveDB(users);
+                app.updateUI();
+
+                const resDiv = document.getElementById('results-area');
+                resDiv.innerHTML = "<p style='color:#777'>Vyhľadávam...</p>";
+                try {
+                    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${app.apiKey}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+
+                    resDiv.innerHTML = "";
+                    data.items.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'video-card';
+                        div.innerHTML = `
+                            <img src="${item.snippet.thumbnails.medium.url}">
+                            <div class="video-info">
+                                <div class="video-title">${item.snippet.title}</div>
+                                <div style="color:#aaa; font-size:12px;">${item.snippet.channelTitle}</div>
+                            </div>`;
+                        div.onclick = () => app.play(item.id.videoId);
+                        resDiv.appendChild(div);
+                    });
+                } catch (e) {
+                    resDiv.innerHTML = `<p style="color:red">Chyba: ${e.message}</p>`;
+                    app.currentUser.credits += SEARCH_COST;
+                }
+            },
+
+            // --- MAGICKÁ OPRAVA PREHRÁVAČA ---
+            play: (vidId) => {
+                document.getElementById('player-modal').classList.remove('hidden');
+                
+                // TU JE ZMENA: Používame youtube-nocookie a NEMÁME origin parameter
+                // Tento tvar URL je najviac kompatibilný s lokálnymi súbormi
+                const magicUrl = `https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&rel=0&controls=1`;
+
+                document.getElementById('iframe-container').innerHTML = `
+                    <iframe 
+                        src="${magicUrl}" 
+                        title="BannaTube Player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        referrerpolicy="no-referrer"
+                        allowfullscreen>
+                    </iframe>
+                `;
+            },
+
+            closePlayer: () => {
+                document.getElementById('player-modal').classList.add('hidden');
+                document.getElementById('iframe-container').innerHTML = "";
+            }
+        };
+    </script>
+</body>
+</html>
