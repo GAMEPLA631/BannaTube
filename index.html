@@ -37,7 +37,7 @@
         }
         button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); }
 
-        input {
+        input, select {
             background: var(--accent);
             border: 1px solid #333;
             color: white;
@@ -47,14 +47,15 @@
             outline: none;
             box-sizing: border-box;
             margin-bottom: 15px;
+            font-size: 14px;
         }
 
         .hidden { display: none !important; }
 
         /* --- HLAVIČKA --- */
         header {
-            padding: 20px 40px;
-            background: rgba(18, 18, 18, 0.9);
+            padding: 15px 40px;
+            background: rgba(18, 18, 18, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid #222;
             display: flex;
@@ -66,35 +67,60 @@
         }
         .logo { font-size: 24px; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
 
+        /* --- PROFILOVÝ OBRÁZOK --- */
+        .profile-pic-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--primary);
+            background: #222;
+            cursor: pointer;
+        }
+        .profile-pic-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         /* --- AUTH SEKCE --- */
         .auth-card {
-            max-width: 400px;
-            margin: 60px auto;
+            max-width: 500px;
+            margin: 40px auto;
             background: var(--surface);
             padding: 40px;
             border-radius: 20px;
             text-align: center;
             border: 1px solid #222;
         }
-        .auth-toggle {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #888;
-        }
-        .auth-toggle span {
-            color: var(--primary);
-            cursor: pointer;
-            font-weight: bold;
+        .form-row { display: flex; gap: 10px; }
+        .auth-toggle { margin-top: 20px; font-size: 14px; color: #888; }
+        .auth-toggle span { color: var(--primary); cursor: pointer; font-weight: bold; }
+        
+        .rules-text {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: left;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 2px solid var(--primary);
         }
 
-        /* --- VYHĽADÁVANIE --- */
-        .search-container {
-            padding: 40px 20px;
+        /* --- PROFIL MODAL --- */
+        .modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid var(--primary);
+            z-index: 3000;
+            width: 300px;
             text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
         }
-        .search-box { display: flex; gap: 10px; margin-top: 20px; }
 
         /* --- MRIEŽKA VIDEÍ --- */
         .video-grid {
@@ -156,33 +182,44 @@
             transition: 0.3s;
             z-index: 2100;
         }
-        .close-player-btn:hover {
-            transform: scale(1.1) rotate(90deg);
-            background: #fff;
-        }
 
-        /* --- NASTAVENIA --- */
-        .settings-btn { position: fixed; bottom: 20px; right: 20px; z-index: 3000; cursor: pointer; font-size: 24px; opacity: 0.4; transition: 0.3s; }
-        .settings-btn:hover { opacity: 1; }
+        .settings-btn { position: fixed; bottom: 20px; right: 20px; z-index: 3000; cursor: pointer; font-size: 24px; opacity: 0.4; }
     </style>
 </head>
-<body>
+<body onload="app.init()">
 
     <header>
         <div class="logo">BANNATUBE</div>
-        <div id="user-nav" class="hidden">
-            <span style="margin-right: 15px;">Kredity: <span id="credit-count" style="color:var(--primary)">0</span> KR</span>
-            <button onclick="location.reload()" style="padding: 5px 15px; font-size: 11px;">Odhlásiť</button>
+        <div id="user-nav" class="hidden" style="display: flex; align-items: center;">
+            <div class="profile-pic-container" onclick="app.toggleProfileModal()">
+                <img id="user-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="Profil">
+            </div>
+            <div style="margin-left: 10px;">
+                <div id="welcome-msg" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
+                <div style="font-size: 10px; color: #888;">Kredity: <span id="credit-count" style="color:white">0</span> KR</div>
+            </div>
+            <button onclick="app.logout()" style="padding: 5px 10px; font-size: 10px; margin-left: 20px;">Odhlásiť</button>
         </div>
     </header>
+
+    <!-- PROFILOVÝ MODAL (NAHRÁVANIE OBRÁZKA) -->
+    <div id="profile-modal" class="modal hidden">
+        <h3 style="color:var(--primary); margin-top:0;">Upraviť profil</h3>
+        <p style="font-size: 12px; color: #aaa;">Vyberte si profilový obrázok (len vhodné obrázky)</p>
+        <input type="file" id="avatar-input" accept="image/*" style="font-size: 11px; margin-top: 10px;">
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button onclick="app.updateAvatar()" style="flex: 1; padding: 8px;">Uložiť</button>
+            <button onclick="app.toggleProfileModal()" style="flex: 1; padding: 8px; background: #444; color: white;">Zrušiť</button>
+        </div>
+    </div>
 
     <!-- AUTH: LOGIN -->
     <div id="login-view">
         <div class="auth-card">
             <h2 style="color:var(--primary); margin-bottom: 30px;">Prihlásenie</h2>
-            <input type="email" placeholder="Emailová adresa">
-            <input type="password" placeholder="Heslo">
-            <button onclick="app.login()" style="width:100%; margin-top:10px;">Vstúpiť do Premium</button>
+            <input type="email" id="login-email" placeholder="Emailová adresa">
+            <input type="password" id="login-pass" placeholder="Heslo">
+            <button onclick="app.handleAuth('login')" style="width:100%; margin-top:10px;">Prihlásiť sa</button>
             <div class="auth-toggle">
                 Nemáš ešte účet? <span onclick="app.showView('register-view')">Zaregistruj sa</span>
             </div>
@@ -192,14 +229,34 @@
     <!-- AUTH: REGISTER -->
     <div id="register-view" class="hidden">
         <div class="auth-card">
-            <h2 style="color:var(--primary); margin-bottom: 30px;">Registrácia</h2>
-            <input type="text" placeholder="Celé meno">
-            <input type="email" placeholder="Emailová adresa">
-            <input type="password" placeholder="Heslo">
-            <input type="password" placeholder="Zopakuj heslo">
-            <button onclick="app.login()" style="width:100%; margin-top:10px;">Vytvoriť Premium účet</button>
+            <h2 style="color:var(--primary); margin-bottom: 10px;">Registrácia</h2>
+            <div class="rules-text">
+                <strong>Pravidlá BannaTube:</strong><br>
+                - Profilový obrázok nesmie byť nevhodný.<br>
+                - Údaje musia byť pravdivé pre overenie veku.<br>
+                - Registrovaný účet sa ukladá vo vašom zariadení.
+            </div>
+            
+            <div class="form-row">
+                <input type="text" id="reg-firstname" placeholder="Meno">
+                <input type="text" id="reg-lastname" placeholder="Priezvisko">
+            </div>
+            <input type="email" id="reg-email" placeholder="Emailová adresa">
+            
+            <div style="text-align: left; font-size: 12px; color: #888; margin-bottom: 5px;">Dátum narodenia:</div>
+            <input type="date" id="reg-birth">
+            
+            <select id="reg-gender">
+                <option value="" disabled selected>Pohlavie</option>
+                <option value="muž">Muž</option>
+                <option value="žena">Žena</option>
+            </select>
+            
+            <input type="password" id="reg-pass" placeholder="Heslo">
+            
+            <button onclick="app.handleAuth('register')" style="width:100%; margin-top:10px;">Zaregistrovať sa</button>
             <div class="auth-toggle">
-                Už máš účet? <span onclick="app.showView('login-view')">Prihlás sa</span>
+                Už máš účet? <span onclick="app.showView('login-view')">Prihlásiť sa</span>
             </div>
         </div>
     </div>
@@ -207,9 +264,9 @@
     <!-- MAIN APP VIEW -->
     <div id="app-view" class="hidden">
         <div class="search-container">
-            <h1>Sleduj čokoľvek <span style="color:var(--primary)">bez reklám</span></h1>
+            <h1>Sleduj videá <span style="color:var(--primary)">bez obmedzení</span></h1>
             <div class="search-box">
-                <input type="text" id="query" placeholder="Názov videa, pesničky alebo interpreta...">
+                <input type="text" id="query" placeholder="Zadaj názov videa...">
                 <button onclick="app.search()">Hľadať</button>
             </div>
         </div>
@@ -219,11 +276,8 @@
     <!-- PLAYER OVERLAY -->
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <button class="close-player-btn" onclick="app.closePlayer()" title="Zavrieť prehrávač">✕</button>
+            <button class="close-player-btn" onclick="app.closePlayer()" title="Zavrieť">✕</button>
             <div id="youtube-player"></div>
-        </div>
-        <div style="margin-top: 20px; color: var(--primary); font-weight: bold; letter-spacing: 2px;">
-            AKTÍVNE PREHRÁVANIE CEZ BANNATUBE API
         </div>
     </div>
 
@@ -240,7 +294,16 @@
         const app = {
             state: {
                 credits: 2500,
-                apiKey: localStorage.getItem('bt_key') || ''
+                apiKey: localStorage.getItem('bt_key') || '',
+                user: null
+            },
+
+            init() {
+                const savedUser = localStorage.getItem('bt_active_user');
+                if (savedUser) {
+                    this.state.user = JSON.parse(savedUser);
+                    this.onLoginSuccess();
+                }
             },
 
             showView(viewId) {
@@ -250,15 +313,76 @@
                 document.getElementById(viewId).classList.remove('hidden');
             },
 
-            login() {
+            toggleProfileModal() {
+                document.getElementById('profile-modal').classList.toggle('hidden');
+            },
+
+            handleAuth(type) {
+                if (type === 'register') {
+                    const fName = document.getElementById('reg-firstname').value;
+                    const lName = document.getElementById('reg-lastname').value;
+                    const email = document.getElementById('reg-email').value;
+                    const birth = document.getElementById('reg-birth').value;
+                    const gender = document.getElementById('reg-gender').value;
+                    
+                    if (!fName || !lName || !email || !birth || !gender) return alert("Prosím vyplňte všetky údaje!");
+                    
+                    this.state.user = { 
+                        name: `${fName} ${lName}`, 
+                        email, 
+                        birth, 
+                        gender,
+                        avatar: null,
+                        registeredAt: new Date().toLocaleString() 
+                    };
+                } else {
+                    const email = document.getElementById('login-email').value;
+                    if (!email) return alert("Zadajte prihlasovací email!");
+                    
+                    // Pre účely dema prihlásime pod uloženým menom alebo "Premium User"
+                    const saved = JSON.parse(localStorage.getItem('bt_active_user'));
+                    this.state.user = saved || { name: "Premium User", email, avatar: null };
+                }
+
+                localStorage.setItem('bt_active_user', JSON.stringify(this.state.user));
+                this.onLoginSuccess();
+            },
+
+            onLoginSuccess() {
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('credit-count').innerText = this.state.credits;
-                if(!this.state.apiKey) this.promptApiKey();
+                document.getElementById('welcome-msg').innerText = this.state.user.name;
+                
+                if (this.state.user.avatar) {
+                    document.getElementById('user-avatar').src = this.state.user.avatar;
+                }
+                
+                if(!this.state.apiKey) setTimeout(() => this.promptApiKey(), 500);
+            },
+
+            updateAvatar() {
+                const file = document.getElementById('avatar-input').files[0];
+                if (!file) return alert("Vyberte obrázok!");
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64Image = e.target.result;
+                    this.state.user.avatar = base64Image;
+                    document.getElementById('user-avatar').src = base64Image;
+                    localStorage.setItem('bt_active_user', JSON.stringify(this.state.user));
+                    this.toggleProfileModal();
+                };
+                reader.readAsDataURL(file);
+            },
+
+            logout() {
+                localStorage.removeItem('bt_active_user');
+                location.reload();
             },
 
             promptApiKey() {
-                const key = prompt("Zadaj svoj YouTube API kľúč:", this.state.apiKey);
+                const key = prompt("Vložte svoj YouTube API kľúč:", this.state.apiKey);
                 if(key) {
                     this.state.apiKey = key;
                     localStorage.setItem('bt_key', key);
@@ -266,7 +390,7 @@
             },
 
             async search() {
-                if(!this.state.apiKey) return alert("Prosím, vložte API kľúč cez nastavenia (⚙️).");
+                if(!this.state.apiKey) return alert("API kľúč chýba (⚙️).");
                 const q = document.getElementById('query').value;
                 if(!q) return;
 
@@ -276,7 +400,7 @@
                     const res = await fetch(url);
                     const data = await res.json();
                     this.render(data.items);
-                } catch(e) { alert("Chyba pripojenia k API."); }
+                } catch(e) { alert("Chyba pri hľadaní."); }
             },
 
             render(items) {
@@ -290,8 +414,8 @@
                     div.innerHTML = `
                         <img src="${item.snippet.thumbnails.medium.url}">
                         <div class="video-info">
-                            <div style="font-weight:bold; font-size:14px;">${item.snippet.title}</div>
-                            <div style="color:#888; font-size:12px; margin-top:5px;">${item.snippet.channelTitle}</div>
+                            <div style="font-weight:bold; font-size:13px; height: 32px; overflow:hidden;">${item.snippet.title}</div>
+                            <div style="color:#888; font-size:11px; margin-top:5px;">${item.snippet.channelTitle}</div>
                         </div>
                     `;
                     div.onclick = () => this.play(item.id.videoId);
@@ -305,32 +429,20 @@
                     ytPlayer.loadVideoById(videoId);
                 } else {
                     ytPlayer = new YT.Player('youtube-player', {
-                        height: '100%',
-                        width: '100%',
-                        videoId: videoId,
-                        playerVars: {
-                            'autoplay': 1,
-                            'modestbranding': 1,
-                            'rel': 0,
-                            'iv_load_policy': 3
-                        },
-                        events: {
-                            'onReady': (e) => e.target.playVideo()
-                        }
+                        height: '100%', width: '100%', videoId: videoId,
+                        playerVars: { 'autoplay': 1, 'modestbranding': 1, 'rel': 0 },
+                        events: { 'onReady': (e) => e.target.playVideo() }
                     });
                 }
             },
 
             closePlayer() {
-                if (ytPlayer && ytPlayer.pauseVideo) {
-                    ytPlayer.pauseVideo();
-                    ytPlayer.stopVideo();
-                }
+                if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
                 document.getElementById('player-view').classList.add('hidden');
             }
         };
 
-        window.onYouTubeIframeAPIReady = () => console.log("BannaTube: Ready");
+        window.onYouTubeIframeAPIReady = () => console.log("API Ready");
     </script>
 </body>
 </html>
