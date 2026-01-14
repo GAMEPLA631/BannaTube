@@ -11,6 +11,7 @@
             --surface: #121212;
             --text: #ffffff;
             --accent: #222;
+            --danger: #ff4444;
         }
 
         body {
@@ -36,6 +37,7 @@
             font-size: 13px;
         }
         button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); }
+        button:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
 
         input, select {
             background: var(--accent);
@@ -83,6 +85,16 @@
             object-fit: cover;
         }
 
+        /* --- VAROVANIA UI --- */
+        .warning-badge {
+            background: var(--danger);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-left: 10px;
+        }
+
         /* --- AUTH SEKCE --- */
         .auth-card {
             max-width: 500px;
@@ -108,7 +120,7 @@
             border-left: 2px solid var(--primary);
         }
 
-        /* --- PROFIL MODAL --- */
+        /* --- MODAL --- */
         .modal {
             position: fixed;
             top: 50%; left: 50%;
@@ -118,8 +130,23 @@
             border-radius: 15px;
             border: 1px solid var(--primary);
             z-index: 3000;
-            width: 300px;
+            width: 320px;
             text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .ban-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            color: var(--danger);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
         }
 
         /* --- MRIEŽKA VIDEÍ --- */
@@ -169,24 +196,25 @@
             right: 0;
             background: var(--primary);
             color: #000;
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            border: 2px solid #000;
-            cursor: pointer;
-            transition: 0.3s;
-            z-index: 2100;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: bold;
+            border: 2px solid #000; cursor: pointer;
         }
 
         .settings-btn { position: fixed; bottom: 20px; right: 20px; z-index: 3000; cursor: pointer; font-size: 24px; opacity: 0.4; }
     </style>
 </head>
 <body onload="app.init()">
+
+    <!-- BAN SCREEN -->
+    <div id="ban-screen" class="ban-overlay hidden">
+        <h1 style="font-size: 50px; margin-bottom: 10px;">PRÍSTUP ZAMIETNUTÝ</h1>
+        <p style="font-size: 20px;">Váš účet bol trvale zablokovaný za porušenie pravidiel (3/3 varovania).</p>
+        <p style="color: #666; margin-top: 20px;">Váš prehliadač si tento ban bude pamätať.</p>
+        <button onclick="app.resetEverything()" style="margin-top: 30px; background: white;">Založiť úplne nový účet</button>
+    </div>
 
     <header>
         <div class="logo">BANNATUBE</div>
@@ -195,21 +223,25 @@
                 <img id="user-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="Profil">
             </div>
             <div style="margin-left: 10px;">
-                <div id="welcome-msg" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
+                <div style="display: flex; align-items: center;">
+                    <div id="welcome-msg" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
+                    <span id="warning-container" class="hidden"></span>
+                </div>
                 <div style="font-size: 10px; color: #888;">Kredity: <span id="credit-count" style="color:white">0</span> KR</div>
             </div>
             <button onclick="app.logout()" style="padding: 5px 10px; font-size: 10px; margin-left: 20px;">Odhlásiť</button>
         </div>
     </header>
 
-    <!-- PROFILOVÝ MODAL (NAHRÁVANIE OBRÁZKA) -->
+    <!-- PROFILOVÝ MODAL -->
     <div id="profile-modal" class="modal hidden">
-        <h3 style="color:var(--primary); margin-top:0;">Upraviť profil</h3>
-        <p style="font-size: 12px; color: #aaa;">Vyberte si profilový obrázok (len vhodné obrázky)</p>
+        <h3 style="color:var(--primary); margin-top:0;">Môj Profil</h3>
+        <p style="font-size: 11px; color: #aaa;">Zmeňte si fotku alebo skontrolujte stav účtu.</p>
         <input type="file" id="avatar-input" accept="image/*" style="font-size: 11px; margin-top: 10px;">
+        <div id="account-status" style="font-size: 12px; margin: 15px 0; padding: 10px; background: #000; border-radius: 5px;"></div>
         <div style="display: flex; gap: 10px; margin-top: 10px;">
             <button onclick="app.updateAvatar()" style="flex: 1; padding: 8px;">Uložiť</button>
-            <button onclick="app.toggleProfileModal()" style="flex: 1; padding: 8px; background: #444; color: white;">Zrušiť</button>
+            <button onclick="app.toggleProfileModal()" style="flex: 1; padding: 8px; background: #444; color: white;">Zavrieť</button>
         </div>
     </div>
 
@@ -231,10 +263,10 @@
         <div class="auth-card">
             <h2 style="color:var(--primary); margin-bottom: 10px;">Registrácia</h2>
             <div class="rules-text">
-                <strong>Pravidlá BannaTube:</strong><br>
-                - Profilový obrázok nesmie byť nevhodný.<br>
-                - Údaje musia byť pravdivé pre overenie veku.<br>
-                - Registrovaný účet sa ukladá vo vašom zariadení.
+                <strong>Anti-Cheat & Pravidlá:</strong><br>
+                - Spamovanie vyhľadávania = Varovanie.<br>
+                - 3 Varovania = Trvalý BAN vášho prehliadača.<br>
+                - Nevhodné profilové fotky sú zakázané.
             </div>
             
             <div class="form-row">
@@ -267,8 +299,9 @@
             <h1>Sleduj videá <span style="color:var(--primary)">bez obmedzení</span></h1>
             <div class="search-box">
                 <input type="text" id="query" placeholder="Zadaj názov videa...">
-                <button onclick="app.search()">Hľadať</button>
+                <button id="search-btn" onclick="app.search()">Hľadať</button>
             </div>
+            <p id="anticheat-msg" style="color: var(--danger); font-size: 12px; margin-top: 10px;" class="hidden"></p>
         </div>
         <div id="results" class="video-grid"></div>
     </div>
@@ -295,15 +328,33 @@
             state: {
                 credits: 2500,
                 apiKey: localStorage.getItem('bt_key') || '',
-                user: null
+                user: null,
+                lastSearchTime: 0,
+                searchCooldown: 2000 // Anti-spam limit 2 sekundy
             },
 
             init() {
                 const savedUser = localStorage.getItem('bt_active_user');
+                const isBanned = localStorage.getItem('bt_banned') === 'true';
+
+                if (isBanned) {
+                    this.showBan();
+                    return;
+                }
+
                 if (savedUser) {
                     this.state.user = JSON.parse(savedUser);
                     this.onLoginSuccess();
                 }
+            },
+
+            showBan() {
+                document.getElementById('ban-screen').classList.remove('hidden');
+            },
+
+            resetEverything() {
+                localStorage.clear();
+                location.reload();
             },
 
             showView(viewId) {
@@ -314,10 +365,23 @@
             },
 
             toggleProfileModal() {
-                document.getElementById('profile-modal').classList.toggle('hidden');
+                const modal = document.getElementById('profile-modal');
+                modal.classList.toggle('hidden');
+                if (!modal.classList.contains('hidden')) {
+                    const u = this.state.user;
+                    document.getElementById('account-status').innerHTML = `
+                        Stav: <span style="color:lightgreen">Aktívny</span><br>
+                        Varovania: <span style="color:${u.warnings > 0 ? 'red' : 'white'}">${u.warnings}/3</span><br>
+                        Pohlavie: ${u.gender}<br>
+                        Registrovaný: ${u.registeredAt.split(',')[0]}
+                    `;
+                }
             },
 
             handleAuth(type) {
+                // Vždy najprv skontrolujeme globálny ban v prehliadači
+                if (localStorage.getItem('bt_banned') === 'true') return this.showBan();
+
                 if (type === 'register') {
                     const fName = document.getElementById('reg-firstname').value;
                     const lName = document.getElementById('reg-lastname').value;
@@ -329,36 +393,74 @@
                     
                     this.state.user = { 
                         name: `${fName} ${lName}`, 
-                        email, 
-                        birth, 
-                        gender,
+                        email, birth, gender,
                         avatar: null,
+                        warnings: 0,
                         registeredAt: new Date().toLocaleString() 
                     };
                 } else {
                     const email = document.getElementById('login-email').value;
-                    if (!email) return alert("Zadajte prihlasovací email!");
-                    
-                    // Pre účely dema prihlásime pod uloženým menom alebo "Premium User"
                     const saved = JSON.parse(localStorage.getItem('bt_active_user'));
-                    this.state.user = saved || { name: "Premium User", email, avatar: null };
+                    
+                    if (saved && saved.email === email) {
+                        this.state.user = saved;
+                    } else if (!email) {
+                        return alert("Zadajte email!");
+                    } else {
+                        this.state.user = { name: "Hosť", email, avatar: null, warnings: 0, gender: 'Neznáme', registeredAt: new Date().toLocaleString() };
+                    }
                 }
 
-                localStorage.setItem('bt_active_user', JSON.stringify(this.state.user));
+                this.saveUser();
                 this.onLoginSuccess();
             },
 
+            saveUser() {
+                localStorage.setItem('bt_active_user', JSON.stringify(this.state.user));
+            },
+
             onLoginSuccess() {
+                if (this.state.user.warnings >= 3) {
+                    localStorage.setItem('bt_banned', 'true');
+                    this.showBan();
+                    return;
+                }
+
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('credit-count').innerText = this.state.credits;
                 document.getElementById('welcome-msg').innerText = this.state.user.name;
                 
+                this.updateUIWarnings();
+
                 if (this.state.user.avatar) {
                     document.getElementById('user-avatar').src = this.state.user.avatar;
                 }
                 
                 if(!this.state.apiKey) setTimeout(() => this.promptApiKey(), 500);
+            },
+
+            updateUIWarnings() {
+                const container = document.getElementById('warning-container');
+                if (this.state.user.warnings > 0) {
+                    container.classList.remove('hidden');
+                    container.innerHTML = `<span class="warning-badge">VAROVANIE ${this.state.user.warnings}/3</span>`;
+                } else {
+                    container.classList.add('hidden');
+                }
+            },
+
+            triggerWarning(reason) {
+                this.state.user.warnings++;
+                this.saveUser();
+                this.updateUIWarnings();
+                
+                alert(`ANTY-CHEAT SYSTÉM:\n\nBolo vám udelené varovanie!\nDôvod: ${reason}\n\nPočet varovaní: ${this.state.user.warnings}/3.\nPri 3. varovaní dostanete trvalý BAN.`);
+                
+                if (this.state.user.warnings >= 3) {
+                    localStorage.setItem('bt_banned', 'true');
+                    this.showBan();
+                }
             },
 
             updateAvatar() {
@@ -370,15 +472,18 @@
                     const base64Image = e.target.result;
                     this.state.user.avatar = base64Image;
                     document.getElementById('user-avatar').src = base64Image;
-                    localStorage.setItem('bt_active_user', JSON.stringify(this.state.user));
+                    this.saveUser();
+                    alert("Profilovka bola natrvalo uložená do prehliadača.");
                     this.toggleProfileModal();
                 };
                 reader.readAsDataURL(file);
             },
 
             logout() {
-                localStorage.removeItem('bt_active_user');
-                location.reload();
+                // Nečistíme localStorage úplne, aby si pamätal dáta, len resetujeme session
+                this.showView('login-view');
+                document.getElementById('user-nav').classList.add('hidden');
+                this.state.user = null;
             },
 
             promptApiKey() {
@@ -390,6 +495,22 @@
             },
 
             async search() {
+                // ANTY-CHEAT: Kontrola spamu
+                const now = Date.now();
+                if (now - this.state.lastSearchTime < this.state.searchCooldown) {
+                    const msg = document.getElementById('anticheat-msg');
+                    msg.innerText = "ANTY-CHEAT: Klikáte príliš rýchlo! Spomalte, inak dostanete varovanie.";
+                    msg.classList.remove('hidden');
+                    
+                    // Ak kliká napriek varovaniu opakovane (menej ako 500ms)
+                    if (now - this.state.lastSearchTime < 600) {
+                        this.triggerWarning("Spamovanie tlačidla vyhľadávania.");
+                    }
+                    return;
+                }
+                document.getElementById('anticheat-msg').classList.add('hidden');
+                this.state.lastSearchTime = now;
+
                 if(!this.state.apiKey) return alert("API kľúč chýba (⚙️).");
                 const q = document.getElementById('query').value;
                 if(!q) return;
@@ -399,8 +520,9 @@
                 try {
                     const res = await fetch(url);
                     const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
                     this.render(data.items);
-                } catch(e) { alert("Chyba pri hľadaní."); }
+                } catch(e) { alert("Chyba API alebo neplatný kľúč."); }
             },
 
             render(items) {
@@ -446,3 +568,4 @@
     </script>
 </body>
 </html>
+
