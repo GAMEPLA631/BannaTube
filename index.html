@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BannaTube - Premium Multi-Account</title>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>BannaTube - Premium GitHub Version</title>
     <style>
         :root {
             --primary: #FFD700;
@@ -15,12 +16,13 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
             padding: 0;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* --- UI KOMPONENTY --- */
@@ -32,11 +34,12 @@
             font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
             text-transform: uppercase;
             font-size: 13px;
         }
         button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); }
+        button:active { transform: translateY(0); }
 
         input, select {
             background: var(--accent);
@@ -51,6 +54,8 @@
             font-size: 14px;
         }
 
+        input:focus { border-color: var(--primary); }
+
         .checkbox-container {
             display: flex;
             align-items: center;
@@ -61,16 +66,13 @@
             margin-bottom: 10px;
             cursor: pointer;
         }
-        .checkbox-container input {
-            width: auto;
-            margin: 0;
-        }
+        .checkbox-container input { width: auto; margin: 0; cursor: pointer; }
 
         .hidden { display: none !important; }
 
         /* --- HLAVIČKA --- */
         header {
-            padding: 15px 40px;
+            padding: 15px 20px;
             background: rgba(18, 18, 18, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid #222;
@@ -81,11 +83,11 @@
             top: 0;
             z-index: 100;
         }
-        .logo { font-size: 24px; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
+        .logo { font-size: 20px; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
 
         .profile-pic-container {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid var(--primary);
@@ -96,17 +98,18 @@
 
         /* --- AUTH --- */
         .auth-card {
-            max-width: 500px;
+            max-width: 450px;
             margin: 40px auto;
             background: var(--surface);
-            padding: 40px;
+            padding: 30px;
             border-radius: 20px;
             text-align: center;
             border: 1px solid #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .form-row { display: flex; gap: 10px; }
         .auth-toggle { margin-top: 20px; font-size: 14px; color: #888; }
-        .auth-toggle span { color: var(--primary); cursor: pointer; font-weight: bold; }
+        .auth-toggle span { color: var(--primary); cursor: pointer; font-weight: bold; text-decoration: underline; }
 
         /* --- MODAL --- */
         .modal {
@@ -118,9 +121,10 @@
             border-radius: 15px;
             border: 1px solid var(--primary);
             z-index: 3000;
-            width: 340px;
+            width: 90%;
+            max-width: 350px;
             text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 0 100px rgba(0,0,0,0.9);
         }
 
         .ban-overlay {
@@ -141,7 +145,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
-            padding: 20px 40px;
+            padding: 20px;
         }
         .video-card {
             background: var(--surface);
@@ -151,7 +155,7 @@
             border: 1px solid #222;
             transition: 0.3s;
         }
-        .video-card:hover { border-color: var(--primary); transform: scale(1.02); }
+        .video-card:hover { border-color: var(--primary); transform: translateY(-5px); }
         .video-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .video-info { padding: 15px; }
 
@@ -159,7 +163,7 @@
         .player-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.98);
             z-index: 2000;
             display: flex;
             flex-direction: column;
@@ -167,55 +171,65 @@
             align-items: center;
         }
         .player-wrapper {
-            width: 90%;
-            max-width: 1000px;
+            width: 95%;
+            max-width: 1100px;
             aspect-ratio: 16/9;
             background: #000;
             position: relative;
             border-radius: 12px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.1);
         }
         #youtube-player { width: 100%; height: 100%; border-radius: 12px; }
         
         .close-player-btn {
             position: absolute;
-            top: -55px; right: 0;
+            top: -50px; right: 0;
             background: var(--primary);
-            width: 40px; height: 40px;
+            color: black;
+            width: 35px; height: 35px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; cursor: pointer;
         }
 
-        .settings-btn { position: fixed; bottom: 20px; right: 20px; z-index: 3000; cursor: pointer; font-size: 24px; opacity: 0.4; }
+        .settings-btn { position: fixed; bottom: 20px; right: 20px; z-index: 3000; cursor: pointer; font-size: 24px; opacity: 0.3; transition: 0.3s; }
+        .settings-btn:hover { opacity: 1; transform: rotate(45deg); }
+
+        @media (max-width: 600px) {
+            header { padding: 10px; }
+            .auth-card { margin: 20px; padding: 20px; }
+            .form-row { flex-direction: column; gap: 0; }
+        }
     </style>
 </head>
 <body onload="app.init()">
 
     <div id="ban-screen" class="ban-overlay hidden">
         <h1>PRÍSTUP ZAMIETNUTÝ</h1>
-        <p>Váš účet bol zablokovaný.</p>
-        <button onclick="app.resetEverything()" style="margin-top:20px;">Resetovať dáta prehliadača</button>
+        <p>Váš účet bol zablokovaný pre spamovanie systému.</p>
+        <button onclick="app.resetEverything()" style="margin-top:20px;">Vymazať dáta</button>
     </div>
 
     <header>
-        <div class="logo">BANNATUBE</div>
+        <div class="logo">BANNA<span style="color:white">TUBE</span></div>
         <div id="user-nav" class="hidden" style="display: flex; align-items: center;">
             <div class="profile-pic-container" onclick="app.toggleProfileModal()">
                 <img id="user-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="Avatar">
             </div>
-            <div style="margin-left: 10px;">
+            <div style="margin-left: 10px; line-height: 1.2;">
                 <div id="welcome-msg" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
-                <div id="warning-label" style="font-size: 10px; color: var(--danger);" class="hidden"></div>
+                <div id="warning-label" style="font-size: 10px; color: var(--danger); font-weight: bold;" class="hidden"></div>
             </div>
-            <button onclick="app.logout()" style="padding: 5px 10px; font-size: 10px; margin-left: 20px;">Odhlásiť</button>
+            <button onclick="app.logout()" style="padding: 6px 12px; font-size: 10px; margin-left: 15px; background: #333; color: white;">Odhlásiť</button>
         </div>
     </header>
 
     <!-- PROFIL MODAL -->
     <div id="profile-modal" class="modal hidden">
         <h3 style="color:var(--primary); margin-top:0;">Môj Profil</h3>
+        <p style="font-size: 10px; color: #888;">Kliknite nižšie pre zmenu profilovky</p>
         <input type="file" id="avatar-input" accept="image/*" style="font-size: 11px;">
-        <div id="account-details" style="font-size: 11px; text-align: left; background: #000; padding: 10px; border-radius: 8px; margin: 10px 0; max-height: 200px; overflow-y: auto;"></div>
+        <div id="account-details" style="font-size: 11px; text-align: left; background: #000; padding: 12px; border-radius: 8px; margin: 10px 0; max-height: 180px; overflow-y: auto; border: 1px solid #222;"></div>
         <div style="display: flex; gap: 10px;">
             <button onclick="app.updateAvatar()" style="flex: 1; padding: 8px;">Uložiť</button>
             <button onclick="app.toggleProfileModal()" style="flex: 1; padding: 8px; background: #444; color: white;">Zavrieť</button>
@@ -226,12 +240,12 @@
     <div id="login-view">
         <div class="auth-card">
             <h2 style="color:var(--primary);">Prihlásenie</h2>
-            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Musíte sa najprv zaregistrovať, aby ste sa mohli prihlásiť.</p>
-            <input type="email" id="login-email" placeholder="Registrovaný email">
-            <input type="password" id="login-pass" placeholder="Heslo">
+            <p style="font-size: 12px; color: #888; margin-bottom: 25px;">Údaje sa ukladajú iba vo vašom prehliadači.</p>
+            <input type="email" id="login-email" placeholder="Emailová adresa">
+            <input type="password" id="login-pass" placeholder="Vaše heslo">
             <button onclick="app.handleLogin()" style="width:100%;">Prihlásiť sa</button>
             <div class="auth-toggle">
-                Ešte nemáš účet? <span onclick="app.showView('register-view')">Vytvoriť nový účet</span>
+                Nemáš účet? <span onclick="app.showView('register-view')">Zaregistrovať sa</span>
             </div>
         </div>
     </div>
@@ -239,12 +253,12 @@
     <!-- REGISTER -->
     <div id="register-view" class="hidden">
         <div class="auth-card">
-            <h2 style="color:var(--primary);">Registrácia</h2>
+            <h2 style="color:var(--primary);">Vytvoriť účet</h2>
             <div class="form-row">
                 <input type="text" id="reg-firstname" placeholder="Meno">
                 <input type="text" id="reg-lastname" placeholder="Priezvisko">
             </div>
-            <input type="email" id="reg-email" placeholder="Email (prihlasovacie meno)">
+            <input type="email" id="reg-email" placeholder="Email (slúži na prihlásenie)">
             
             <div class="form-row">
                 <input type="date" id="reg-birth" title="Dátum narodenia">
@@ -255,44 +269,46 @@
                 </select>
             </div>
 
-            <!-- NOVÉ DOPLNKY 1: Výber štátu -->
             <select id="reg-country">
-                <option value="" disabled selected>Vyberte štát</option>
+                <option value="" disabled selected>Vyberte krajinu</option>
                 <option value="Slovensko">Slovensko</option>
                 <option value="Česko">Česko</option>
-                <option value="Iné">Iné</option>
+                <option value="Poľsko">Poľsko</option>
+                <option value="Rakúsko">Rakúsko</option>
+                <option value="Maďarsko">Maďarsko</option>
+                <option value="Iné">Iné...</option>
             </select>
 
-            <input type="password" id="reg-pass" placeholder="Heslo">
+            <input type="password" id="reg-pass" placeholder="Vytvorte si heslo">
 
-            <!-- NOVÉ DOPLNKY 2 & 3: Checkboxy -->
             <label class="checkbox-container">
-                <input type="checkbox" id="reg-terms"> Súhlasím s podmienkami používania
+                <input type="checkbox" id="reg-terms"> Súhlasím s podmienkami (Browser Storage)
             </label>
             <label class="checkbox-container">
-                <input type="checkbox" id="reg-news"> Chcem odoberať novinky e-mailom
+                <input type="checkbox" id="reg-news"> Chcem dostávať novinky o BannaTube
             </label>
 
-            <button onclick="app.handleRegister()" style="width:100%; margin-top: 10px;">Zaregistrovať sa</button>
+            <button onclick="app.handleRegister()" style="width:100%; margin-top: 10px;">Vytvoriť profil</button>
             <div class="auth-toggle">
-                Už máš účet? <span onclick="app.showView('login-view')">Prihlásiť sa</span>
+                Máš už účet? <span onclick="app.showView('login-view')">Prihlásiť sa</span>
             </div>
         </div>
     </div>
 
-    <!-- APP -->
+    <!-- APP MAIN VIEW -->
     <div id="app-view" class="hidden">
-        <div class="search-container" style="text-align: center; padding: 40px 20px;">
-            <h1>Vyhľadaj a sleduj <span style="color:var(--primary)">Premium</span></h1>
-            <div style="display: flex; max-width: 600px; margin: 20px auto; gap: 10px;">
-                <input type="text" id="query" placeholder="Čo chceš počuť alebo vidieť?">
-                <button onclick="app.search()">Hľadať</button>
+        <div class="search-container" style="text-align: center; padding: 60px 20px;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 5px;">Hľadaj a sleduj <span style="color:var(--primary)">Premium</span></h1>
+            <p style="color: #666; margin-bottom: 30px;">Absolútne bez reklám vďaka YouTube API</p>
+            <div style="display: flex; max-width: 600px; margin: 0 auto; gap: 10px;">
+                <input type="text" id="query" placeholder="Zadajte názov piesne alebo videa..." onkeypress="if(event.key==='Enter')app.search()">
+                <button onclick="app.search()" style="min-width: 100px;">Hľadať</button>
             </div>
         </div>
         <div id="results" class="video-grid"></div>
     </div>
 
-    <!-- PLAYER -->
+    <!-- VIDEO PLAYER OVERLAY -->
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
             <div class="close-player-btn" onclick="app.closePlayer()">✕</div>
@@ -300,21 +316,23 @@
         </div>
     </div>
 
-    <div class="settings-btn" onclick="app.promptApiKey()">⚙️</div>
+    <div class="settings-btn" onclick="app.promptApiKey()" title="Nastavenia API">⚙️</div>
 
     <script>
+        // GitHub Compatibility: Ensure YouTube API loads over HTTPS
         let tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
+        let firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         let ytPlayer;
 
         const app = {
             state: {
-                users: JSON.parse(localStorage.getItem('bt_accounts') || '[]'),
-                currentUserEmail: localStorage.getItem('bt_session_email') || null,
-                apiKey: localStorage.getItem('bt_key') || '',
-                lastSearch: 0
+                users: JSON.parse(localStorage.getItem('bt_accounts_v2') || '[]'),
+                currentUserEmail: localStorage.getItem('bt_session_active') || null,
+                apiKey: localStorage.getItem('bt_key_v2') || '',
+                lastAction: 0
             },
 
             init() {
@@ -330,67 +348,63 @@
             },
 
             showView(viewId) {
-                ['login-view', 'register-view', 'app-view'].forEach(id => {
-                    document.getElementById(id).classList.add('hidden');
+                const views = ['login-view', 'register-view', 'app-view'];
+                views.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.classList.add('hidden');
                 });
                 document.getElementById(viewId).classList.remove('hidden');
+                window.scrollTo(0,0);
             },
 
             handleRegister() {
-                const email = document.getElementById('reg-email').value;
-                const fName = document.getElementById('reg-firstname').value;
-                const lName = document.getElementById('reg-lastname').value;
-                const pass = document.getElementById('reg-pass').value;
-                const birth = document.getElementById('reg-birth').value;
-                const gender = document.getElementById('reg-gender').value;
-                const country = document.getElementById('reg-country').value;
-                const terms = document.getElementById('reg-terms').checked;
-                const news = document.getElementById('reg-news').checked;
+                const data = {
+                    email: document.getElementById('reg-email').value.trim().toLowerCase(),
+                    fName: document.getElementById('reg-firstname').value.trim(),
+                    lName: document.getElementById('reg-lastname').value.trim(),
+                    pass: document.getElementById('reg-pass').value,
+                    birth: document.getElementById('reg-birth').value,
+                    gender: document.getElementById('reg-gender').value,
+                    country: document.getElementById('reg-country').value,
+                    terms: document.getElementById('reg-terms').checked,
+                    news: document.getElementById('reg-news').checked
+                };
 
-                if (!email || !fName || !lName || !pass || !birth || !gender || !country) {
-                    return alert("Vyplňte všetky polia!");
-                }
-                if (!terms) {
-                    return alert("Musíte súhlasiť s podmienkami!");
-                }
-                if (this.state.users.find(u => u.email === email)) {
-                    return alert("Tento email je už registrovaný!");
-                }
+                if (!data.email || !data.fName || !data.pass || !data.country) return alert("Prosím vyplňte povinné údaje!");
+                if (!data.terms) return alert("Musíte súhlasiť s podmienkami!");
+                if (this.state.users.find(u => u.email === data.email)) return alert("Tento email už niekto používa!");
 
                 const newUser = {
-                    email, pass, birth, gender, country,
-                    newsletter: news ? "Áno" : "Nie",
-                    name: `${fName} ${lName}`,
+                    ...data,
+                    name: `${data.fName} ${data.lName}`,
                     avatar: null,
                     warnings: 0,
                     banned: false,
-                    registeredAt: new Date().toLocaleString(),
+                    registeredAt: new Date().toLocaleString('sk-SK'),
                     lastLogin: null,
-                    lastLogout: null
+                    lastLogout: null,
+                    newsletter: data.news ? "Aktívny" : "Neaktívny"
                 };
 
                 this.state.users.push(newUser);
-                this.saveAccounts();
-                alert("Účet vytvorený! Teraz sa môžete prihlásiť.");
+                this.save();
+                alert("Registrácia úspešná! Teraz sa môžete prihlásiť.");
                 this.showView('login-view');
             },
 
             handleLogin() {
-                const email = document.getElementById('login-email').value;
+                const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value;
 
                 const user = this.state.users.find(u => u.email === email && u.pass === pass);
                 
-                if (!user) {
-                    return alert("Nesprávny email alebo heslo!");
-                }
-
+                if (!user) return alert("Nesprávne prihlasovacie údaje!");
                 if (user.banned) return this.showBan();
 
-                user.lastLogin = new Date().toLocaleString();
+                user.lastLogin = new Date().toLocaleString('sk-SK');
                 this.state.currentUserEmail = email;
-                localStorage.setItem('bt_session_email', email);
-                this.saveAccounts();
+                localStorage.setItem('bt_session_active', email);
+                this.save();
                 this.onLoginSuccess(user);
             },
 
@@ -402,7 +416,7 @@
                 
                 const w = document.getElementById('warning-label');
                 if (user.warnings > 0) {
-                    w.innerText = `VAROVANIA: ${user.warnings}/3`;
+                    w.innerText = `⚠️ VAROVANIE: ${user.warnings}/3`;
                     w.classList.remove('hidden');
                 } else {
                     w.classList.add('hidden');
@@ -413,16 +427,16 @@
                 if (this.state.currentUserEmail) {
                     const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
                     if (user) {
-                        user.lastLogout = new Date().toLocaleString();
-                        this.saveAccounts();
+                        user.lastLogout = new Date().toLocaleString('sk-SK');
+                        this.save();
                     }
                 }
-                localStorage.removeItem('bt_session_email');
+                localStorage.removeItem('bt_session_active');
                 location.reload();
             },
 
-            saveAccounts() {
-                localStorage.setItem('bt_accounts', JSON.stringify(this.state.users));
+            save() {
+                localStorage.setItem('bt_accounts_v2', JSON.stringify(this.state.users));
             },
 
             toggleProfileModal() {
@@ -431,28 +445,32 @@
                 if (!m.classList.contains('hidden')) {
                     const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
                     document.getElementById('account-details').innerHTML = `
-                        <b>Email:</b> ${user.email}<br>
-                        <b>Štát:</b> ${user.country}<br>
-                        <b>Narodený:</b> ${user.birth}<br>
-                        <b>Odber noviniek:</b> ${user.newsletter}<br>
+                        <div style="margin-bottom:8px"><b>Profil:</b> ${user.name}</div>
+                        <div style="margin-bottom:8px"><b>Email:</b> ${user.email}</div>
+                        <div style="margin-bottom:8px"><b>Krajina:</b> ${user.country}</div>
+                        <div style="margin-bottom:8px"><b>Novinky:</b> ${user.newsletter}</div>
                         <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-                        <b>Registrovaný:</b> ${user.registeredAt}<br>
-                        <b>Posledné prihlásenie:</b> ${user.lastLogin || 'Prvýkrát'}<br>
-                        <b>Posledné odhlásenie:</b> ${user.lastLogout || 'Ešte nebolo'}
+                        <div style="color:#888; font-size:10px">
+                            Reg: ${user.registeredAt}<br>
+                            In: ${user.lastLogin || '-'}<br>
+                            Out: ${user.lastLogout || '-'}
+                        </div>
                     `;
                 }
             },
 
             updateAvatar() {
                 const file = document.getElementById('avatar-input').files[0];
-                if (!file) return;
+                if (!file) return alert("Vyberte obrázok!");
+                if (file.size > 1024 * 1024) return alert("Obrázok je príliš veľký (max 1MB)");
+
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
                     user.avatar = e.target.result;
                     document.getElementById('user-avatar').src = user.avatar;
-                    this.saveAccounts();
-                    alert("Profilovka uložená!");
+                    this.save();
+                    alert("Profilovka bola úspešne aktualizovaná!");
                 };
                 reader.readAsDataURL(file);
             },
@@ -461,41 +479,54 @@
             resetEverything() { localStorage.clear(); location.reload(); },
 
             promptApiKey() {
-                const key = prompt("Vlož YouTube API kľúč:", this.state.apiKey);
-                if (key) { this.state.apiKey = key; localStorage.setItem('bt_key', key); }
+                const key = prompt("Zadajte YouTube Data API v3 kľúč:", this.state.apiKey);
+                if (key !== null) { 
+                    this.state.apiKey = key.trim(); 
+                    localStorage.setItem('bt_key_v2', this.state.apiKey); 
+                    if(key) alert("API kľúč uložený!");
+                }
             },
 
             async search() {
                 const now = Date.now();
-                if (now - this.state.lastSearch < 1500) {
+                if (now - this.state.lastAction < 2000) {
                     const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
                     user.warnings++;
-                    this.saveAccounts();
-                    alert(`ANTY-CHEAT: Varovanie (${user.warnings}/3). Nespamuj!`);
-                    if (user.warnings >= 3) { user.banned = true; this.saveAccounts(); this.showBan(); }
+                    this.save();
+                    alert(`SPAM FILTER: Varovanie ${user.warnings}/3. Počkajte chvíľu.`);
+                    if (user.warnings >= 3) { user.banned = true; this.save(); this.showBan(); }
                     return;
                 }
-                this.state.lastSearch = now;
+                this.state.lastAction = now;
 
-                const q = document.getElementById('query').value;
-                if (!q || !this.state.apiKey) return alert("Zadaj dopyt a API kľúč!");
+                const q = document.getElementById('query').value.trim();
+                if (!q) return;
+                if (!this.state.apiKey) return alert("Kliknite na ozubené koliesko vpravo dole a vložte YouTube API kľúč!");
 
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
+                
                 try {
                     const res = await fetch(url);
                     const data = await res.json();
+                    if(data.error) throw new Error(data.error.message);
                     this.render(data.items);
-                } catch(e) { alert("Chyba API."); }
+                } catch(e) { 
+                    alert("Chyba vyhľadávania: " + e.message); 
+                }
             },
 
             render(items) {
                 const container = document.getElementById('results');
+                if(!items || items.length === 0) {
+                    container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#666;">Nenašli sa žiadne výsledky.</p>`;
+                    return;
+                }
                 container.innerHTML = items.map(item => `
                     <div class="video-card" onclick="app.play('${item.id.videoId}')">
-                        <img src="${item.snippet.thumbnails.medium.url}">
+                        <img src="${item.snippet.thumbnails.medium.url}" alt="thumbnail">
                         <div class="video-info">
-                            <div style="font-weight:bold; font-size:13px;">${item.snippet.title}</div>
-                            <div style="color:#888; font-size:11px; margin-top:5px;">${item.snippet.channelTitle}</div>
+                            <div style="font-weight:bold; font-size:13px; line-height:1.3; height:34px; overflow:hidden;">${item.snippet.title}</div>
+                            <div style="color:var(--primary); font-size:11px; margin-top:8px;">${item.snippet.channelTitle}</div>
                         </div>
                     </div>
                 `).join('');
@@ -503,12 +534,13 @@
 
             play(id) {
                 document.getElementById('player-view').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
                 if (ytPlayer && ytPlayer.loadVideoById) {
                     ytPlayer.loadVideoById(id);
                 } else {
                     ytPlayer = new YT.Player('youtube-player', {
-                        height: '100%', width: '100%', videoId: id,
-                        playerVars: { 'autoplay': 1, 'modestbranding': 1 },
+                        videoId: id,
+                        playerVars: { 'autoplay': 1, 'rel': 0, 'modestbranding': 1 },
                         events: { 'onReady': (e) => e.target.playVideo() }
                     });
                 }
@@ -517,11 +549,14 @@
             closePlayer() {
                 if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
                 document.getElementById('player-view').classList.add('hidden');
+                document.body.style.overflow = 'auto';
             }
         };
 
-        window.onYouTubeIframeAPIReady = () => console.log("Engine Ready");
+        // YouTube API standard callback
+        window.onYouTubeIframeAPIReady = () => { console.log("YT Engine Ready"); };
     </script>
 </body>
 </html>
+
 
