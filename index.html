@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BannaTube - Anti-Cheat & Credit System</title>
+    <title>BannaTube - Annual Credit System</title>
     <style>
         :root {
             --primary: #FFD700;
@@ -163,7 +163,6 @@
 
         .settings-btn { position: fixed; bottom: 20px; left: 20px; cursor: pointer; opacity: 0.3; font-size: 20px; }
 
-        /* --- SETTINGS NAVIGATION --- */
         .nav-arrow {
             display: flex;
             align-items: center;
@@ -191,8 +190,8 @@
     <!-- BAN SCREEN -->
     <div id="ban-screen" class="ban-overlay hidden">
         <h1 style="font-size: 3rem;">TRVALÝ BAN</h1>
-        <p id="ban-reason" style="font-size: 1.2rem;">Váš účet bol NATRVALO ODSTRÁNENÝ zo systému za porušenie pravidiel.</p>
-        <p>Opakované porušovanie podmienok nie je povolené.</p>
+        <p id="ban-reason" style="font-size: 1.2rem;">Váš účet bol NATRVALO ODSTRÁNENÝ za porušenie pravidiel kreditov.</p>
+        <p>Musíte minúť všetky ročné kredity, inak je účet zrušený.</p>
         <button onclick="app.resetEverything()" style="background: white; color: red; margin-top: 30px;">ZRUŠIŤ DÁTA A ODÍSŤ</button>
     </div>
 
@@ -213,27 +212,21 @@
         </div>
     </header>
 
-    <!-- LOGIN -->
+    <!-- VIEWS (LOGIN, REGISTER, APP) -->
     <div id="login-view">
         <div class="auth-card">
             <h2>Prihlásenie</h2>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Heslo">
             <button onclick="app.handleLogin()" style="width:100%;">Vstúpiť</button>
-            <p style="font-size: 13px; color: #888; margin-top: 15px;">
-                Nemáš účet? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer;">Registruj sa</span>
-            </p>
+            <p style="font-size: 13px; color: #888; margin-top: 15px;">Nemáš účet? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer;">Registruj sa</span></p>
         </div>
     </div>
 
-    <!-- REGISTER -->
     <div id="register-view" class="hidden">
         <div class="auth-card">
             <h2>Registrácia</h2>
-            <div class="form-row">
-                <input type="text" id="reg-name" placeholder="Meno">
-                <input type="text" id="reg-surname" placeholder="Priezvisko">
-            </div>
+            <div class="form-row"><input type="text" id="reg-name" placeholder="Meno"><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
             <input type="email" id="reg-email" placeholder="Email">
             <div class="form-row">
                 <input type="date" id="reg-birth">
@@ -250,24 +243,14 @@
                 <option value="Iné">Iné</option>
             </select>
             <input type="password" id="reg-pass" placeholder="Heslo">
-            <label class="checkbox-container">
-                <input type="checkbox" id="reg-terms"> Súhlasím s podmienkami
-            </label>
-            <label class="checkbox-container">
-                <input type="checkbox" id="reg-news"> Odber noviniek
-            </label>
-            
+            <label class="checkbox-container"><input type="checkbox" id="reg-terms"> Súhlasím s podmienkami</label>
             <button onclick="app.handleRegister()" style="width:100%;">Vytvoriť účet</button>
-            <p style="font-size: 13px; color: #888; margin-top: 15px;">
-                Máš účet? <span onclick="app.showView('login-view')" style="color:var(--primary); cursor:pointer;">Prihlás sa</span>
-            </p>
         </div>
     </div>
 
-    <!-- APP MAIN -->
     <div id="app-view" class="hidden">
         <div style="text-align: center; padding: 40px;">
-            <h1 id="main-title">Vyhľadaj Premium Videá</h1>
+            <h1>Vyhľadaj Premium Videá</h1>
             <p style="font-size: 11px; color: #888; margin-top: -10px;">Sledovanie stojí 10 kreditov</p>
             <div style="display: flex; max-width: 500px; margin: 0 auto; gap: 10px;">
                 <input type="text" id="query" placeholder="Hľadaj na YouTube...">
@@ -285,20 +268,16 @@
         </div>
     </div>
 
-    <!-- PROFILE MODAL -->
+    <!-- PROFILE & ANALYTICS -->
     <div id="profile-modal" class="modal hidden">
         <div id="profile-main-screen">
             <h3>Môj Profil</h3>
-            <div style="margin-bottom: 15px;">
-                <input type="file" id="avatar-input" accept="image/*" style="font-size: 10px;">
-            </div>
+            <input type="file" id="avatar-input" accept="image/*" style="font-size: 10px; margin-bottom: 10px;">
             <div id="details-box" style="font-size: 11px; text-align: left; margin: 10px 0; background: #000; padding: 10px; border-radius: 8px;"></div>
-            
             <div class="nav-arrow" onclick="app.switchSettings('analytics')">
                 <span>Nastavenia & Analytika</span>
                 <span>➔</span>
             </div>
-
             <button onclick="app.updateAvatar()" style="width: 100%; padding: 8px; margin-bottom: 5px;">Uložiť Foto</button>
             <button onclick="app.toggleProfileModal()" style="width: 100%; padding: 8px; background: #444; color: white;">Zatvoriť</button>
         </div>
@@ -306,33 +285,19 @@
         <div id="profile-analytics-screen" class="hidden">
             <h3 style="color: var(--primary);">Analytika Účtu</h3>
             <div style="background: #000; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 11px;">
-                <div class="stat-item">
-                    <span>Ročné Kredity:</span>
-                    <span style="color: var(--primary);">10 000</span>
-                </div>
-                <div class="stat-item">
-                    <span>Zostávajúce:</span>
-                    <span id="modal-credits" style="color: var(--success); font-weight: bold;">0</span>
-                </div>
-                <div class="stat-item">
-                    <span>Stav limitu:</span>
-                    <span id="credit-status">V poriadku</span>
-                </div>
-                <p style="color: var(--danger); font-size: 9px; margin-top: 10px;">
-                    * Ak neminiete 10 000 kreditov do 31.12., váš účet bude trvalo zabanovaný.
+                <div class="stat-item"><span>Ročný Limit:</span><span style="color: var(--primary);">10 000</span></div>
+                <div class="stat-item"><span>Zostávajúce:</span><span id="modal-credits" style="color: var(--success);">0</span></div>
+                <div class="stat-item"><span>Reset Kreditu:</span><span id="reset-date">01.01.2027</span></div>
+                <p style="color: var(--danger); font-size: 9px; margin-top: 10px; line-height: 1.4;">
+                    * Ak do konca roka neminiete všetkých 10 000 kreditov, váš účet bude k 1.1. NATRVALO ZABANOVANÝ. Musíte minúť VŠETKO.
                 </p>
             </div>
-
-            <h4 style="font-size: 12px; margin-bottom: 10px;">Nové Funkcie</h4>
+            <h4 style="font-size: 12px;">Nové Funkcie</h4>
             <div style="text-align: left; font-size: 11px; margin-bottom: 15px;">
-                <label class="checkbox-container"><input type="checkbox"> Automatické prehrávanie</label>
-                <label class="checkbox-container"><input type="checkbox"> Šetrič dát (Low-Res)</label>
-                <label class="checkbox-container"><input type="checkbox" checked> Tmavý režim (OLED)</label>
+                <label class="checkbox-container"><input type="checkbox"> Automatické prehrávanie (-10/vid)</label>
+                <label class="checkbox-container"><input type="checkbox"> Extra kvalita (-20/vid)</label>
             </div>
-
-            <div class="nav-arrow" onclick="app.switchSettings('main')" style="justify-content: flex-start; gap: 10px;">
-                <span>⬅ Späť do profilu</span>
-            </div>
+            <div class="nav-arrow" onclick="app.switchSettings('main')"><span>⬅ Späť</span></div>
         </div>
     </div>
 
@@ -342,7 +307,6 @@
         let tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         document.head.appendChild(tag);
-
         let ytPlayer;
 
         const app = {
@@ -357,23 +321,43 @@
                 if (this.state.session) {
                     const user = this.state.users.find(u => u.email === this.state.session);
                     if (user) {
-                        // Kontrola banu
+                        this.checkAnnualReset(user);
                         if (user.banned) return this.showBan(user.banReason);
-                        
-                        // Inicializácia kreditov ak neexistujú
-                        if (user.credits === undefined) {
-                            user.credits = 10000;
-                            this.save();
-                        }
-
                         this.onLogin(user);
                     }
                 }
             },
 
-            save() {
-                localStorage.setItem('bt_db', JSON.stringify(this.state.users));
+            // --- LOGIKA ROČNÉHO RESETU ---
+            checkAnnualReset(user) {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                
+                // Ak používateľ nemá zaznamenaný rok poslednej kontroly
+                if (!user.lastYearCheck) {
+                    user.lastYearCheck = currentYear;
+                    this.save();
+                    return;
+                }
+
+                // Ak nastal nový rok
+                if (currentYear > user.lastYearCheck) {
+                    // KONTROLA: Ak neminul všetky kredity (viac ako 0 zostáva)
+                    if (user.credits > 0) {
+                        user.banned = true;
+                        user.banReason = "Účet zabanovaný: Nesplnená podmienka minutia 10 000 kreditov do konca roka.";
+                        this.save();
+                    } else {
+                        // Úspešne minul -> Reset na nový rok
+                        user.credits = 10000;
+                        user.lastYearCheck = currentYear;
+                        this.save();
+                        alert("Šťastný Nový Rok! Vaše kredity boli resetované na 10 000.");
+                    }
+                }
             },
+
+            save() { localStorage.setItem('bt_db', JSON.stringify(this.state.users)); },
 
             showView(id) {
                 ['login-view', 'register-view', 'app-view'].forEach(v => document.getElementById(v).classList.add('hidden'));
@@ -385,11 +369,7 @@
                 const name = document.getElementById('reg-name').value;
                 const pass = document.getElementById('reg-pass').value;
                 const country = document.getElementById('reg-country').value;
-                const terms = document.getElementById('reg-terms').checked;
-
-                if (!email || !name || !pass || !country) return alert("Chýbajúce údaje!");
-                if (!terms) return alert("Musíš súhlasiť s podmienkami!");
-                if (this.state.users.find(u => u.email === email)) return alert("Email existuje!");
+                if (!email || !name || !pass) return alert("Chýbajúce údaje!");
 
                 const newUser = {
                     email, name, pass, country,
@@ -397,14 +377,13 @@
                     credits: 10000,
                     banned: false,
                     banReason: "",
-                    avatar: null,
-                    news: document.getElementById('reg-news').checked,
-                    watchedCount: 0
+                    lastYearCheck: new Date().getFullYear(),
+                    avatar: null
                 };
 
                 this.state.users.push(newUser);
                 this.save();
-                alert("Registrácia úspešná! Získali ste 10 000 kreditov na tento rok.");
+                alert("Registrácia úspešná! Máte 10 000 kreditov.");
                 this.showView('login-view');
             },
 
@@ -412,8 +391,9 @@
                 const email = document.getElementById('login-email').value;
                 const pass = document.getElementById('login-pass').value;
                 const user = this.state.users.find(u => u.email === email && u.pass === pass);
-
-                if (!user) return alert("Nesprávne údaje!");
+                if (!user) return alert("Chyba!");
+                
+                this.checkAnnualReset(user);
                 if (user.banned) return this.showBan(user.banReason);
 
                 this.state.session = email;
@@ -427,101 +407,60 @@
                 document.getElementById('welcome-msg').innerText = user.name;
                 document.getElementById('header-credits').innerText = user.credits;
                 if (user.avatar) document.getElementById('user-avatar').src = user.avatar;
-                
-                const wl = document.getElementById('warning-label');
-                if (user.warnings > 0) {
-                    wl.innerText = `VAROVANIE: ${user.warnings}/3`;
-                    wl.classList.remove('hidden');
-                }
             },
 
-            logout() {
-                localStorage.removeItem('bt_active');
-                location.reload();
-            },
-
-            showBan(reason) {
-                document.getElementById('ban-reason').innerText = reason || "Váš účet bol NATRVALO ODSTRÁNENÝ za porušenie pravidiel.";
-                document.getElementById('ban-screen').classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            },
-
-            // --- ANTI CHEAT & CREDIT LOGIKA ---
             search() {
                 const now = Date.now();
                 const user = this.state.users.find(u => u.email === this.state.session);
-
                 if (now - this.state.lastSearch < 2000) {
                     user.warnings++;
                     this.save();
-                    
                     if (user.warnings >= 3) {
                         this.state.users = this.state.users.filter(u => u.email !== user.email);
                         this.save();
                         localStorage.removeItem('bt_active');
-                        this.showBan("Účet odstránený pre opakovaný SPAM systému.");
+                        this.showBan("Účet odstránený za ANTI-CHEAT (spam).");
                         return;
                     }
-                    
-                    alert(`ANTI-CHEAT: Príliš rýchle! Varovanie ${user.warnings}/3. Účet bude pri 3/3 natrvalo odstránený.`);
+                    alert("Spomalte! Varovanie " + user.warnings + "/3");
                     return;
                 }
-
                 this.state.lastSearch = now;
                 this.fetchVideos();
             },
 
             async fetchVideos() {
                 const q = document.getElementById('query').value;
-                if (!q || !this.state.apiKey) return alert("Zadaj hľadaný výraz a API kľúč!");
-
+                if (!q || !this.state.apiKey) return alert("Chýba API kľúč!");
                 const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
                 try {
                     const r = await fetch(url);
                     const d = await r.json();
-                    if(d.error) throw new Error(d.error.message);
                     this.render(d.items);
-                } catch(e) { alert("Chyba API: " + e.message); }
+                } catch(e) { alert("API Error"); }
             },
 
             render(items) {
                 const res = document.getElementById('results');
-                if(!items) return;
                 res.innerHTML = items.map(i => `
                     <div class="video-card" onclick="app.play('${i.id.videoId}')">
                         <img src="${i.snippet.thumbnails.medium.url}">
-                        <div class="video-info">
-                            <b style="font-size:13px;">${i.snippet.title}</b>
-                        </div>
+                        <div class="video-info"><b>${i.snippet.title}</b></div>
                     </div>
                 `).join('');
             },
 
             play(id) {
                 const user = this.state.users.find(u => u.email === this.state.session);
-                
-                if(user.credits < 10) {
-                    return alert("Nemáte dostatok kreditov na sledovanie! (Potrebujete 10)");
-                }
+                if(user.credits < 10) return alert("Kredity na nule!");
 
-                // Odčítanie kreditov
                 user.credits -= 10;
-                user.watchedCount = (user.watchedCount || 0) + 1;
                 this.save();
-                
-                // Update UI
                 document.getElementById('header-credits').innerText = user.credits;
 
                 document.getElementById('player-view').classList.remove('hidden');
-                if (ytPlayer && ytPlayer.loadVideoById) {
-                    ytPlayer.loadVideoById(id);
-                } else {
-                    ytPlayer = new YT.Player('youtube-player', {
-                        videoId: id,
-                        playerVars: { 'autoplay': 1 },
-                        events: { 'onReady': e => e.target.playVideo() }
-                    });
-                }
+                if (ytPlayer && ytPlayer.loadVideoById) ytPlayer.loadVideoById(id);
+                else ytPlayer = new YT.Player('youtube-player', { videoId: id, playerVars: { 'autoplay': 1 } });
             },
 
             closePlayer() {
@@ -529,72 +468,28 @@
                 document.getElementById('player-view').classList.add('hidden');
             },
 
-            toggleProfileModal() {
-                const m = document.getElementById('profile-modal');
-                m.classList.toggle('hidden');
-                if (!m.classList.contains('hidden')) {
-                    this.switchSettings('main');
-                    this.refreshProfileUI();
-                }
-            },
-
-            refreshProfileUI() {
-                const u = this.state.users.find(u => u.email === this.state.session);
-                document.getElementById('details-box').innerHTML = `
-                    <b>Meno:</b> ${u.name}<br>
-                    <b>Email:</b> ${u.email}<br>
-                    <b>Krajina:</b> ${u.country}<br>
-                    <b>Kredity:</b> ${u.credits} 🪙
-                `;
-                document.getElementById('modal-credits').innerText = u.credits;
-                
-                const status = document.getElementById('credit-status');
-                if (u.credits > 5000) {
-                    status.innerText = "Kriticky nízka aktivita!";
-                    status.style.color = "var(--danger)";
-                } else {
-                    status.innerText = "Dobré tempo míňania";
-                    status.style.color = "var(--success)";
-                }
-            },
-
             switchSettings(screen) {
+                const user = this.state.users.find(u => u.email === this.state.session);
                 if (screen === 'analytics') {
                     document.getElementById('profile-main-screen').classList.add('hidden');
                     document.getElementById('profile-analytics-screen').classList.remove('hidden');
-                    this.refreshProfileUI();
+                    document.getElementById('modal-credits').innerText = user.credits;
+                    document.getElementById('reset-date').innerText = "01.01." + (new Date().getFullYear() + 1);
                 } else {
                     document.getElementById('profile-main-screen').classList.remove('hidden');
                     document.getElementById('profile-analytics-screen').classList.add('hidden');
                 }
             },
 
-            updateAvatar() {
-                const f = document.getElementById('avatar-input').files[0];
-                if (!f) return;
-                const rd = new FileReader();
-                rd.onload = e => {
-                    const u = this.state.users.find(u => u.email === this.state.session);
-                    u.avatar = e.target.result;
-                    document.getElementById('user-avatar').src = u.avatar;
-                    this.save();
-                    alert("Foto zmenené!");
-                };
-                rd.readAsDataURL(f);
-            },
-
-            setApiKey() {
-                const k = prompt("Vlož YouTube API kľúč:", this.state.apiKey);
-                if (k) { this.state.apiKey = k; localStorage.setItem('bt_key', k); }
-            },
-
-            resetEverything() {
-                localStorage.clear();
-                location.reload();
-            }
+            toggleProfileModal() { document.getElementById('profile-modal').classList.toggle('hidden'); this.switchSettings('main'); },
+            logout() { localStorage.removeItem('bt_active'); location.reload(); },
+            showBan(r) { document.getElementById('ban-reason').innerText = r; document.getElementById('ban-screen').classList.remove('hidden'); },
+            resetEverything() { localStorage.clear(); location.reload(); },
+            setApiKey() { const k = prompt("API Key:", this.state.apiKey); if (k) { this.state.apiKey = k; localStorage.setItem('bt_key', k); } }
         };
 
         window.onYouTubeIframeAPIReady = () => {};
     </script>
 </body>
 </html>
+
