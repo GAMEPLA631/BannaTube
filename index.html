@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BannaTube - Neobmedzený Prehrávač</title>
+    <title>BannaTube - Premium Multi-Account</title>
     <style>
         :root {
             --primary: #FFD700;
@@ -37,7 +37,6 @@
             font-size: 13px;
         }
         button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); }
-        button:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
 
         input, select {
             background: var(--accent);
@@ -50,6 +49,21 @@
             box-sizing: border-box;
             margin-bottom: 15px;
             font-size: 14px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            font-size: 12px;
+            color: #bbb;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .checkbox-container input {
+            width: auto;
+            margin: 0;
         }
 
         .hidden { display: none !important; }
@@ -69,7 +83,6 @@
         }
         .logo { font-size: 24px; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
 
-        /* --- PROFILOVÝ OBRÁZOK --- */
         .profile-pic-container {
             width: 40px;
             height: 40px;
@@ -79,23 +92,9 @@
             background: #222;
             cursor: pointer;
         }
-        .profile-pic-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- VAROVANIA UI --- */
-        .warning-badge {
-            background: var(--danger);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            margin-left: 10px;
-        }
-
-        /* --- AUTH SEKCE --- */
+        /* --- AUTH --- */
         .auth-card {
             max-width: 500px;
             margin: 40px auto;
@@ -108,17 +107,6 @@
         .form-row { display: flex; gap: 10px; }
         .auth-toggle { margin-top: 20px; font-size: 14px; color: #888; }
         .auth-toggle span { color: var(--primary); cursor: pointer; font-weight: bold; }
-        
-        .rules-text {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 20px;
-            text-align: left;
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 5px;
-            border-left: 2px solid var(--primary);
-        }
 
         /* --- MODAL --- */
         .modal {
@@ -130,7 +118,7 @@
             border-radius: 15px;
             border: 1px solid var(--primary);
             z-index: 3000;
-            width: 320px;
+            width: 340px;
             text-align: center;
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
@@ -146,10 +134,9 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 20px;
         }
 
-        /* --- MRIEŽKA VIDEÍ --- */
+        /* --- VIDEO GRID --- */
         .video-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -168,7 +155,7 @@
         .video-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .video-info { padding: 15px; }
 
-        /* --- MODÁLNY PREHRÁVAČ --- */
+        /* --- PREHRÁVAČ --- */
         .player-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -186,21 +173,17 @@
             background: #000;
             position: relative;
             border-radius: 12px;
-            box-shadow: 0 0 40px var(--primary);
         }
         #youtube-player { width: 100%; height: 100%; border-radius: 12px; }
         
         .close-player-btn {
             position: absolute;
-            top: -55px;
-            right: 0;
+            top: -55px; right: 0;
             background: var(--primary);
-            color: #000;
             width: 40px; height: 40px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: bold;
-            border: 2px solid #000; cursor: pointer;
+            font-weight: bold; cursor: pointer;
         }
 
         .settings-btn { position: fixed; bottom: 20px; right: 20px; z-index: 3000; cursor: pointer; font-size: 24px; opacity: 0.4; }
@@ -208,153 +191,142 @@
 </head>
 <body onload="app.init()">
 
-    <!-- BAN SCREEN -->
     <div id="ban-screen" class="ban-overlay hidden">
-        <h1 style="font-size: 50px; margin-bottom: 10px;">PRÍSTUP ZAMIETNUTÝ</h1>
-        <p style="font-size: 20px;">Váš účet bol trvale zablokovaný za porušenie pravidiel (3/3 varovania).</p>
-        <p style="color: #666; margin-top: 20px;">Váš prehliadač si tento ban bude pamätať.</p>
-        <button onclick="app.resetEverything()" style="margin-top: 30px; background: white;">Založiť úplne nový účet</button>
+        <h1>PRÍSTUP ZAMIETNUTÝ</h1>
+        <p>Váš účet bol zablokovaný.</p>
+        <button onclick="app.resetEverything()" style="margin-top:20px;">Resetovať dáta prehliadača</button>
     </div>
 
     <header>
         <div class="logo">BANNATUBE</div>
         <div id="user-nav" class="hidden" style="display: flex; align-items: center;">
             <div class="profile-pic-container" onclick="app.toggleProfileModal()">
-                <img id="user-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="Profil">
+                <img id="user-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="Avatar">
             </div>
             <div style="margin-left: 10px;">
-                <div style="display: flex; align-items: center;">
-                    <div id="welcome-msg" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
-                    <span id="warning-container" class="hidden"></span>
-                </div>
-                <div style="font-size: 10px; color: #888;">Kredity: <span id="credit-count" style="color:white">0</span> KR</div>
+                <div id="welcome-msg" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
+                <div id="warning-label" style="font-size: 10px; color: var(--danger);" class="hidden"></div>
             </div>
             <button onclick="app.logout()" style="padding: 5px 10px; font-size: 10px; margin-left: 20px;">Odhlásiť</button>
         </div>
     </header>
 
-    <!-- PROFILOVÝ MODAL -->
+    <!-- PROFIL MODAL -->
     <div id="profile-modal" class="modal hidden">
         <h3 style="color:var(--primary); margin-top:0;">Môj Profil</h3>
-        <p style="font-size: 11px; color: #aaa;">Zmeňte si fotku alebo skontrolujte stav účtu.</p>
-        <input type="file" id="avatar-input" accept="image/*" style="font-size: 11px; margin-top: 10px;">
-        <div id="account-status" style="font-size: 12px; margin: 15px 0; padding: 10px; background: #000; border-radius: 5px;"></div>
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <input type="file" id="avatar-input" accept="image/*" style="font-size: 11px;">
+        <div id="account-details" style="font-size: 11px; text-align: left; background: #000; padding: 10px; border-radius: 8px; margin: 10px 0; max-height: 200px; overflow-y: auto;"></div>
+        <div style="display: flex; gap: 10px;">
             <button onclick="app.updateAvatar()" style="flex: 1; padding: 8px;">Uložiť</button>
             <button onclick="app.toggleProfileModal()" style="flex: 1; padding: 8px; background: #444; color: white;">Zavrieť</button>
         </div>
     </div>
 
-    <!-- AUTH: LOGIN -->
+    <!-- LOGIN -->
     <div id="login-view">
         <div class="auth-card">
-            <h2 style="color:var(--primary); margin-bottom: 30px;">Prihlásenie</h2>
-            <input type="email" id="login-email" placeholder="Emailová adresa">
+            <h2 style="color:var(--primary);">Prihlásenie</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Musíte sa najprv zaregistrovať, aby ste sa mohli prihlásiť.</p>
+            <input type="email" id="login-email" placeholder="Registrovaný email">
             <input type="password" id="login-pass" placeholder="Heslo">
-            <button onclick="app.handleAuth('login')" style="width:100%; margin-top:10px;">Prihlásiť sa</button>
+            <button onclick="app.handleLogin()" style="width:100%;">Prihlásiť sa</button>
             <div class="auth-toggle">
-                Nemáš ešte účet? <span onclick="app.showView('register-view')">Zaregistruj sa</span>
+                Ešte nemáš účet? <span onclick="app.showView('register-view')">Vytvoriť nový účet</span>
             </div>
         </div>
     </div>
 
-    <!-- AUTH: REGISTER -->
+    <!-- REGISTER -->
     <div id="register-view" class="hidden">
         <div class="auth-card">
-            <h2 style="color:var(--primary); margin-bottom: 10px;">Registrácia</h2>
-            <div class="rules-text">
-                <strong>Anti-Cheat & Pravidlá:</strong><br>
-                - Spamovanie vyhľadávania = Varovanie.<br>
-                - 3 Varovania = Trvalý BAN vášho prehliadača.<br>
-                - Nevhodné profilové fotky sú zakázané.
-            </div>
-            
+            <h2 style="color:var(--primary);">Registrácia</h2>
             <div class="form-row">
                 <input type="text" id="reg-firstname" placeholder="Meno">
                 <input type="text" id="reg-lastname" placeholder="Priezvisko">
             </div>
-            <input type="email" id="reg-email" placeholder="Emailová adresa">
+            <input type="email" id="reg-email" placeholder="Email (prihlasovacie meno)">
             
-            <div style="text-align: left; font-size: 12px; color: #888; margin-bottom: 5px;">Dátum narodenia:</div>
-            <input type="date" id="reg-birth">
-            
-            <select id="reg-gender">
-                <option value="" disabled selected>Pohlavie</option>
-                <option value="muž">Muž</option>
-                <option value="žena">Žena</option>
+            <div class="form-row">
+                <input type="date" id="reg-birth" title="Dátum narodenia">
+                <select id="reg-gender">
+                    <option value="" disabled selected>Pohlavie</option>
+                    <option value="muž">Muž</option>
+                    <option value="žena">Žena</option>
+                </select>
+            </div>
+
+            <!-- NOVÉ DOPLNKY 1: Výber štátu -->
+            <select id="reg-country">
+                <option value="" disabled selected>Vyberte štát</option>
+                <option value="Slovensko">Slovensko</option>
+                <option value="Česko">Česko</option>
+                <option value="Iné">Iné</option>
             </select>
-            
+
             <input type="password" id="reg-pass" placeholder="Heslo">
-            
-            <button onclick="app.handleAuth('register')" style="width:100%; margin-top:10px;">Zaregistrovať sa</button>
+
+            <!-- NOVÉ DOPLNKY 2 & 3: Checkboxy -->
+            <label class="checkbox-container">
+                <input type="checkbox" id="reg-terms"> Súhlasím s podmienkami používania
+            </label>
+            <label class="checkbox-container">
+                <input type="checkbox" id="reg-news"> Chcem odoberať novinky e-mailom
+            </label>
+
+            <button onclick="app.handleRegister()" style="width:100%; margin-top: 10px;">Zaregistrovať sa</button>
             <div class="auth-toggle">
                 Už máš účet? <span onclick="app.showView('login-view')">Prihlásiť sa</span>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP VIEW -->
+    <!-- APP -->
     <div id="app-view" class="hidden">
-        <div class="search-container">
-            <h1>Sleduj videá <span style="color:var(--primary)">bez obmedzení</span></h1>
-            <div class="search-box">
-                <input type="text" id="query" placeholder="Zadaj názov videa...">
-                <button id="search-btn" onclick="app.search()">Hľadať</button>
+        <div class="search-container" style="text-align: center; padding: 40px 20px;">
+            <h1>Vyhľadaj a sleduj <span style="color:var(--primary)">Premium</span></h1>
+            <div style="display: flex; max-width: 600px; margin: 20px auto; gap: 10px;">
+                <input type="text" id="query" placeholder="Čo chceš počuť alebo vidieť?">
+                <button onclick="app.search()">Hľadať</button>
             </div>
-            <p id="anticheat-msg" style="color: var(--danger); font-size: 12px; margin-top: 10px;" class="hidden"></p>
         </div>
         <div id="results" class="video-grid"></div>
     </div>
 
-    <!-- PLAYER OVERLAY -->
+    <!-- PLAYER -->
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <button class="close-player-btn" onclick="app.closePlayer()" title="Zavrieť">✕</button>
+            <div class="close-player-btn" onclick="app.closePlayer()">✕</div>
             <div id="youtube-player"></div>
         </div>
     </div>
 
-    <div class="settings-btn" onclick="app.promptApiKey()" title="Nastavenia API">⚙️</div>
+    <div class="settings-btn" onclick="app.promptApiKey()">⚙️</div>
 
     <script>
         let tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
-        let firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        document.head.appendChild(tag);
 
         let ytPlayer;
 
         const app = {
             state: {
-                credits: 2500,
+                users: JSON.parse(localStorage.getItem('bt_accounts') || '[]'),
+                currentUserEmail: localStorage.getItem('bt_session_email') || null,
                 apiKey: localStorage.getItem('bt_key') || '',
-                user: null,
-                lastSearchTime: 0,
-                searchCooldown: 2000 // Anti-spam limit 2 sekundy
+                lastSearch: 0
             },
 
             init() {
-                const savedUser = localStorage.getItem('bt_active_user');
-                const isBanned = localStorage.getItem('bt_banned') === 'true';
-
-                if (isBanned) {
-                    this.showBan();
-                    return;
+                if (this.state.currentUserEmail) {
+                    const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
+                    if (user) {
+                        if (user.banned) return this.showBan();
+                        this.onLoginSuccess(user);
+                    } else {
+                        this.logout();
+                    }
                 }
-
-                if (savedUser) {
-                    this.state.user = JSON.parse(savedUser);
-                    this.onLoginSuccess();
-                }
-            },
-
-            showBan() {
-                document.getElementById('ban-screen').classList.remove('hidden');
-            },
-
-            resetEverything() {
-                localStorage.clear();
-                location.reload();
             },
 
             showView(viewId) {
@@ -364,195 +336,179 @@
                 document.getElementById(viewId).classList.remove('hidden');
             },
 
-            toggleProfileModal() {
-                const modal = document.getElementById('profile-modal');
-                modal.classList.toggle('hidden');
-                if (!modal.classList.contains('hidden')) {
-                    const u = this.state.user;
-                    document.getElementById('account-status').innerHTML = `
-                        Stav: <span style="color:lightgreen">Aktívny</span><br>
-                        Varovania: <span style="color:${u.warnings > 0 ? 'red' : 'white'}">${u.warnings}/3</span><br>
-                        Pohlavie: ${u.gender}<br>
-                        Registrovaný: ${u.registeredAt.split(',')[0]}
-                    `;
+            handleRegister() {
+                const email = document.getElementById('reg-email').value;
+                const fName = document.getElementById('reg-firstname').value;
+                const lName = document.getElementById('reg-lastname').value;
+                const pass = document.getElementById('reg-pass').value;
+                const birth = document.getElementById('reg-birth').value;
+                const gender = document.getElementById('reg-gender').value;
+                const country = document.getElementById('reg-country').value;
+                const terms = document.getElementById('reg-terms').checked;
+                const news = document.getElementById('reg-news').checked;
+
+                if (!email || !fName || !lName || !pass || !birth || !gender || !country) {
+                    return alert("Vyplňte všetky polia!");
                 }
-            },
-
-            handleAuth(type) {
-                // Vždy najprv skontrolujeme globálny ban v prehliadači
-                if (localStorage.getItem('bt_banned') === 'true') return this.showBan();
-
-                if (type === 'register') {
-                    const fName = document.getElementById('reg-firstname').value;
-                    const lName = document.getElementById('reg-lastname').value;
-                    const email = document.getElementById('reg-email').value;
-                    const birth = document.getElementById('reg-birth').value;
-                    const gender = document.getElementById('reg-gender').value;
-                    
-                    if (!fName || !lName || !email || !birth || !gender) return alert("Prosím vyplňte všetky údaje!");
-                    
-                    this.state.user = { 
-                        name: `${fName} ${lName}`, 
-                        email, birth, gender,
-                        avatar: null,
-                        warnings: 0,
-                        registeredAt: new Date().toLocaleString() 
-                    };
-                } else {
-                    const email = document.getElementById('login-email').value;
-                    const saved = JSON.parse(localStorage.getItem('bt_active_user'));
-                    
-                    if (saved && saved.email === email) {
-                        this.state.user = saved;
-                    } else if (!email) {
-                        return alert("Zadajte email!");
-                    } else {
-                        this.state.user = { name: "Hosť", email, avatar: null, warnings: 0, gender: 'Neznáme', registeredAt: new Date().toLocaleString() };
-                    }
+                if (!terms) {
+                    return alert("Musíte súhlasiť s podmienkami!");
+                }
+                if (this.state.users.find(u => u.email === email)) {
+                    return alert("Tento email je už registrovaný!");
                 }
 
-                this.saveUser();
-                this.onLoginSuccess();
+                const newUser = {
+                    email, pass, birth, gender, country,
+                    newsletter: news ? "Áno" : "Nie",
+                    name: `${fName} ${lName}`,
+                    avatar: null,
+                    warnings: 0,
+                    banned: false,
+                    registeredAt: new Date().toLocaleString(),
+                    lastLogin: null,
+                    lastLogout: null
+                };
+
+                this.state.users.push(newUser);
+                this.saveAccounts();
+                alert("Účet vytvorený! Teraz sa môžete prihlásiť.");
+                this.showView('login-view');
             },
 
-            saveUser() {
-                localStorage.setItem('bt_active_user', JSON.stringify(this.state.user));
-            },
+            handleLogin() {
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
 
-            onLoginSuccess() {
-                if (this.state.user.warnings >= 3) {
-                    localStorage.setItem('bt_banned', 'true');
-                    this.showBan();
-                    return;
+                const user = this.state.users.find(u => u.email === email && u.pass === pass);
+                
+                if (!user) {
+                    return alert("Nesprávny email alebo heslo!");
                 }
 
+                if (user.banned) return this.showBan();
+
+                user.lastLogin = new Date().toLocaleString();
+                this.state.currentUserEmail = email;
+                localStorage.setItem('bt_session_email', email);
+                this.saveAccounts();
+                this.onLoginSuccess(user);
+            },
+
+            onLoginSuccess(user) {
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
-                document.getElementById('credit-count').innerText = this.state.credits;
-                document.getElementById('welcome-msg').innerText = this.state.user.name;
+                document.getElementById('welcome-msg').innerText = user.name;
+                document.getElementById('user-avatar').src = user.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
                 
-                this.updateUIWarnings();
-
-                if (this.state.user.avatar) {
-                    document.getElementById('user-avatar').src = this.state.user.avatar;
-                }
-                
-                if(!this.state.apiKey) setTimeout(() => this.promptApiKey(), 500);
-            },
-
-            updateUIWarnings() {
-                const container = document.getElementById('warning-container');
-                if (this.state.user.warnings > 0) {
-                    container.classList.remove('hidden');
-                    container.innerHTML = `<span class="warning-badge">VAROVANIE ${this.state.user.warnings}/3</span>`;
+                const w = document.getElementById('warning-label');
+                if (user.warnings > 0) {
+                    w.innerText = `VAROVANIA: ${user.warnings}/3`;
+                    w.classList.remove('hidden');
                 } else {
-                    container.classList.add('hidden');
+                    w.classList.add('hidden');
                 }
             },
 
-            triggerWarning(reason) {
-                this.state.user.warnings++;
-                this.saveUser();
-                this.updateUIWarnings();
-                
-                alert(`ANTY-CHEAT SYSTÉM:\n\nBolo vám udelené varovanie!\nDôvod: ${reason}\n\nPočet varovaní: ${this.state.user.warnings}/3.\nPri 3. varovaní dostanete trvalý BAN.`);
-                
-                if (this.state.user.warnings >= 3) {
-                    localStorage.setItem('bt_banned', 'true');
-                    this.showBan();
+            logout() {
+                if (this.state.currentUserEmail) {
+                    const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
+                    if (user) {
+                        user.lastLogout = new Date().toLocaleString();
+                        this.saveAccounts();
+                    }
+                }
+                localStorage.removeItem('bt_session_email');
+                location.reload();
+            },
+
+            saveAccounts() {
+                localStorage.setItem('bt_accounts', JSON.stringify(this.state.users));
+            },
+
+            toggleProfileModal() {
+                const m = document.getElementById('profile-modal');
+                m.classList.toggle('hidden');
+                if (!m.classList.contains('hidden')) {
+                    const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
+                    document.getElementById('account-details').innerHTML = `
+                        <b>Email:</b> ${user.email}<br>
+                        <b>Štát:</b> ${user.country}<br>
+                        <b>Narodený:</b> ${user.birth}<br>
+                        <b>Odber noviniek:</b> ${user.newsletter}<br>
+                        <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+                        <b>Registrovaný:</b> ${user.registeredAt}<br>
+                        <b>Posledné prihlásenie:</b> ${user.lastLogin || 'Prvýkrát'}<br>
+                        <b>Posledné odhlásenie:</b> ${user.lastLogout || 'Ešte nebolo'}
+                    `;
                 }
             },
 
             updateAvatar() {
                 const file = document.getElementById('avatar-input').files[0];
-                if (!file) return alert("Vyberte obrázok!");
-                
+                if (!file) return;
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const base64Image = e.target.result;
-                    this.state.user.avatar = base64Image;
-                    document.getElementById('user-avatar').src = base64Image;
-                    this.saveUser();
-                    alert("Profilovka bola natrvalo uložená do prehliadača.");
-                    this.toggleProfileModal();
+                    const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
+                    user.avatar = e.target.result;
+                    document.getElementById('user-avatar').src = user.avatar;
+                    this.saveAccounts();
+                    alert("Profilovka uložená!");
                 };
                 reader.readAsDataURL(file);
             },
 
-            logout() {
-                // Nečistíme localStorage úplne, aby si pamätal dáta, len resetujeme session
-                this.showView('login-view');
-                document.getElementById('user-nav').classList.add('hidden');
-                this.state.user = null;
-            },
+            showBan() { document.getElementById('ban-screen').classList.remove('hidden'); },
+            resetEverything() { localStorage.clear(); location.reload(); },
 
             promptApiKey() {
-                const key = prompt("Vložte svoj YouTube API kľúč:", this.state.apiKey);
-                if(key) {
-                    this.state.apiKey = key;
-                    localStorage.setItem('bt_key', key);
-                }
+                const key = prompt("Vlož YouTube API kľúč:", this.state.apiKey);
+                if (key) { this.state.apiKey = key; localStorage.setItem('bt_key', key); }
             },
 
             async search() {
-                // ANTY-CHEAT: Kontrola spamu
                 const now = Date.now();
-                if (now - this.state.lastSearchTime < this.state.searchCooldown) {
-                    const msg = document.getElementById('anticheat-msg');
-                    msg.innerText = "ANTY-CHEAT: Klikáte príliš rýchlo! Spomalte, inak dostanete varovanie.";
-                    msg.classList.remove('hidden');
-                    
-                    // Ak kliká napriek varovaniu opakovane (menej ako 500ms)
-                    if (now - this.state.lastSearchTime < 600) {
-                        this.triggerWarning("Spamovanie tlačidla vyhľadávania.");
-                    }
+                if (now - this.state.lastSearch < 1500) {
+                    const user = this.state.users.find(u => u.email === this.state.currentUserEmail);
+                    user.warnings++;
+                    this.saveAccounts();
+                    alert(`ANTY-CHEAT: Varovanie (${user.warnings}/3). Nespamuj!`);
+                    if (user.warnings >= 3) { user.banned = true; this.saveAccounts(); this.showBan(); }
                     return;
                 }
-                document.getElementById('anticheat-msg').classList.add('hidden');
-                this.state.lastSearchTime = now;
+                this.state.lastSearch = now;
 
-                if(!this.state.apiKey) return alert("API kľúč chýba (⚙️).");
                 const q = document.getElementById('query').value;
-                if(!q) return;
+                if (!q || !this.state.apiKey) return alert("Zadaj dopyt a API kľúč!");
 
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
-                
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
                 try {
                     const res = await fetch(url);
                     const data = await res.json();
-                    if (data.error) throw new Error(data.error.message);
                     this.render(data.items);
-                } catch(e) { alert("Chyba API alebo neplatný kľúč."); }
+                } catch(e) { alert("Chyba API."); }
             },
 
             render(items) {
                 const container = document.getElementById('results');
-                container.innerHTML = '';
-                if(!items) return;
-                
-                items.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'video-card';
-                    div.innerHTML = `
+                container.innerHTML = items.map(item => `
+                    <div class="video-card" onclick="app.play('${item.id.videoId}')">
                         <img src="${item.snippet.thumbnails.medium.url}">
                         <div class="video-info">
-                            <div style="font-weight:bold; font-size:13px; height: 32px; overflow:hidden;">${item.snippet.title}</div>
+                            <div style="font-weight:bold; font-size:13px;">${item.snippet.title}</div>
                             <div style="color:#888; font-size:11px; margin-top:5px;">${item.snippet.channelTitle}</div>
                         </div>
-                    `;
-                    div.onclick = () => this.play(item.id.videoId);
-                    container.appendChild(div);
-                });
+                    </div>
+                `).join('');
             },
 
-            play(videoId) {
+            play(id) {
                 document.getElementById('player-view').classList.remove('hidden');
                 if (ytPlayer && ytPlayer.loadVideoById) {
-                    ytPlayer.loadVideoById(videoId);
+                    ytPlayer.loadVideoById(id);
                 } else {
                     ytPlayer = new YT.Player('youtube-player', {
-                        height: '100%', width: '100%', videoId: videoId,
-                        playerVars: { 'autoplay': 1, 'modestbranding': 1, 'rel': 0 },
+                        height: '100%', width: '100%', videoId: id,
+                        playerVars: { 'autoplay': 1, 'modestbranding': 1 },
                         events: { 'onReady': (e) => e.target.playVideo() }
                     });
                 }
@@ -564,7 +520,7 @@
             }
         };
 
-        window.onYouTubeIframeAPIReady = () => console.log("API Ready");
+        window.onYouTubeIframeAPIReady = () => console.log("Engine Ready");
     </script>
 </body>
 </html>
