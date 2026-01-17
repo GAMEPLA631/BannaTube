@@ -277,25 +277,6 @@
             border-left: 3px solid var(--danger);
         }
 
-        .settings-btn { 
-            position: fixed; 
-            bottom: 30px; 
-            left: 30px; 
-            cursor: pointer; 
-            opacity: 0.5; 
-            font-size: 24px; 
-            transition: 0.3s;
-            background: var(--surface);
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            border: 1px solid var(--glass-border);
-        }
-        .settings-btn:hover { opacity: 1; transform: rotate(90deg); color: var(--primary); }
-
         .search-area {
             text-align: center;
             padding: 100px 20px;
@@ -305,34 +286,16 @@
 
         .checkbox-container {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            text-align: left;
-            font-size: 12px;
-            color: #bbb;
-            margin-bottom: 10px;
-            cursor: pointer;
+            align-items: center; gap: 10px; text-align: left; font-size: 12px; color: #bbb; margin-bottom: 10px; cursor: pointer;
         }
         .checkbox-container input { width: auto; margin: 0; cursor: pointer; }
 
         .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 5px;
+            display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;
         }
 
         .nav-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255,255,255,0.05);
-            padding: 12px 18px;
-            border-radius: 12px;
-            margin: 10px 0;
-            cursor: pointer;
-            transition: 0.2s;
+            display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px 18px; border-radius: 12px; margin: 10px 0; cursor: pointer; transition: 0.2s;
         }
         .nav-arrow:hover { background: rgba(255,255,255,0.1); }
 
@@ -421,7 +384,6 @@
     <!-- PLAYER -->
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <!-- TLAČIDLO ZATVORIŤ -->
             <button class="close-player-btn" onclick="app.closePlayer()" title="Zavrieť prehrávač">✕</button>
             <div id="youtube-player"></div>
         </div>
@@ -440,7 +402,7 @@
             <div id="details-box" style="font-size: 13px; text-align: left; margin: 20px 0; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);"></div>
             
             <div class="nav-arrow" onclick="app.switchSettings('analytics')">
-                <span>Core Analytika</span>
+                <span>Nastavenia & Analytika</span>
                 <span style="color: var(--primary);">➔</span>
             </div>
 
@@ -449,11 +411,19 @@
 
         <div id="profile-analytics-screen" class="hidden">
             <h3 style="color: var(--primary);">Core Stats</h3>
-            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; margin-bottom: 25px; text-align: left; font-size: 13px; border: 1px solid var(--glass-border);">
+            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; margin-bottom: 15px; text-align: left; font-size: 13px; border: 1px solid var(--glass-border);">
                 <div class="stat-item"><span>Ročná kvóta:</span><span style="color: var(--primary); font-weight: 800;">10 000</span></div>
                 <div class="stat-item"><span>Dostupné:</span><span id="modal-credits" style="color: var(--success); font-weight: 800;">0</span></div>
                 <div class="stat-item"><span>System Reset:</span><span id="reset-date" style="opacity: 0.6;">01.01.2027</span></div>
             </div>
+
+            <!-- OPRAVENÉ UKLADANIE API KEY -->
+            <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 20px; margin-bottom: 20px;">
+                <h4 style="font-size: 12px; margin: 0 0 10px 0; color: var(--primary); text-align: left;">KONFIGURÁCIA API</h4>
+                <input type="password" id="api-key-input" placeholder="Vložte YouTube API kľúč..." style="font-size: 11px; padding: 10px;">
+                <button onclick="app.saveApiKey()" style="width: 100%; margin-top: 10px; padding: 8px; font-size: 11px;">Uložiť kľúč</button>
+            </div>
+
             <div class="nav-arrow" onclick="app.switchSettings('main')"><span>⬅ Späť do profilu</span></div>
         </div>
     </div>
@@ -465,8 +435,6 @@
         <div id="search-history" class="history-list"></div>
         <button onclick="app.toggleHistoryModal()" style="width: 100%; margin-top: 20px;">Zatvoriť logy</button>
     </div>
-
-    <div class="settings-btn" onclick="app.setApiKey()">⚙️</div>
 
     <script>
         let tag = document.createElement('script');
@@ -593,14 +561,14 @@
             },
 
             async fetchVideos(q) {
-                if (!this.state.apiKey) return alert("Zadajte API kľúč (⚙️)");
+                if (!this.state.apiKey) return alert("Vložte API kľúč v nastaveniach profilu!");
                 const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
                 try {
                     const r = await fetch(url);
                     const d = await r.json();
                     if(d.error) throw new Error(d.error.message);
                     this.render(d.items);
-                } catch(e) { alert("Chyba API."); }
+                } catch(e) { alert("Chyba API spojenia. Skontrolujte kľúč."); }
             },
 
             render(items) {
@@ -639,6 +607,14 @@
                 document.getElementById('player-view').classList.add('hidden'); 
             },
 
+            saveApiKey() {
+                const val = document.getElementById('api-key-input').value.trim();
+                if(!val) return alert("Vložte platný kľúč!");
+                this.state.apiKey = val;
+                localStorage.setItem('bt_key', val);
+                alert("API kľúč bol úspešne uložený do systémovej pamäte.");
+            },
+
             toggleHistoryModal() {
                 const m = document.getElementById('history-modal');
                 m.classList.toggle('hidden');
@@ -650,12 +626,14 @@
             },
 
             toggleProfileModal() { document.getElementById('profile-modal').classList.toggle('hidden'); this.switchSettings('main'); },
+            
             switchSettings(s) {
                 document.getElementById('profile-main-screen').className = s==='main'?'':'hidden';
                 document.getElementById('profile-analytics-screen').className = s==='analytics'?'':'hidden';
                 if(s==='analytics') {
                     const u = this.state.users.find(u => u.email === this.state.session);
                     document.getElementById('modal-credits').innerText = u.credits.toLocaleString();
+                    document.getElementById('api-key-input').value = this.state.apiKey;
                 }
                 if(s==='main') {
                     const u = this.state.users.find(u => u.email === this.state.session);
@@ -679,11 +657,10 @@
 
             logout() { localStorage.removeItem('bt_active'); location.reload(); },
             showBan(r) { document.getElementById('ban-reason').innerText = r; document.getElementById('ban-screen').classList.remove('hidden'); },
-            resetEverything() { localStorage.clear(); location.reload(); },
-            setApiKey() { const k = prompt("API Key:"); if(k) { localStorage.setItem('bt_key', k); location.reload(); } }
+            resetEverything() { localStorage.clear(); location.reload(); }
         };
 
-        window.onYouTubeIframeAPIReady = () => {};
+        window.onYouTubeIframeAPIReady = () => { console.log("System Online."); };
     </script>
 </body>
 </html>
