@@ -417,7 +417,6 @@
                 <div class="stat-item"><span>System Reset:</span><span id="reset-date" style="opacity: 0.6;">01.01.2027</span></div>
             </div>
 
-            <!-- OPRAVENÉ UKLADANIE API KEY -->
             <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 20px; margin-bottom: 20px;">
                 <h4 style="font-size: 12px; margin: 0 0 10px 0; color: var(--primary); text-align: left;">KONFIGURÁCIA API</h4>
                 <input type="password" id="api-key-input" placeholder="Vložte YouTube API kľúč..." style="font-size: 11px; padding: 10px;">
@@ -533,42 +532,62 @@
 
             search() {
                 const now = Date.now();
-                const user = this.state.users.find(u => u.email === this.state.session);
-                const query = document.getElementById('query').value.trim();
+                const userEmail = this.state.session;
+                const user = this.state.users.find(u => u.email === userEmail);
+                if (!user) return;
+
+                const queryInput = document.getElementById('query');
+                const query = queryInput.value.trim();
                 if (!query) return;
 
-                if (now - this.state.lastSearch < 2000) {
+                // ANTI-CHEAT: Rate limiting
+                if (now - this.state.lastSearch < 2500) {
                     user.warnings++;
-                    user.violationLog.push({ date: new Date().toLocaleString(), reason: "Rate Limit Exceeded (Anti-Spam)" });
+                    user.violationLog.push({ date: new Date().toLocaleString(), reason: "Security: Rapid Scanning Detected (Anti-Cheat)" });
                     this.save();
                     if (user.warnings >= 3) {
                         this.state.users = this.state.users.filter(u => u.email !== user.email);
                         this.save();
                         localStorage.removeItem('bt_active');
-                        this.showBan("LICENSE REVOKED: Security Violation.");
+                        this.showBan("LICENSE REVOKED: Security Breach (System Spamming).");
                         return;
                     }
-                    alert("Spomalte! Priestupok zaznamenaný.");
+                    alert("SYSTÉM: Spomalte! Vaše správanie je podozrivé. Varovanie " + user.warnings + "/3.");
                     this.onLogin(user);
                     return;
                 }
 
+                this.state.lastSearch = now;
                 user.searchHistory.unshift({ date: new Date().toLocaleString(), query });
                 if(user.searchHistory.length > 20) user.searchHistory.pop();
-                this.state.lastSearch = now;
                 this.save();
+
                 this.fetchVideos(query);
             },
 
             async fetchVideos(q) {
-                if (!this.state.apiKey) return alert("Vložte API kľúč v nastaveniach profilu!");
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
+                if (!this.state.apiKey) return alert("SYSTÉM: Vložte dešifrovací API kľúč v nastaveniach profilu!");
+                
+                const grid = document.getElementById('results');
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; opacity: 0.5;">Skenujem databázu YouTube...</p>';
+
                 try {
-                    const r = await fetch(url);
-                    const d = await r.json();
-                    if(d.error) throw new Error(d.error.message);
-                    this.render(d.items);
-                } catch(e) { alert("Chyba API spojenia. Skontrolujte kľúč."); }
+                    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    
+                    if (data.error) throw new Error(data.error.message);
+                    
+                    if (!data.items || data.items.length === 0) {
+                        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Nenašli sa žiadne dáta pre váš dopyt.</p>';
+                        return;
+                    }
+
+                    this.render(data.items);
+                } catch(e) { 
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--danger);">CHYBA: Skenovanie zlyhalo. Skontrolujte API kľúč.</p>';
+                    console.error(e);
+                }
             },
 
             render(items) {
@@ -578,6 +597,7 @@
                         <img src="${i.snippet.thumbnails.medium.url}">
                         <div class="video-info">
                             <b>${i.snippet.title}</b>
+                            <div style="font-size: 11px; color: var(--primary); margin-top: 8px; opacity: 0.6;">${i.snippet.channelTitle}</div>
                         </div>
                     </div>
                 `).join('');
@@ -585,12 +605,17 @@
 
             play(id) {
                 const user = this.state.users.find(u => u.email === this.state.session);
-                if(user.credits < 10) return alert("Nedostatok kreditov!");
+                if (!user) return;
+                
+                if(user.credits < 10) return alert("SYSTÉM: Nedostatok kreditov pre zobrazenie obsahu!");
                 
                 user.credits -= 10;
                 this.save();
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
-                document.getElementById('player-view').classList.remove('hidden');
+                
+                const overlay = document.getElementById('player-view');
+                overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
                 
                 if (ytPlayer && ytPlayer.loadVideoById) {
                     ytPlayer.loadVideoById(id);
@@ -605,6 +630,7 @@
             closePlayer() { 
                 if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo(); 
                 document.getElementById('player-view').classList.add('hidden'); 
+                document.body.style.overflow = 'auto';
             },
 
             saveApiKey() {
@@ -612,7 +638,7 @@
                 if(!val) return alert("Vložte platný kľúč!");
                 this.state.apiKey = val;
                 localStorage.setItem('bt_key', val);
-                alert("API kľúč bol úspešne uložený do systémovej pamäte.");
+                alert("API kľúč bol uložený a systém bol synchronizovaný.");
             },
 
             toggleHistoryModal() {
@@ -620,8 +646,13 @@
                 m.classList.toggle('hidden');
                 if (!m.classList.contains('hidden')) {
                     const u = this.state.users.find(u => u.email === this.state.session);
-                    document.getElementById('violation-log').innerHTML = u.violationLog.map(v => `<div class="violation-item"><b>${v.date}</b><br>${v.reason}</div>`).join('') || "Žiadne priestupky.";
-                    document.getElementById('search-history').innerHTML = u.searchHistory.map(s => `<div class="history-item"><span>${s.query}</span></div>`).join('') || "Čistá história.";
+                    document.getElementById('violation-log').innerHTML = u.violationLog.length ? 
+                        u.violationLog.map(v => `<div class="violation-item"><b>${v.date}</b><br>${v.reason}</div>`).join('') : 
+                        "<p style='opacity: 0.3'>Žiadne priestupky.</p>";
+                    
+                    document.getElementById('search-history').innerHTML = u.searchHistory.length ? 
+                        u.searchHistory.map(s => `<div class="history-item"><span>${s.query}</span> <small style='opacity:0.3'>${s.date.split(',')[0]}</small></div>`).join('') : 
+                        "<p style='opacity: 0.3'>Čistá história.</p>";
                 }
             },
 
@@ -660,7 +691,7 @@
             resetEverything() { localStorage.clear(); location.reload(); }
         };
 
-        window.onYouTubeIframeAPIReady = () => { console.log("System Online."); };
+        window.onYouTubeIframeAPIReady = () => { console.log("BannaTube Premium Engine: Online."); };
     </script>
 </body>
 </html>
