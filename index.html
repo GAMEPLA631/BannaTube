@@ -128,7 +128,6 @@
             cursor: pointer;
             transition: 0.3s;
         }
-        .profile-pic-container:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--primary-glow); }
         .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; }
 
         /* --- AUTH CARDS --- */
@@ -201,9 +200,8 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 20px var(--primary-glow);
         }
         .video-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; transition: 0.5s; }
-        .video-card:hover img { transform: scale(1.1); }
         .video-info { padding: 20px; }
-        .video-info b { font-size: 15px; line-height: 1.4; display: block; height: 42px; overflow: hidden; }
+        .video-info b { font-size: 14px; line-height: 1.4; display: block; height: 40px; overflow: hidden; }
 
         /* --- PLAYER --- */
         .player-overlay {
@@ -211,7 +209,7 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9);
             backdrop-filter: blur(15px);
-            z-index: 2000;
+            z-index: 4000;
             display: flex; align-items: center; justify-content: center;
         }
         .player-wrapper {
@@ -240,7 +238,7 @@
             font-size: 24px;
             font-weight: 800;
             cursor: pointer;
-            z-index: 2100;
+            z-index: 5000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -268,14 +266,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        .violation-item {
-            color: var(--danger);
-            background: rgba(255, 68, 68, 0.1);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border-left: 3px solid var(--danger);
-        }
 
         .search-area {
             text-align: center;
@@ -283,12 +273,6 @@
             background: radial-gradient(circle at center, rgba(255,215,0,0.05) 0%, transparent 70%);
         }
         .search-area h1 { font-size: 3.5rem; margin: 0 0 10px 0; font-weight: 800; }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center; gap: 10px; text-align: left; font-size: 12px; color: #bbb; margin-bottom: 10px; cursor: pointer;
-        }
-        .checkbox-container input { width: auto; margin: 0; cursor: pointer; }
 
         .stat-item {
             display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;
@@ -349,22 +333,7 @@
             <p style="color: #888; font-size: 14px; margin-bottom: 30px;">Získajte 10 000 kreditov na tento rok</p>
             <div class="form-row"><input type="text" id="reg-name" placeholder="Meno"><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
             <input type="email" id="reg-email" placeholder="Email">
-            <div class="form-row">
-                <input type="date" id="reg-birth">
-                <select id="reg-gender">
-                    <option value="" disabled selected>Pohlavie</option>
-                    <option value="Muž">Muž</option>
-                    <option value="Žena">Žena</option>
-                </select>
-            </div>
-            <select id="reg-country">
-                <option value="" disabled selected>Krajina pôvodu</option>
-                <option value="Slovensko">Slovensko</option>
-                <option value="Česko">Česko</option>
-                <option value="Iné">Iné</option>
-            </select>
             <input type="password" id="reg-pass" placeholder="Bezpečné heslo">
-            <label class="checkbox-container" style="margin-top: 10px;"><input type="checkbox" id="reg-terms"> Súhlasím s digitálnymi podmienkami</label>
             <button onclick="app.handleRegister()" style="width:100%; margin-top: 20px;">Aktivovať účet</button>
         </div>
     </div>
@@ -374,14 +343,14 @@
             <h1>PREMIUM <span style="color:var(--primary)">EXPLORER</span></h1>
             <p style="font-size: 14px; color: #888; margin-top: -10px; margin-bottom: 40px; letter-spacing: 2px;">Vstúpte do sveta neobmedzeného obsahu</p>
             <div style="display: flex; max-width: 650px; margin: 0 auto; gap: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 20px; border: 1px solid var(--glass-border);">
-                <input type="text" id="query" placeholder="Čo hľadáte?..." onkeypress="if(event.key==='Enter')app.search()" style="background: transparent; border: none; margin-bottom: 0;">
-                <button onclick="app.search()" style="min-width: 140px;">Skenovať</button>
+                <input type="text" id="query" placeholder="Zadajte názov videa..." onkeypress="if(event.key==='Enter')app.search()" style="background: transparent; border: none; margin-bottom: 0;">
+                <button onclick="app.search()" id="search-main-btn" style="min-width: 140px;">Skenovať</button>
             </div>
         </div>
         <div id="results" class="video-grid"></div>
     </div>
 
-    <!-- PLAYER -->
+    <!-- PLAYER OVERLAY -->
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
             <button class="close-player-btn" onclick="app.closePlayer()" title="Zavrieť prehrávač">✕</button>
@@ -410,32 +379,34 @@
         </div>
 
         <div id="profile-analytics-screen" class="hidden">
-            <h3 style="color: var(--primary);">Core Stats</h3>
-            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; margin-bottom: 15px; text-align: left; font-size: 13px; border: 1px solid var(--glass-border);">
+            <h3 style="color: var(--primary);">Konfigurácia</h3>
+            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; margin-bottom: 20px; text-align: left; font-size: 13px; border: 1px solid var(--glass-border);">
                 <div class="stat-item"><span>Ročná kvóta:</span><span style="color: var(--primary); font-weight: 800;">10 000</span></div>
-                <div class="stat-item"><span>Dostupné:</span><span id="modal-credits" style="color: var(--success); font-weight: 800;">0</span></div>
-                <div class="stat-item"><span>System Reset:</span><span id="reset-date" style="opacity: 0.6;">01.01.2027</span></div>
+                <div class="stat-item"><span>Zostatok:</span><span id="modal-credits" style="color: var(--success); font-weight: 800;">0</span></div>
             </div>
 
             <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 20px; margin-bottom: 20px;">
-                <h4 style="font-size: 12px; margin: 0 0 10px 0; color: var(--primary); text-align: left;">KONFIGURÁCIA API</h4>
-                <input type="password" id="api-key-input" placeholder="Vložte YouTube API kľúč..." style="font-size: 11px; padding: 10px;">
-                <button onclick="app.saveApiKey()" style="width: 100%; margin-top: 10px; padding: 8px; font-size: 11px;">Uložiť kľúč</button>
+                <h4 style="font-size: 12px; margin: 0 0 10px 0; color: var(--primary); text-align: left;">YOUTUBE API KEY</h4>
+                <input type="password" id="api-key-input" placeholder="AIzaSy..." style="font-size: 11px; padding: 10px;">
+                <button onclick="app.saveApiKey()" style="width: 100%; margin-top: 10px; padding: 8px; font-size: 11px;">Uložiť do systému</button>
             </div>
 
-            <div class="nav-arrow" onclick="app.switchSettings('main')"><span>⬅ Späť do profilu</span></div>
+            <div class="nav-arrow" onclick="app.switchSettings('main')"><span>⬅ Späť</span></div>
         </div>
     </div>
 
     <!-- HISTORY MODAL -->
     <div id="history-modal" class="modal hidden">
-        <h3 style="color: var(--primary); margin-bottom: 30px;">System Log ⭐</h3>
-        <div id="violation-log" class="history-list"></div>
-        <div id="search-history" class="history-list"></div>
-        <button onclick="app.toggleHistoryModal()" style="width: 100%; margin-top: 20px;">Zatvoriť logy</button>
+        <h3 style="color: var(--primary); margin-bottom: 20px;">Systémový Denník ⭐</h3>
+        <div style="text-align: left;">
+            <div id="violation-log" class="history-list"></div>
+            <div id="search-history" class="history-list"></div>
+        </div>
+        <button onclick="app.toggleHistoryModal()" style="width: 100%; margin-top: 20px;">Zavrieť denník</button>
     </div>
 
     <script>
+        // Načítanie YouTube Player API
         let tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         document.head.appendChild(tag);
@@ -466,7 +437,7 @@
                 if (now.getFullYear() > user.lastYearCheck) {
                     if (user.credits > 0) {
                         user.banned = true;
-                        user.banReason = "TERMINATED: Nesplnená podmienka ročného výdavku kreditov.";
+                        user.banReason = "Účet deaktivovaný: Nesplnený ročný výdavok kreditov.";
                     } else {
                         user.credits = 10000;
                         user.lastYearCheck = now.getFullYear();
@@ -486,10 +457,12 @@
             },
 
             handleRegister() {
-                const email = document.getElementById('reg-email').value;
-                const name = document.getElementById('reg-name').value;
-                const pass = document.getElementById('reg-pass').value;
-                if (!email || !name || !pass) return alert("Chýbajúce prístupové údaje!");
+                const email = document.getElementById('reg-email').value.trim();
+                const name = document.getElementById('reg-name').value.trim();
+                const pass = document.getElementById('reg-pass').value.trim();
+                if (!email || !name || !pass) return alert("Zadajte všetky údaje!");
+
+                if (this.state.users.find(u => u.email === email)) return alert("Účet s týmto emailom už existuje.");
 
                 const newUser = {
                     email, name, pass,
@@ -500,15 +473,15 @@
 
                 this.state.users.push(newUser);
                 this.save();
-                alert("Licencia aktivovaná!");
+                alert("Licencia Premium aktivovaná!");
                 this.showView('login-view');
             },
 
             handleLogin() {
-                const email = document.getElementById('login-email').value;
-                const pass = document.getElementById('login-pass').value;
+                const email = document.getElementById('login-email').value.trim();
+                const pass = document.getElementById('login-pass').value.trim();
                 const user = this.state.users.find(u => u.email === email && u.pass === pass);
-                if (!user) return alert("Prístup zamietnutý.");
+                if (!user) return alert("Prístup zamietnutý: Nesprávne údaje.");
                 
                 this.state.session = email;
                 localStorage.setItem('bt_active', email);
@@ -525,37 +498,38 @@
                 }
                 const wl = document.getElementById('warning-label');
                 if (user.warnings > 0) {
-                    wl.innerText = `⚠️ WARN ${user.warnings}/3`;
+                    wl.innerText = `⚠️ VAROVANIE ${user.warnings}/3`;
                     wl.classList.remove('hidden');
                 }
             },
 
-            search() {
+            async search() {
                 const now = Date.now();
-                const userEmail = this.state.session;
-                const user = this.state.users.find(u => u.email === userEmail);
+                const user = this.state.users.find(u => u.email === this.state.session);
                 if (!user) return;
 
                 const queryInput = document.getElementById('query');
                 const query = queryInput.value.trim();
                 if (!query) return;
 
-                // ANTI-CHEAT: Rate limiting
+                // Anti-Cheat: Rate limiting (2.5 sekundy)
                 if (now - this.state.lastSearch < 2500) {
                     user.warnings++;
-                    user.violationLog.push({ date: new Date().toLocaleString(), reason: "Security: Rapid Scanning Detected (Anti-Cheat)" });
+                    user.violationLog.push({ date: new Date().toLocaleString(), reason: "Rate Limit: Nadmerné dopyty na systém." });
                     this.save();
                     if (user.warnings >= 3) {
                         this.state.users = this.state.users.filter(u => u.email !== user.email);
                         this.save();
                         localStorage.removeItem('bt_active');
-                        this.showBan("LICENSE REVOKED: Security Breach (System Spamming).");
+                        this.showBan("LICENSE REVOKED: Bezpečnostný priestupok (Spamming).");
                         return;
                     }
-                    alert("SYSTÉM: Spomalte! Vaše správanie je podozrivé. Varovanie " + user.warnings + "/3.");
+                    alert("SYSTÉM: Detegované spamovanie! Varovanie " + user.warnings + "/3.");
                     this.onLogin(user);
                     return;
                 }
+
+                if (!this.state.apiKey) return alert("SYSTÉM: Chýba dešifrovací API kľúč. Nastavte ho v profile.");
 
                 this.state.lastSearch = now;
                 user.searchHistory.unshift({ date: new Date().toLocaleString(), query });
@@ -566,27 +540,29 @@
             },
 
             async fetchVideos(q) {
-                if (!this.state.apiKey) return alert("SYSTÉM: Vložte dešifrovací API kľúč v nastaveniach profilu!");
-                
                 const grid = document.getElementById('results');
                 grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; opacity: 0.5;">Skenujem databázu YouTube...</p>';
 
                 try {
-                    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`;
+                    // search endpoint
+                    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     
-                    if (data.error) throw new Error(data.error.message);
+                    if (data.error) {
+                        if (data.error.code === 400) throw new Error("Neplatný API kľúč.");
+                        if (data.error.code === 403) throw new Error("API Limit vyčerpaný (Quota Exceeded).");
+                        throw new Error(data.error.message);
+                    }
                     
                     if (!data.items || data.items.length === 0) {
-                        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Nenašli sa žiadne dáta pre váš dopyt.</p>';
+                        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Pre tento dopyt sa nenašli žiadne výsledky.</p>';
                         return;
                     }
 
                     this.render(data.items);
                 } catch(e) { 
-                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--danger);">CHYBA: Skenovanie zlyhalo. Skontrolujte API kľúč.</p>';
-                    console.error(e);
+                    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--danger);">CHYBA: ${e.message}</p>`;
                 }
             },
 
@@ -594,7 +570,7 @@
                 const res = document.getElementById('results');
                 res.innerHTML = items.map(i => `
                     <div class="video-card" onclick="app.play('${i.id.videoId}')">
-                        <img src="${i.snippet.thumbnails.medium.url}">
+                        <img src="${i.snippet.thumbnails.medium.url}" alt="thumb">
                         <div class="video-info">
                             <b>${i.snippet.title}</b>
                             <div style="font-size: 11px; color: var(--primary); margin-top: 8px; opacity: 0.6;">${i.snippet.channelTitle}</div>
@@ -607,14 +583,13 @@
                 const user = this.state.users.find(u => u.email === this.state.session);
                 if (!user) return;
                 
-                if(user.credits < 10) return alert("SYSTÉM: Nedostatok kreditov pre zobrazenie obsahu!");
+                if(user.credits < 10) return alert("SYSTÉM: Nedostatočný kredit pre dešifrovanie streamu!");
                 
                 user.credits -= 10;
                 this.save();
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 
-                const overlay = document.getElementById('player-view');
-                overlay.classList.remove('hidden');
+                document.getElementById('player-view').classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
                 
                 if (ytPlayer && ytPlayer.loadVideoById) {
@@ -622,7 +597,7 @@
                 } else {
                     ytPlayer = new YT.Player('youtube-player', { 
                         videoId: id, 
-                        playerVars: { 'autoplay': 1, 'modestbranding': 1, 'rel': 0 } 
+                        playerVars: { 'autoplay': 1, 'modestbranding': 1, 'rel': 0, 'enablejsapi': 1 } 
                     });
                 }
             },
@@ -635,10 +610,10 @@
 
             saveApiKey() {
                 const val = document.getElementById('api-key-input').value.trim();
-                if(!val) return alert("Vložte platný kľúč!");
+                if(!val) return alert("Zadajte platný kľúč!");
                 this.state.apiKey = val;
                 localStorage.setItem('bt_key', val);
-                alert("API kľúč bol uložený a systém bol synchronizovaný.");
+                alert("API kľúč uložený. Systém je teraz pripravený na skenovanie.");
             },
 
             toggleHistoryModal() {
@@ -646,13 +621,8 @@
                 m.classList.toggle('hidden');
                 if (!m.classList.contains('hidden')) {
                     const u = this.state.users.find(u => u.email === this.state.session);
-                    document.getElementById('violation-log').innerHTML = u.violationLog.length ? 
-                        u.violationLog.map(v => `<div class="violation-item"><b>${v.date}</b><br>${v.reason}</div>`).join('') : 
-                        "<p style='opacity: 0.3'>Žiadne priestupky.</p>";
-                    
-                    document.getElementById('search-history').innerHTML = u.searchHistory.length ? 
-                        u.searchHistory.map(s => `<div class="history-item"><span>${s.query}</span> <small style='opacity:0.3'>${s.date.split(',')[0]}</small></div>`).join('') : 
-                        "<p style='opacity: 0.3'>Čistá história.</p>";
+                    document.getElementById('violation-log').innerHTML = "<b>PRIESTUPKY:</b><br>" + (u.violationLog.map(v => `<div style="color:red; font-size:10px; margin-bottom:5px;">[${v.date}] ${v.reason}</div>`).join('') || "Žiadne záznamy.");
+                    document.getElementById('search-history').innerHTML = "<b>HĽADANIA:</b><br>" + (u.searchHistory.map(s => `<div style="font-size:10px; border-bottom:1px solid #222; padding:3px;">${s.query}</div>`).join('') || "Prázdne.");
                 }
             },
 
@@ -691,7 +661,7 @@
             resetEverything() { localStorage.clear(); location.reload(); }
         };
 
-        window.onYouTubeIframeAPIReady = () => { console.log("BannaTube Premium Engine: Online."); };
+        window.onYouTubeIframeAPIReady = () => { console.log("YT Engine: Online."); };
     </script>
 </body>
 </html>
