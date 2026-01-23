@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BannaTube - Futuristic Premium v2</title>
+    <title>BannaTube - Futuristic Community Premium</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
 
@@ -151,15 +151,15 @@
             border-radius: 28px;
             border: 1px solid var(--primary);
             z-index: 3000;
-            width: 90%;
-            max-width: 440px;
+            width: 95%;
+            max-width: 600px;
             text-align: center;
             backdrop-filter: blur(30px);
             max-height: 85vh;
             overflow-y: auto;
         }
 
-        .admin-modal { border-color: var(--admin-color); max-width: 600px; }
+        .admin-modal { border-color: var(--admin-color); }
 
         .ban-overlay {
             position: fixed;
@@ -227,6 +227,7 @@
         }
         
         .stat-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        
         .nav-arrow {
             display: flex; align-items: center; justify-content: space-between; 
             background: rgba(255,255,255,0.03); padding: 14px 20px; border-radius: 16px; 
@@ -238,9 +239,9 @@
         .user-manage-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 77, 77, 0.2);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
             text-align: left;
         }
         .admin-tag {
@@ -250,6 +251,17 @@
             padding: 2px 6px;
             border-radius: 4px;
             margin-left: 5px;
+        }
+
+        .history-action-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.4);
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 11px;
         }
 
         /* SEARCH AREA */
@@ -274,8 +286,8 @@
         <div class="logo">BANNA<span style="opacity: 0.4;">TUBE</span></div>
         
         <div id="user-nav" class="hidden header-actions">
-            <!-- ADMIN PANEL BUTTON -->
-            <div id="admin-nav-btn" class="admin-btn hidden" onclick="app.toggleAdminModal()" title="Admin Control Center">🛡️</div>
+            <!-- ADMIN PANEL BUTTON - TERAZ PRE VŠETKÝCH -->
+            <div id="admin-nav-btn" class="admin-btn" onclick="app.toggleAdminModal()" title="Community Oversight Panel">🛡️</div>
 
             <div style="background: rgba(255,215,0,0.1); padding: 8px 15px; border-radius: 16px; font-size: 11px; color: var(--primary); border: 1px solid rgba(255,215,0,0.3); font-weight: 700;">
                 🪙 <span id="header-credits">0</span>
@@ -422,16 +434,16 @@
         <button onclick="app.toggleHistoryModal()" style="width: 100%; margin-top: 15px;">Zavrieť</button>
     </div>
 
-    <!-- ADMIN MODAL -->
+    <!-- COMMUNITY ADMIN MODAL -->
     <div id="admin-modal" class="modal admin-modal hidden">
-        <h3 style="color: var(--admin-color); margin-bottom: 20px;">🛡️ System Control Center</h3>
-        <p style="font-size: 11px; color: #888; margin-bottom: 20px;">Monitoring všetkých registrovaných licencií a dátových tokov.</p>
+        <h3 style="color: var(--admin-color); margin-bottom: 20px;">🛡️ Community Oversight Panel</h3>
+        <p style="font-size: 11px; color: #888; margin-bottom: 20px;">Každý člen Premium môže dohliadať na dodržiavanie pravidiel.</p>
         
-        <div id="user-admin-list" style="max-height: 400px; overflow-y: auto;">
+        <div id="user-admin-list" style="max-height: 450px; overflow-y: auto;">
             <!-- Používatelia sa načítajú tu -->
         </div>
 
-        <button onclick="app.toggleAdminModal()" style="width: 100%; margin-top: 20px; background: rgba(255,255,255,0.05); color: #fff;">Zatvoriť terminál</button>
+        <button onclick="app.toggleAdminModal()" style="width: 100%; margin-top: 20px; background: rgba(255,255,255,0.05); color: #fff;">Zatvoriť panel</button>
     </div>
 
     <script>
@@ -499,18 +511,19 @@
                     credits: 10000, 
                     banned: false, 
                     banReason: "",
-                    isAdmin: fields.email === 'admin@bannatube.sk', // Špeciálna rola pre teba
                     lastYearCheck: new Date().getFullYear(),
                     avatar: null, 
                     violationLog: [], 
                     searchHistory: [], 
+                    watchedHistory: [], // NOVÉ: Zoznam pozretých videí
                     favorites: [],
-                    copyrightClaims: 0
+                    copyrightClaims: 0,
+                    copyrightStrikes: [] // NOVÉ: Zablokované ID videí
                 };
 
                 this.state.users.push(newUser);
                 this.save();
-                alert(newUser.isAdmin ? "ADMIN LICENCIA AKTIVOVANÁ!" : "Licencia Premium aktivovaná!");
+                alert("Licencia Premium aktivovaná!");
                 this.showView('login-view');
             },
 
@@ -535,14 +548,9 @@
                     document.getElementById('user-avatar').src = user.avatar;
                     document.getElementById('modal-avatar').src = user.avatar;
                 }
-
-                // Zobraziť Admin tlačidlo ak je admin
-                if (user.isAdmin) {
-                    document.getElementById('admin-nav-btn').classList.remove('hidden');
-                }
             },
 
-            // --- ADMIN LOGIKA ---
+            // --- COMMUNITY ADMIN LOGIKA ---
             toggleAdminModal() {
                 const m = document.getElementById('admin-modal');
                 m.classList.toggle('hidden');
@@ -553,31 +561,71 @@
 
             refreshAdminUserList() {
                 const container = document.getElementById('user-admin-list');
-                container.innerHTML = this.state.users.map(u => `
+                const currentUser = this.state.users.find(u => u.email === this.state.session);
+                
+                container.innerHTML = this.state.users.filter(u => u.email !== currentUser.email).map(u => `
                     <div class="user-manage-card">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <b>${u.fullName}</b>
-                            <span style="font-size:10px; opacity:0.6;">${u.email} ${u.isAdmin ? '<span class="admin-tag">ADMIN</span>' : ''}</span>
+                            <span style="font-size:10px; opacity:0.6;">${u.email}</span>
                         </div>
                         <div style="font-size:10px; margin:10px 0; color:#aaa;">
-                            Strikes: ${u.warnings} | Claims: ${u.copyrightClaims || 0} | Kredity: ${u.credits}
+                            Strikes (Warns): ${u.warnings} | Claims: ${u.copyrightClaims || 0}
                         </div>
                         
-                        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:8px; margin-bottom:10px;">
-                            <div style="font-size:9px; color:var(--primary); margin-bottom:5px;">Sledovaná história (Hľadania):</div>
-                            <div style="font-size:9px; max-height:50px; overflow-y:auto;">
-                                ${u.searchHistory.map(s => `• ${s.query}`).join('<br>') || 'Žiadna aktivita'}
+                        <!-- WATCHED HISTORY -->
+                        <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; margin-bottom:10px;">
+                            <div style="font-size:9px; color:var(--primary); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Monitoring sledovania:</div>
+                            <div style="font-size:9px; max-height:100px; overflow-y:auto;">
+                                ${u.watchedHistory && u.watchedHistory.length ? u.watchedHistory.map(w => `
+                                    <div class="history-action-item">
+                                        <span>${w.title.substring(0, 35)}...</span>
+                                        <div style="display:flex; gap:5px;">
+                                            ${u.copyrightStrikes.includes(w.id) ? 
+                                                `<button style="padding:2px 6px; font-size:8px; background:var(--success);" onclick="app.removeVideoStrike('${u.email}', '${w.id}')">Odstrániť Strike</button>` :
+                                                `<button style="padding:2px 6px; font-size:8px; background:var(--admin-color);" onclick="app.applyVideoStrike('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Strike</button>`
+                                            }
+                                        </div>
+                                    </div>
+                                `).join('') : '<span style="opacity:0.4;">Žiadne pozreté videá</span>'}
                             </div>
                         </div>
 
-                        ${!u.isAdmin ? `
-                            <div style="display:flex; gap:5px;">
-                                <button style="flex:1; padding:5px; font-size:9px; background:var(--danger); color:white;" onclick="app.adminPenalty('${u.email}', 'strike')">+ Strike</button>
-                                <button style="flex:1; padding:5px; font-size:9px; background:var(--info); color:white;" onclick="app.adminPenalty('${u.email}', 'claim')">Copyright Claim</button>
-                            </div>
-                        ` : ''}
+                        <div style="display:flex; gap:10px;">
+                            <button style="flex:1; padding:8px; font-size:9px; background:rgba(255,255,255,0.05); border:1px solid var(--admin-color); color:var(--admin-color);" onclick="app.adminPenalty('${u.email}', 'claim')">Copyright Claim Profilu</button>
+                        </div>
                     </div>
                 `).join('');
+            },
+
+            applyVideoStrike(userEmail, videoId, title) {
+                const target = this.state.users.find(u => u.email === userEmail);
+                if (!target) return;
+
+                if (!target.copyrightStrikes.includes(videoId)) {
+                    target.copyrightStrikes.push(videoId);
+                    target.violationLog.push({ 
+                        date: new Date().toLocaleString(), 
+                        reason: `COPYRIGHT STRIKE: Video "${title}" bolo zablokované komunitou.` 
+                    });
+                    this.save();
+                    this.refreshAdminUserList();
+                    alert(`Video "${title}" bolo zablokované pre používateľa.`);
+                }
+            },
+
+            removeVideoStrike(userEmail, videoId) {
+                const target = this.state.users.find(u => u.email === userEmail);
+                if (!target) return;
+
+                target.copyrightStrikes = target.copyrightStrikes.filter(id => id !== videoId);
+                target.violationLog.push({ 
+                    date: new Date().toLocaleString(), 
+                    reason: `SYSTÉM: Blokovanie videa bolo odstránené zo zoznamu.` 
+                });
+                this.save();
+                this.refreshAdminUserList();
+                alert(`Video bolo opäť sprístupnené.`);
             },
 
             adminPenalty(email, type) {
@@ -585,32 +633,24 @@
                 if (!user) return;
 
                 const timestamp = new Date().toLocaleString();
-                if (type === 'strike') {
-                    user.warnings++;
-                    user.violationLog.push({ date: timestamp, reason: "ADMIN STRIKE: Porušenie interných pravidiel platformy." });
-                    alert(`Udelený STRIKE pre ${user.fullName}.`);
-                    if (user.warnings >= 3) {
-                        user.banned = true;
-                        user.banReason = "TERMINATED: Maximálny počet ADMIN strikov dosiahnutý.";
-                    }
-                } else if (type === 'claim') {
+                if (type === 'claim') {
                     user.copyrightClaims = (user.copyrightClaims || 0) + 1;
-                    user.violationLog.push({ date: timestamp, reason: "COPYRIGHT CLAIM: Detegovaný nelegálny obsah v histórii." });
-                    alert(`Udelený COPYRIGHT CLAIM pre ${user.fullName}.`);
+                    user.violationLog.push({ date: timestamp, reason: "COMMUNITY CLAIM: Nahlásenie za nevhodnú aktivitu." });
+                    alert(`Udelený CLAIM pre ${user.fullName}.`);
                 }
 
                 this.save();
                 this.refreshAdminUserList();
             },
 
-            // --- PÔVODNÁ LOGIKA ---
+            // --- CORE LOGIKA ---
             async search() {
                 const now = Date.now();
                 const user = this.state.users.find(u => u.email === this.state.session);
                 const query = document.getElementById('query').value.trim();
                 if (!query) return;
 
-                if (now - this.state.lastSearch < 2500 && !user.isAdmin) {
+                if (now - this.state.lastSearch < 2500) {
                     user.warnings++;
                     user.violationLog.push({ date: new Date().toLocaleString(), reason: "Spam Detection: Rýchle skenovanie." });
                     this.save();
@@ -650,24 +690,37 @@
                 const user = this.state.users.find(u => u.email === this.state.session);
                 res.innerHTML = items.map(i => {
                     const isFav = user.favorites.some(f => f.id === i.id.videoId);
+                    const isStruck = user.copyrightStrikes.includes(i.id.videoId);
                     return `
-                    <div class="video-card">
+                    <div class="video-card" style="${isStruck ? 'opacity:0.4; filter:grayscale(1);' : ''}">
                         <span class="fav-badge" onclick="event.stopPropagation(); app.toggleFavorite('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">${isFav ? '❤️' : '🤍'}</span>
-                        <div onclick="app.play('${i.id.videoId}')">
+                        <div onclick="${isStruck ? "alert('VIDEO ZABLOKOVANÉ: Na toto video bol udelený Copyright Strike komunitou.')" : `app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')`}">
                             <img src="${i.snippet.thumbnails.medium.url}">
                             <div class="video-info">
-                                <b>${i.snippet.title}</b>
+                                <b>${isStruck ? '[BLOCKED] ' : ''}${i.snippet.title}</b>
                             </div>
                         </div>
                     </div>`;
                 }).join('');
             },
 
-            play(id) {
+            play(id, title) {
                 const user = this.state.users.find(u => u.email === this.state.session);
-                if(user.credits < 10 && !user.isAdmin) return alert("Nedostatok kreditov!");
                 
-                if (!user.isAdmin) user.credits -= 10;
+                // Kontrola, či video nemá strike
+                if (user.copyrightStrikes.includes(id)) {
+                    return alert("Prístup zamietnutý: Toto video bolo zablokované prostredníctvom Copyright Strike.");
+                }
+
+                if(user.credits < 10) return alert("Nedostatok kreditov!");
+                
+                user.credits -= 10;
+                
+                // Uloženie do histórie sledovania pre Admin Panel
+                if (!user.watchedHistory) user.watchedHistory = [];
+                user.watchedHistory.unshift({ id, title, date: new Date().toLocaleString() });
+                if (user.watchedHistory.length > 20) user.watchedHistory.pop();
+
                 this.save();
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('player-view').classList.remove('hidden');
@@ -699,7 +752,7 @@
                     const u = this.state.users.find(u => u.email === this.state.session);
                     document.getElementById('violation-log').innerHTML = u.violationLog.map(v => `<div style="color:red; font-size:10px; margin-bottom:5px; border-bottom:1px solid rgba(255,0,0,0.1); padding:5px;"><b>[${v.date}]</b><br>${v.reason}</div>`).join('') || "Žiadne záznamy.";
                     document.getElementById('search-history').innerHTML = u.searchHistory.map(s => `<div style="font-size:10px; margin-bottom:3px;">${s.query}</div>`).join('') || "Prázdne.";
-                    document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:5px; cursor:pointer;" onclick="app.play('${f.id}')"><span style="color:var(--primary)">▶ ${f.title}</span></div>`).join('') || "Zatiaľ žiadne srdiečka.";
+                    document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:5px; cursor:pointer;" onclick="app.play('${f.id}', '${f.title.replace(/'/g, "")}')"><span style="color:var(--primary)">▶ ${f.title}</span></div>`).join('') || "Zatiaľ žiadne srdiečka.";
                 }
             },
 
@@ -716,7 +769,7 @@
                     document.getElementById('age-status').innerText = age + " rokov (" + (age >= 18 ? "Dospelý" : "Mladistvý") + ")";
                 }
                 if(s==='main') {
-                    document.getElementById('details-box').innerHTML = `<b>Meno:</b> ${u.fullName}<br><b>Email:</b> ${u.email}<br><b>Pohlavie:</b> ${u.gender}<br><b>Krajina:</b> ${u.country}<br>${u.isAdmin ? '<b style="color:var(--admin-color)">ROLE: SYSTEM ADMIN</b>' : ''}`;
+                    document.getElementById('details-box').innerHTML = `<b>Meno:</b> ${u.fullName}<br><b>Email:</b> ${u.email}<br><b>Pohlavie:</b> ${u.gender}<br><b>Krajina:</b> ${u.country}`;
                 }
             },
 
