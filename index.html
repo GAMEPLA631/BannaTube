@@ -18,6 +18,7 @@
             --danger: #ff3333;
             --success: #00ff88;
             --info: #3498db;
+            --admin-color: #ff4d4d;
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
@@ -109,8 +110,9 @@
 
         .header-actions { display: flex; align-items: center; gap: 18px; }
 
-        .star-history-btn { font-size: 18px; cursor: pointer; color: var(--primary); transition: 0.3s; }
-        .star-history-btn:hover { transform: scale(1.2) rotate(15deg); }
+        .star-history-btn, .admin-btn { font-size: 18px; cursor: pointer; color: var(--primary); transition: 0.3s; }
+        .star-history-btn:hover, .admin-btn:hover { transform: scale(1.2) rotate(15deg); }
+        .admin-btn { color: var(--admin-color); }
 
         .profile-pic-container {
             width: 40px;
@@ -156,6 +158,8 @@
             max-height: 85vh;
             overflow-y: auto;
         }
+
+        .admin-modal { border-color: var(--admin-color); max-width: 600px; }
 
         .ban-overlay {
             position: fixed;
@@ -217,8 +221,8 @@
         }
 
         .history-list {
-            text-align: left; font-size: 12px; margin: 20px 0; background: rgba(0,0,0,0.4);
-            padding: 15px; border-radius: 18px; max-height: 220px; overflow-y: auto;
+            text-align: left; font-size: 12px; margin: 10px 0; background: rgba(0,0,0,0.4);
+            padding: 15px; border-radius: 18px; max-height: 200px; overflow-y: auto;
             border: 1px solid var(--glass-border);
         }
         
@@ -229,6 +233,24 @@
             margin: 10px 0; cursor: pointer; transition: 0.2s;
         }
         .nav-arrow:hover { background: rgba(255,255,255,0.08); }
+
+        /* ADMIN SPECIFIC */
+        .user-manage-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .admin-tag {
+            background: var(--admin-color);
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
 
         /* SEARCH AREA */
         .search-area { text-align: center; padding: 80px 20px 40px; }
@@ -252,6 +274,9 @@
         <div class="logo">BANNA<span style="opacity: 0.4;">TUBE</span></div>
         
         <div id="user-nav" class="hidden header-actions">
+            <!-- ADMIN PANEL BUTTON -->
+            <div id="admin-nav-btn" class="admin-btn hidden" onclick="app.toggleAdminModal()" title="Admin Control Center">🛡️</div>
+
             <div style="background: rgba(255,215,0,0.1); padding: 8px 15px; border-radius: 16px; font-size: 11px; color: var(--primary); border: 1px solid rgba(255,215,0,0.3); font-weight: 700;">
                 🪙 <span id="header-credits">0</span>
             </div>
@@ -284,7 +309,7 @@
     <div id="register-view" class="hidden">
         <div class="auth-card">
             <h2 style="color: var(--primary);">Registrácia Licencie</h2>
-            <p style="color: #777; font-size: 13px; margin-bottom: 25px;">Získate 10 000 ročných kreditov</p>
+            <p style="color: #777; font-size: 13px; margin-bottom: 25px;">Získajte 10 000 ročných kreditov</p>
             
             <div class="form-row">
                 <input type="text" id="reg-name" placeholder="Meno">
@@ -345,7 +370,7 @@
         <div id="profile-main-screen">
             <h3>Premium Profil</h3>
             <div style="position: relative; width: 90px; height: 90px; margin: 0 auto 20px;">
-                <img id="modal-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" style="width: 100%; height: 100%; border-radius: 20px; object-fit: cover; border: 2px solid var(--primary);">
+                <img id="modal-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" style="width: 100%; height: 100%; border-radius: 20px; object-fit: cover; border: 3px solid var(--primary);">
                 <label for="avatar-input" style="position: absolute; bottom: -5px; right: -5px; background: var(--primary); width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #000; font-size: 14px;">✎</label>
             </div>
             <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="app.updateAvatar()">
@@ -387,7 +412,7 @@
             <h4 style="font-size: 11px; color: var(--info);">OBĽÚBENÉ VIDEÁ</h4>
             <div id="favorites-list" class="history-list"></div>
 
-            <h4 style="font-size: 11px; color: var(--danger);">PRIESTUPKY (ANTI-CHEAT)</h4>
+            <h4 style="font-size: 11px; color: var(--danger);">PRIESTUPKY & COPYRIGHT</h4>
             <div id="violation-log" class="history-list"></div>
 
             <h4 style="font-size: 11px; color: #777;">POSLEDNÉ HĽADANIA</h4>
@@ -395,6 +420,18 @@
         </div>
         
         <button onclick="app.toggleHistoryModal()" style="width: 100%; margin-top: 15px;">Zavrieť</button>
+    </div>
+
+    <!-- ADMIN MODAL -->
+    <div id="admin-modal" class="modal admin-modal hidden">
+        <h3 style="color: var(--admin-color); margin-bottom: 20px;">🛡️ System Control Center</h3>
+        <p style="font-size: 11px; color: #888; margin-bottom: 20px;">Monitoring všetkých registrovaných licencií a dátových tokov.</p>
+        
+        <div id="user-admin-list" style="max-height: 400px; overflow-y: auto;">
+            <!-- Používatelia sa načítajú tu -->
+        </div>
+
+        <button onclick="app.toggleAdminModal()" style="width: 100%; margin-top: 20px; background: rgba(255,255,255,0.05); color: #fff;">Zatvoriť terminál</button>
     </div>
 
     <script>
@@ -441,7 +478,7 @@
 
             handleRegister() {
                 const fields = {
-                    email: document.getElementById('reg-email').value.trim(),
+                    email: document.getElementById('reg-email').value.trim().toLowerCase(),
                     name: document.getElementById('reg-name').value.trim(),
                     surname: document.getElementById('reg-surname').value.trim(),
                     pass: document.getElementById('reg-pass').value.trim(),
@@ -458,19 +495,27 @@
                 const newUser = {
                     ...fields,
                     fullName: fields.name + " " + fields.surname,
-                    warnings: 0, credits: 10000, banned: false, banReason: "",
+                    warnings: 0, 
+                    credits: 10000, 
+                    banned: false, 
+                    banReason: "",
+                    isAdmin: fields.email === 'admin@bannatube.sk', // Špeciálna rola pre teba
                     lastYearCheck: new Date().getFullYear(),
-                    avatar: null, violationLog: [], searchHistory: [], favorites: []
+                    avatar: null, 
+                    violationLog: [], 
+                    searchHistory: [], 
+                    favorites: [],
+                    copyrightClaims: 0
                 };
 
                 this.state.users.push(newUser);
                 this.save();
-                alert("Licencia Premium aktivovaná!");
+                alert(newUser.isAdmin ? "ADMIN LICENCIA AKTIVOVANÁ!" : "Licencia Premium aktivovaná!");
                 this.showView('login-view');
             },
 
             handleLogin() {
-                const email = document.getElementById('login-email').value.trim();
+                const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = this.state.users.find(u => u.email === email && u.pass === pass);
                 
@@ -490,15 +535,82 @@
                     document.getElementById('user-avatar').src = user.avatar;
                     document.getElementById('modal-avatar').src = user.avatar;
                 }
+
+                // Zobraziť Admin tlačidlo ak je admin
+                if (user.isAdmin) {
+                    document.getElementById('admin-nav-btn').classList.remove('hidden');
+                }
             },
 
+            // --- ADMIN LOGIKA ---
+            toggleAdminModal() {
+                const m = document.getElementById('admin-modal');
+                m.classList.toggle('hidden');
+                if (!m.classList.contains('hidden')) {
+                    this.refreshAdminUserList();
+                }
+            },
+
+            refreshAdminUserList() {
+                const container = document.getElementById('user-admin-list');
+                container.innerHTML = this.state.users.map(u => `
+                    <div class="user-manage-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>${u.fullName}</b>
+                            <span style="font-size:10px; opacity:0.6;">${u.email} ${u.isAdmin ? '<span class="admin-tag">ADMIN</span>' : ''}</span>
+                        </div>
+                        <div style="font-size:10px; margin:10px 0; color:#aaa;">
+                            Strikes: ${u.warnings} | Claims: ${u.copyrightClaims || 0} | Kredity: ${u.credits}
+                        </div>
+                        
+                        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:8px; margin-bottom:10px;">
+                            <div style="font-size:9px; color:var(--primary); margin-bottom:5px;">Sledovaná história (Hľadania):</div>
+                            <div style="font-size:9px; max-height:50px; overflow-y:auto;">
+                                ${u.searchHistory.map(s => `• ${s.query}`).join('<br>') || 'Žiadna aktivita'}
+                            </div>
+                        </div>
+
+                        ${!u.isAdmin ? `
+                            <div style="display:flex; gap:5px;">
+                                <button style="flex:1; padding:5px; font-size:9px; background:var(--danger); color:white;" onclick="app.adminPenalty('${u.email}', 'strike')">+ Strike</button>
+                                <button style="flex:1; padding:5px; font-size:9px; background:var(--info); color:white;" onclick="app.adminPenalty('${u.email}', 'claim')">Copyright Claim</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+            },
+
+            adminPenalty(email, type) {
+                const user = this.state.users.find(u => u.email === email);
+                if (!user) return;
+
+                const timestamp = new Date().toLocaleString();
+                if (type === 'strike') {
+                    user.warnings++;
+                    user.violationLog.push({ date: timestamp, reason: "ADMIN STRIKE: Porušenie interných pravidiel platformy." });
+                    alert(`Udelený STRIKE pre ${user.fullName}.`);
+                    if (user.warnings >= 3) {
+                        user.banned = true;
+                        user.banReason = "TERMINATED: Maximálny počet ADMIN strikov dosiahnutý.";
+                    }
+                } else if (type === 'claim') {
+                    user.copyrightClaims = (user.copyrightClaims || 0) + 1;
+                    user.violationLog.push({ date: timestamp, reason: "COPYRIGHT CLAIM: Detegovaný nelegálny obsah v histórii." });
+                    alert(`Udelený COPYRIGHT CLAIM pre ${user.fullName}.`);
+                }
+
+                this.save();
+                this.refreshAdminUserList();
+            },
+
+            // --- PÔVODNÁ LOGIKA ---
             async search() {
                 const now = Date.now();
                 const user = this.state.users.find(u => u.email === this.state.session);
                 const query = document.getElementById('query').value.trim();
                 if (!query) return;
 
-                if (now - this.state.lastSearch < 2500) {
+                if (now - this.state.lastSearch < 2500 && !user.isAdmin) {
                     user.warnings++;
                     user.violationLog.push({ date: new Date().toLocaleString(), reason: "Spam Detection: Rýchle skenovanie." });
                     this.save();
@@ -553,9 +665,9 @@
 
             play(id) {
                 const user = this.state.users.find(u => u.email === this.state.session);
-                if(user.credits < 10) return alert("Nedostatok kreditov!");
+                if(user.credits < 10 && !user.isAdmin) return alert("Nedostatok kreditov!");
                 
-                user.credits -= 10;
+                if (!user.isAdmin) user.credits -= 10;
                 this.save();
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('player-view').classList.remove('hidden');
@@ -585,7 +697,7 @@
                 m.classList.toggle('hidden');
                 if (!m.classList.contains('hidden')) {
                     const u = this.state.users.find(u => u.email === this.state.session);
-                    document.getElementById('violation-log').innerHTML = u.violationLog.map(v => `<div style="color:red; font-size:10px; margin-bottom:5px;">[${v.date}] ${v.reason}</div>`).join('') || "Žiadne záznamy.";
+                    document.getElementById('violation-log').innerHTML = u.violationLog.map(v => `<div style="color:red; font-size:10px; margin-bottom:5px; border-bottom:1px solid rgba(255,0,0,0.1); padding:5px;"><b>[${v.date}]</b><br>${v.reason}</div>`).join('') || "Žiadne záznamy.";
                     document.getElementById('search-history').innerHTML = u.searchHistory.map(s => `<div style="font-size:10px; margin-bottom:3px;">${s.query}</div>`).join('') || "Prázdne.";
                     document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:5px; cursor:pointer;" onclick="app.play('${f.id}')"><span style="color:var(--primary)">▶ ${f.title}</span></div>`).join('') || "Zatiaľ žiadne srdiečka.";
                 }
@@ -604,7 +716,7 @@
                     document.getElementById('age-status').innerText = age + " rokov (" + (age >= 18 ? "Dospelý" : "Mladistvý") + ")";
                 }
                 if(s==='main') {
-                    document.getElementById('details-box').innerHTML = `<b>Meno:</b> ${u.fullName}<br><b>Email:</b> ${u.email}<br><b>Pohlavie:</b> ${u.gender}<br><b>Krajina:</b> ${u.country}`;
+                    document.getElementById('details-box').innerHTML = `<b>Meno:</b> ${u.fullName}<br><b>Email:</b> ${u.email}<br><b>Pohlavie:</b> ${u.gender}<br><b>Krajina:</b> ${u.country}<br>${u.isAdmin ? '<b style="color:var(--admin-color)">ROLE: SYSTEM ADMIN</b>' : ''}`;
                 }
             },
 
