@@ -218,7 +218,7 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 2.2rem;
             color: var(--danger);
-            margin: 25px 0;
+            margin: 25px 0 10px 0;
             background: rgba(255, 0, 0, 0.05);
             padding: 20px;
             border-radius: 24px;
@@ -355,6 +355,7 @@
             <p id="ban-reason-text" style="font-size: 1rem; opacity: 0.6; line-height: 1.5; margin-bottom: 10px;">Váš účet bol zablokovaný systémovou autoritou z dôvodu porušenia pravidiel siete.</p>
             
             <div id="ban-countdown" class="ban-countdown-box">--:--:--</div>
+            <p id="ban-expiry-text" style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600;"></p>
             
             <p style="font-size: 12px; color: var(--danger); opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px;">Zostávajúci čas trestu</p>
             
@@ -734,11 +735,9 @@
                 const index = list.indexOf(vid);
 
                 if (index > -1) {
-                    // Ak už existuje, odstránime (Zrušíme)
                     list.splice(index, 1);
                     alert(`Akcia ${type.toUpperCase()} bola zrušená pre toto video.`);
                 } else {
-                    // Ak neexistuje, pridáme
                     list.push(vid);
                     if (type === 'strike' && u.copyrightStrikes.length >= 3) {
                         u.banExpiresAt = -1;
@@ -748,7 +747,7 @@
                 }
                 
                 this.save();
-                this.toggleAdminModal(); this.toggleAdminModal(); // Obnoviť panel
+                this.toggleAdminModal(); this.toggleAdminModal();
             },
 
             adminBlockVideo(email, vid, title) {
@@ -808,7 +807,18 @@
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); alert("Kľúč uložený."); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             logout() { localStorage.removeItem('bt_session_v3'); location.reload(); },
-            showBan(u) { document.getElementById('ban-screen').classList.remove('hidden'); document.getElementById('ban-reason-text').innerText = u.banReason || "Prístup zamietnutý."; }
+            
+            showBan(u) { 
+                document.getElementById('ban-screen').classList.remove('hidden'); 
+                document.getElementById('ban-reason-text').innerText = u.banReason || "Prístup bol trvalo obmedzený správcom siete."; 
+                const expiryEl = document.getElementById('ban-expiry-text');
+                if (u.banExpiresAt === -1) {
+                    expiryEl.innerText = "Konfigurácia: TRVALÝ ZÁKAZ";
+                } else {
+                    const date = new Date(u.banExpiresAt);
+                    expiryEl.innerText = "Prístup bude obnovený: " + date.toLocaleString('sk-SK');
+                }
+            }
         };
     </script>
 </body>
