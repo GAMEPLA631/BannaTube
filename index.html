@@ -125,6 +125,7 @@
             border: 1px solid var(--glass-border);
             backdrop-filter: blur(40px); animation: fadeIn 0.5s ease-out;
         }
+        .form-row { display: flex; gap: 15px; margin-bottom: 5px; }
 
         /* MODALS */
         .modal {
@@ -133,11 +134,11 @@
             background: rgba(10, 10, 10, 0.98);
             padding: 30px; border-radius: 28px;
             border: 1px solid var(--primary);
-            z-index: 3000; width: 95%; max-width: 500px;
+            z-index: 3000; width: 95%; max-width: 550px;
             text-align: center; backdrop-filter: blur(30px);
             max-height: 90vh; overflow-y: auto;
         }
-        .admin-modal { border-color: var(--admin-color); max-width: 600px; }
+        .admin-modal { border-color: var(--admin-color); }
 
         /* PREMIUM PROFILE UI */
         .premium-profile-header {
@@ -211,7 +212,7 @@
         /* LICENSE BLOCK OVERLAY */
         .license-block-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(20, 0, 0, 0.95); z-index: 6000;
+            background: rgba(20, 0, 0, 0.96); z-index: 6000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; padding: 30px; text-align: center; border-radius: 28px;
         }
@@ -219,7 +220,7 @@
         /* ADMIN & HISTORY */
         .user-manage-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 77, 77, 0.2); padding: 20px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
         .history-action-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; font-size: 11px; }
-        .history-list { text-align: left; font-size: 12px; margin: 15px 0; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 18px; max-height: 200px; overflow-y: auto; border: 1px solid var(--glass-border); }
+        .history-list { text-align: left; font-size: 12px; margin: 15px 0; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 18px; max-height: 220px; overflow-y: auto; border: 1px solid var(--glass-border); }
 
         /* PLAYER */
         .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 4000; display: flex; align-items: center; justify-content: center; }
@@ -229,7 +230,31 @@
         .nav-arrow { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 14px 20px; border-radius: 16px; margin: 10px 0; cursor: pointer; transition: 0.2s; }
         .nav-arrow:hover { background: rgba(255,255,255,0.08); }
 
-        .search-area { text-align: center; padding: 60px 20px 20px; }
+        /* OPRAVENÁ SEARCH AREA */
+        .search-area { 
+            text-align: center; 
+            padding: 100px 20px 40px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .search-area h1 { 
+            margin-bottom: 20px; 
+            font-weight: 800; 
+            letter-spacing: -1px; 
+            line-height: 1;
+        }
+        .search-bar-container { 
+            display: flex; 
+            width: 100%;
+            max-width: 600px; 
+            gap: 10px; 
+            background: rgba(255,255,255,0.03); 
+            padding: 10px; 
+            border-radius: 20px; 
+            border: 1px solid var(--glass-border); 
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body onload="app.init()">
@@ -240,17 +265,22 @@
         <h1 style="font-size: 2.5rem; color: var(--admin-color);">PRÍSTUP ZAMIEKNUTÝ</h1>
         <p id="ban-reason-text" style="font-size: 1.2rem; opacity: 0.8;">Váš účet bol zablokovaný.</p>
         <div class="ban-timer" id="ban-countdown">--:--:--</div>
-        <button onclick="app.logout()" style="margin-top: 30px;">Zmeniť identitu</button>
+        <button onclick="app.logout()" style="margin-top: 30px; padding: 12px 30px;">Zmeniť identitu</button>
     </div>
 
     <header>
         <div class="logo">BANNA<span style="opacity: 0.4;">TUBE</span></div>
         <div id="user-nav" class="hidden header-actions">
+            <!-- ŠTÍT - ADMIN PANEL -->
             <div id="admin-nav-btn" class="admin-btn" onclick="app.toggleAdminModal()" title="Community Control Center">🛡️</div>
+            
             <div style="background: rgba(255,215,0,0.1); padding: 8px 15px; border-radius: 16px; font-size: 11px; color: var(--primary); font-weight: 700; border: 1px solid rgba(255,215,0,0.2);">
                 🪙 <span id="header-credits">0</span>
             </div>
+
+            <!-- HVIEZDIČKA - HISTÓRIA -->
             <div class="star-history-btn" onclick="app.toggleHistoryModal()" title="História aktivít">⭐</div>
+
             <div class="profile-pic-container" onclick="app.toggleProfileModal()">
                 <img id="user-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E">
             </div>
@@ -288,8 +318,8 @@
 
     <div id="app-view" class="hidden">
         <div class="search-area">
-            <h1>PREMIUM <span style="color:var(--primary)">SCANNER</span></h1>
-            <div class="search-bar-container" style="display:flex; max-width:600px; margin: 30px auto; gap:10px; background:rgba(255,255,255,0.03); padding:10px; border-radius:20px; border:1px solid var(--glass-border);">
+            <h1>CORE <span style="color:var(--primary)">SCANNER</span></h1>
+            <div class="search-bar-container">
                 <input type="text" id="query" placeholder="Hľadať na YouTube..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; margin:0;">
                 <button onclick="app.search()">Skenovať</button>
             </div>
@@ -350,6 +380,42 @@
         <button onclick="app.toggleAdminModal()" style="width: 100%; margin-top: 20px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--glass-border);">Zavrieť panel</button>
     </div>
 
+    <!-- HISTORY MODAL (HVIEZDIČKA) -->
+    <div id="history-modal" class="modal hidden">
+        <h3 style="color: var(--primary);">Systémový Denník ⭐</h3>
+        <div style="text-align: left;">
+            <h4 style="font-size: 11px; color: var(--info);">OBĽÚBENÉ VIDEÁ ❤️</h4>
+            <div id="favorites-list" class="history-list"></div>
+            <h4 style="font-size: 11px; color: var(--danger);">REGISTRE PRIESTUPKOV</h4>
+            <div id="violation-log" class="history-list"></div>
+            <h4 style="font-size: 11px; color: #777;">POSLEDNÉ HĽADANIA</h4>
+            <div id="search-history" class="history-list"></div>
+        </div>
+        <button onclick="app.toggleHistoryModal()" style="width: 100%; margin-top: 15px;">Zatvoriť denník</button>
+    </div>
+
+    <!-- BAN CONFIG MODAL -->
+    <div id="ban-config-modal" class="modal hidden" style="border-color: var(--admin-color);">
+        <h3 style="color: var(--admin-color);">⚖️ Nastavenie trestu</h3>
+        <div style="text-align: left; margin-top: 20px;">
+            <label style="font-size: 12px; opacity: 0.7;">Dôvod banu:</label>
+            <select id="ban-reason-select" style="margin-top: 5px; margin-bottom: 20px;">
+                <option value="Porušenie Copyright pravidiel">Copyright Violation</option>
+                <option value="Spamovanie systému">System Spamming</option>
+                <option value="Nevhodný obsah">Inappropriate Content</option>
+            </select>
+            <label style="font-size: 12px; opacity: 0.7;">Dĺžka banu:</label>
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                <input type="number" id="ban-duration-val" value="1" min="1" style="flex: 1;">
+                <select id="ban-duration-unit" style="flex: 1;">
+                    <option value="hours">Hodiny</option><option value="days">Dni</option><option value="months">Mesiace</option><option value="perm">TRVALÝ</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="app.confirmBan()" style="width: 100%; margin-top: 30px; background: var(--admin-color); color: white;">Aktivovať Ban</button>
+        <button onclick="document.getElementById('ban-config-modal').classList.add('hidden')" style="width: 100%; margin-top: 10px; background: transparent; color: white;">Zrušiť</button>
+    </div>
+
     <!-- PLAYER -->
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
@@ -365,7 +431,7 @@
                 session: localStorage.getItem('bt_session_v3'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 lastSearch: 0,
-                // Vymyslený odomykací kód pre Licenciu Premium
+                targetBanEmail: null,
                 premiumUnlockCode: "PREMIUM2026"
             },
 
@@ -378,6 +444,12 @@
                         this.onLogin(user);
                     }
                 }
+                setInterval(() => {
+                    if (this.state.session) {
+                        const user = this.state.users.find(u => u.email === this.state.session);
+                        if (this.isBanned(user)) this.showBan(user);
+                    }
+                }, 30000);
             },
 
             repairUserData(user) {
@@ -406,6 +478,7 @@
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const name = document.getElementById('reg-name').value.trim();
                 if (!email || !name) return alert("Chýbajúce údaje.");
+                if (this.state.users.find(u => u.email === email)) return alert("Email existuje.");
                 const newUser = {
                     email, name, 
                     fullName: name + " " + document.getElementById('reg-surname').value,
@@ -453,6 +526,7 @@
                         this.save();
                         document.getElementById('user-avatar').src = base64Img;
                         document.getElementById('modal-avatar').src = base64Img;
+                        alert("Profilovka uložená!");
                     }
                 };
                 reader.readAsDataURL(file);
@@ -463,6 +537,18 @@
                 const user = this.state.users.find(u => u.email === this.state.session);
                 if (!q || !this.state.apiKey) return alert("Zadajte dopyt a API kľúč.");
                 
+                const now = Date.now();
+                if (now - this.state.lastSearch < 2500) {
+                    user.violationLog.push({ date: new Date().toLocaleString(), reason: "Spam Detection: Rýchle skenovanie." });
+                    this.save();
+                    return alert("ANTY-CHEAT: Spomalte!");
+                }
+                this.state.lastSearch = now;
+
+                user.searchHistory.unshift({ date: new Date().toLocaleString(), query: q });
+                if(user.searchHistory.length > 15) user.searchHistory.pop();
+                this.save();
+
                 const grid = document.getElementById('results');
                 grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.5;">Skenujem databázu...</p>';
                 try {
@@ -472,9 +558,11 @@
                     
                     grid.innerHTML = data.items.map(i => {
                         const isStruck = user.copyrightStrikes.includes(i.id.videoId);
+                        const isFav = user.favorites.some(f => f.id === i.id.videoId);
                         return `
                         <div class="video-card" style="${isStruck ? 'opacity:0.3; grayscale:1;' : ''}">
-                            <div onclick="${isStruck ? "alert('Blokované Strikeom')" : `app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')`}">
+                            <span class="fav-badge" onclick="event.stopPropagation(); app.toggleFavorite('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">${isFav ? '❤️' : '🤍'}</span>
+                            <div onclick="${isStruck ? "alert('Zablokované Strikeom')" : `app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')`}">
                                 <img src="${i.snippet.thumbnails.medium.url}">
                                 <div class="video-info"><b>${isStruck ? '[BLOCKED] ' : ''}${i.snippet.title}</b></div>
                             </div>
@@ -487,7 +575,6 @@
                 const user = this.state.users.find(u => u.email === this.state.session);
                 document.getElementById('player-view').classList.remove('hidden');
                 
-                // KONTROLA LICENČNEJ BLOKÁCIE S CENOU
                 if (user.licenseBlocked) {
                     document.getElementById('video-mount').innerHTML = `
                         <div class="license-block-overlay">
@@ -495,21 +582,28 @@
                             <h2 style="color:var(--admin-color);">LICENČNÁ BLOKÁCIA</h2>
                             <p style="font-size:14px; opacity:0.9;">Prístup k obsahu Premium je obmedzený.</p>
                             <p style="color:var(--primary); font-size:18px; margin:15px 0; font-weight:800;">CENA ZA ODOMKNUTIE: ${user.licensePrice || 'Dohodou'}</p>
-                            <p style="color:#aaa; font-size:11px; margin-bottom:20px;">Musíte čakať, dokým autor nezruší blokovanie videa Premium alebo zadajte kód.</p>
-                            
+                            <p style="color:#aaa; font-size:11px; margin-bottom:20px;">Musíte čakať, dokým autor nezruší blokovanie alebo zadajte kód.</p>
                             <div style="width:100%; max-width:300px;">
                                 <input type="text" id="unlock-code-input" placeholder="Zadajte odomykací kód..." style="text-align:center;">
                                 <button onclick="app.attemptCodeUnlock()" style="width:100%; margin-top:10px; background:var(--success); color:black;">Overiť kód</button>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                     return;
                 }
 
-                if (user.copyrightStrikes.includes(id)) return;
+                if (user.copyrightStrikes.includes(id)) {
+                    document.getElementById('video-mount').innerHTML = '<div style="color:red; padding:100px; text-align:center;">Video zablokované prostredníctvom Copyright Strike.</div>';
+                    return;
+                }
+
+                if (user.credits < 10) {
+                    document.getElementById('video-mount').innerHTML = '<div style="color:red; padding:100px; text-align:center;">Nedostatok kreditov.</div>';
+                    return;
+                }
+
                 user.credits -= 10;
-                if(!user.watchedHistory) user.watchedHistory = [];
                 user.watchedHistory.unshift({id, title, date: Date.now()});
+                if(user.watchedHistory.length > 20) user.watchedHistory.pop();
                 this.save();
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('video-mount').innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen style="width:100%; height:100%;"></iframe>`;
@@ -521,11 +615,18 @@
                 if (input === this.state.premiumUnlockCode) {
                     user.licenseBlocked = false;
                     this.save();
-                    alert("Licencia odomknutá!");
+                    alert("Odomknuté!");
                     this.closePlayer();
-                } else {
-                    alert("Nesprávny kód.");
-                }
+                } else alert("Nesprávny kód.");
+            },
+
+            toggleFavorite(id, title) {
+                const user = this.state.users.find(u => u.email === this.state.session);
+                const idx = user.favorites.findIndex(f => f.id === id);
+                if (idx > -1) user.favorites.splice(idx, 1);
+                else user.favorites.push({ id, title, date: Date.now() });
+                this.save();
+                this.search();
             },
 
             toggleAdminModal() {
@@ -541,42 +642,88 @@
                     <div class="user-manage-card">
                         <b>${u.fullName}</b> (${u.email})
                         <div style="font-size:10px; margin:5px 0;">
-                            Licencia: ${u.licenseBlocked ? '<span style="color:red">BLOCKED</span>' : '<span style="color:green">OK</span>'} 
-                            | Cena: ${u.licensePrice || 'Nie je nastavená'}
+                            Licencia: ${u.licenseBlocked ? '<span style="color:red">BLOCKED</span>' : 'OK'} | 
+                            Status: ${this.isBanned(u) ? 'BANNED' : 'Active'}
                         </div>
-                        
-                        <div style="margin:15px 0;">
-                            <label style="font-size:10px; opacity:0.6;">Nastaviť cenu za odomknutie:</label>
-                            <input type="text" id="price-${u.email.replace(/@|\./g, '')}" placeholder="Napr. 15€" value="${u.licensePrice}" style="margin-top:5px; margin-bottom:10px;">
-                            
-                            <div style="display:flex; gap:10px;">
-                                <button class="${u.licenseBlocked ? 'success' : 'danger'}" style="flex:1;" onclick="app.applyLicenseAction('${u.email}')">
-                                    ${u.licenseBlocked ? 'Odomknúť' : 'Blokovať Licenciu'}
+                        <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; margin:10px 0;">
+                            <div style="font-size:9px; color:var(--primary);">Sledované videá:</div>
+                            ${u.watchedHistory.map(w => `
+                                <div class="history-action-item">
+                                    <span>${w.title.substring(0, 25)}</span>
+                                    ${u.copyrightStrikes.includes(w.id) ? 
+                                        `<button class="success" style="padding:2px 5px; font-size:8px;" onclick="app.removeVideoStrike('${u.email}', '${w.id}')">Zrušiť Strike</button>` :
+                                        `<button class="danger" style="padding:2px 5px; font-size:8px;" onclick="app.applyVideoStrike('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Udeliť Strike</button>`
+                                    }
+                                </div>`).join('') || '<span style="opacity:0.3; font-size:9px;">Bez histórie</span>'}
+                        </div>
+                        <div style="margin-top:10px;">
+                            <label style="font-size:10px; opacity:0.6;">Cena za odomknutie:</label>
+                            <input type="text" id="price-${u.email.replace(/@|\./g, '')}" placeholder="Napr. 10€" value="${u.licensePrice}" style="margin:5px 0;">
+                            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                                <button class="danger" style="flex:1;" onclick="app.openBanConfig('${u.email}')">Banovať Účet</button>
+                                <button class="${u.licenseBlocked ? 'success' : 'secondary'}" style="flex:1;" onclick="app.applyLicenseAction('${u.email}')">
+                                    ${u.licenseBlocked ? 'Odomknúť Lic.' : 'Blokovať Lic.'}
                                 </button>
+                                ${this.isBanned(u) ? `<button class="success" style="width:100%;" onclick="app.unbanUser('${u.email}')">MANUÁLNE ODBANOVAŤ</button>` : ''}
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    </div>`).join('');
             },
 
             applyLicenseAction(email) {
                 const u = this.state.users.find(x => x.email === email);
-                const priceInput = document.getElementById('price-' + email.replace(/@|\./g, ''));
-                
-                if (!u.licenseBlocked) {
-                    // Ideme blokovať, tak uložíme cenu
-                    u.licensePrice = priceInput.value.trim() || "Dohodou";
+                const p = document.getElementById('price-' + email.replace(/@|\./g, ''));
+                if(!u.licenseBlocked) {
                     u.licenseBlocked = true;
-                    alert("Licencia pre " + u.fullName + " bola zablokovaná s cenou: " + u.licensePrice);
+                    u.licensePrice = p.value.trim() || "Dohodou";
+                    alert("Zablokované s cenou " + u.licensePrice);
                 } else {
-                    // Ideme odblokovať
                     u.licenseBlocked = false;
                     u.licensePrice = "";
-                    alert("Licencia pre " + u.fullName + " bola odomknutá.");
+                    alert("Odomknuté.");
                 }
-                
-                this.save();
-                this.refreshAdminUserList();
+                this.save(); this.refreshAdminUserList();
+            },
+
+            openBanConfig(email) { this.state.targetBanEmail = email; document.getElementById('ban-config-modal').classList.remove('hidden'); },
+            confirmBan() {
+                const u = this.state.users.find(x => x.email === this.state.targetBanEmail);
+                const unit = document.getElementById('ban-duration-unit').value;
+                const val = parseInt(document.getElementById('ban-duration-val').value);
+                let exp = Date.now();
+                if(unit==='hours') exp += val*3600000;
+                else if(unit==='days') exp += val*86400000;
+                else if(unit==='months') exp += val*2592000000;
+                else if(unit==='perm') exp = -1;
+                u.banExpiresAt = exp;
+                u.banReason = document.getElementById('ban-reason-select').value;
+                this.save(); this.refreshAdminUserList();
+                document.getElementById('ban-config-modal').classList.add('hidden');
+            },
+            unbanUser(email) {
+                const u = this.state.users.find(x => x.email === email);
+                u.banExpiresAt = 0; u.banReason = ""; this.save(); this.refreshAdminUserList();
+            },
+            applyVideoStrike(email, id, title) {
+                const u = this.state.users.find(x => x.email === email);
+                if(!u.copyrightStrikes.includes(id)) u.copyrightStrikes.push(id);
+                this.save(); this.refreshAdminUserList();
+            },
+            removeVideoStrike(email, id) {
+                const u = this.state.users.find(x => x.email === email);
+                u.copyrightStrikes = u.copyrightStrikes.filter(s => s !== id);
+                this.save(); this.refreshAdminUserList();
+            },
+
+            toggleHistoryModal() {
+                const m = document.getElementById('history-modal');
+                m.classList.toggle('hidden');
+                if(!m.classList.contains('hidden')) {
+                    const u = this.state.users.find(u => u.email === this.state.session);
+                    document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="font-size:10px; margin-bottom:5px; cursor:pointer; color:var(--primary)" onclick="app.play('${f.id}', '${f.title}')">❤️ ${f.title}</div>`).join('') || "Prázdne";
+                    document.getElementById('violation-log').innerHTML = u.violationLog.map(v => `<div style="color:red; font-size:10px; margin-bottom:5px;">[${v.date}] ${v.reason}</div>`).join('') || "Čistý register";
+                    document.getElementById('search-history').innerHTML = u.searchHistory.map(s => `<div style="font-size:10px; opacity:0.5;">${s.query}</div>`).join('') || "Žiadna história";
+                }
             },
 
             toggleProfileModal() {
@@ -591,7 +738,9 @@
                     document.getElementById('credit-bar').style.width = (u.credits / 100) + "%";
                     const age = new Date().getFullYear() - new Date(u.birth).getFullYear();
                     document.getElementById('stat-age').innerText = isNaN(age) ? "--" : age + " rokov";
-                    document.getElementById('stat-gender').innerText = u.gender;
+                    document.getElementById('stat-gender').innerText = u.gender || "--";
+                    document.getElementById('stat-rep').innerText = u.violationLog.length > 2 ? "Znížená" : "Vzorná";
+                    document.getElementById('stat-rep').style.color = u.violationLog.length > 2 ? "var(--danger)" : "var(--success)";
                 }
             },
 
@@ -602,17 +751,26 @@
             },
 
             showBan(user) {
+                this.showView('none');
                 document.getElementById('ban-screen').classList.remove('hidden');
                 document.getElementById('ban-reason-text').innerText = user.banReason || "Zablokované.";
+                const timer = document.getElementById('ban-countdown');
+                const update = () => {
+                    if(user.banExpiresAt === -1) return timer.innerText = "PERMANENT BAN";
+                    const diff = user.banExpiresAt - Date.now();
+                    if(diff <= 0) return location.reload();
+                    const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000);
+                    timer.innerText = `${d}d ${h}h ${m}m zostáva`;
+                };
+                update(); setInterval(update, 30000);
             },
 
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             logout() { localStorage.removeItem('bt_session_v3'); location.reload(); },
-            saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); alert("Synchronizované."); this.switchSettings('main'); },
+            saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); alert("Uložené."); this.switchSettings('main'); },
             resetEverything() { localStorage.clear(); location.reload(); }
         };
     </script>
 </body>
 </html>
-
 
