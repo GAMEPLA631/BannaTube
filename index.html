@@ -472,12 +472,17 @@
                         <div style="font-size:10px; margin:5px 0;">Status: ${this.isBanned(u) ? '<span style="color:red">BANNED</span>' : 'Active'}</div>
                         <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; margin:10px 0;">
                             <div style="font-size:9px; color:var(--primary);">Aktivita sledovania:</div>
-                            ${(u.watchedHistory || []).map(w => `
+                            ${(u.watchedHistory || []).map(w => {
+                                const hasStrike = u.copyrightStrikes.includes(w.id);
+                                return `
                                 <div class="history-action-item">
                                     <span>${w.title.substring(0, 30)}</span>
-                                    <button style="padding:2px 5px; font-size:8px;" onclick="app.applyVideoStrike('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Claim</button>
-                                </div>
-                            `).join('') || '<span style="font-size:9px; opacity:0.5;">Bez histórie</span>'}
+                                    ${hasStrike ? 
+                                        `<button style="padding:2px 5px; font-size:8px; background:var(--success); color:black;" onclick="app.removeVideoStrike('${u.email}', '${w.id}')">Zrušiť Strike</button>` :
+                                        `<button style="padding:2px 5px; font-size:8px;" onclick="app.applyVideoStrike('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Udeliť Strike</button>`
+                                    }
+                                </div>`;
+                            }).join('') || '<span style="font-size:9px; opacity:0.5;">Bez histórie</span>'}
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button class="danger" style="flex:1;" onclick="app.openBanConfig('${u.email}')">Banovať</button>
@@ -533,9 +538,21 @@
                 const u = this.state.users.find(x => x.email === email);
                 if (u && !u.copyrightStrikes.includes(id)) {
                     u.copyrightStrikes.push(id);
-                    u.violationLog.push({ date: new Date().toLocaleString(), reason: `Copyright Strike: ${title}` });
+                    u.violationLog.push({ date: new Date().toLocaleString(), reason: `Udelený Copyright Strike: ${title}` });
                     this.save();
-                    alert("Video nahlásené.");
+                    this.refreshAdminUserList();
+                    alert("Video bolo zablokované.");
+                }
+            },
+
+            removeVideoStrike(email, id) {
+                const u = this.state.users.find(x => x.email === email);
+                if (u) {
+                    u.copyrightStrikes = (u.copyrightStrikes || []).filter(vid => vid !== id);
+                    u.violationLog.push({ date: new Date().toLocaleString(), reason: `Copyright Strike bol zrušený.` });
+                    this.save();
+                    this.refreshAdminUserList();
+                    alert("Video bolo odblokované.");
                 }
             },
 
@@ -618,4 +635,3 @@
     </script>
 </body>
 </html>
-
