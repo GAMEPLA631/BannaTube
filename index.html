@@ -286,7 +286,7 @@
         <div class="logo">BANNA<span style="opacity: 0.4;">TUBE</span></div>
         
         <div id="user-nav" class="hidden header-actions">
-            <!-- ADMIN PANEL BUTTON - TERAZ PRE VŠETKÝCH -->
+            <!-- ADMIN PANEL BUTTON -->
             <div id="admin-nav-btn" class="admin-btn" onclick="app.toggleAdminModal()" title="Community Oversight Panel">🛡️</div>
 
             <div style="background: rgba(255,215,0,0.1); padding: 8px 15px; border-radius: 16px; font-size: 11px; color: var(--primary); border: 1px solid rgba(255,215,0,0.3); font-weight: 700;">
@@ -457,13 +457,25 @@
 
             init() {
                 if (this.state.session) {
-                    const user = this.state.users.find(u => u.email === this.state.session);
+                    let user = this.state.users.find(u => u.email === this.state.session);
                     if (user) {
+                        this.repairUserData(user); // Oprava chýbajúcich polí
                         this.checkAnnualReset(user);
                         if (user.banned) return this.showBan(user.banReason);
                         this.onLogin(user);
                     }
                 }
+            },
+
+            // --- OPRAVA DÁT (Fix pre Cannot read properties of undefined reading 'includes') ---
+            repairUserData(user) {
+                let fixed = false;
+                if (!user.copyrightStrikes) { user.copyrightStrikes = []; fixed = true; }
+                if (!user.watchedHistory) { user.watchedHistory = []; fixed = true; }
+                if (!user.favorites) { user.favorites = []; fixed = true; }
+                if (!user.violationLog) { user.violationLog = []; fixed = true; }
+                if (!user.searchHistory) { user.searchHistory = []; fixed = true; }
+                if (fixed) this.save();
             },
 
             checkAnnualReset(user) {
@@ -515,10 +527,10 @@
                     avatar: null, 
                     violationLog: [], 
                     searchHistory: [], 
-                    watchedHistory: [], // NOVÉ: Zoznam pozretých videí
+                    watchedHistory: [], 
                     favorites: [],
                     copyrightClaims: 0,
-                    copyrightStrikes: [] // NOVÉ: Zablokované ID videí
+                    copyrightStrikes: [] 
                 };
 
                 this.state.users.push(newUser);
@@ -533,6 +545,8 @@
                 const user = this.state.users.find(u => u.email === email && u.pass === pass);
                 
                 if (!user) return alert("Prístup zamietnutý: Nesprávne údaje.");
+                
+                this.repairUserData(user); // Oprava dát pri prihlásení
                 if (user.banned) return this.showBan(user.banReason);
 
                 this.state.session = email;
@@ -561,9 +575,9 @@
 
             refreshAdminUserList() {
                 const container = document.getElementById('user-admin-list');
-                const currentUser = this.state.users.find(u => u.email === this.state.session);
+                const currentUserEmail = this.state.session;
                 
-                container.innerHTML = this.state.users.filter(u => u.email !== currentUser.email).map(u => `
+                container.innerHTML = this.state.users.filter(u => u.email !== currentUserEmail).map(u => `
                     <div class="user-manage-card">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <b>${u.fullName}</b>
@@ -573,15 +587,14 @@
                             Strikes (Warns): ${u.warnings} | Claims: ${u.copyrightClaims || 0}
                         </div>
                         
-                        <!-- WATCHED HISTORY -->
                         <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; margin-bottom:10px;">
                             <div style="font-size:9px; color:var(--primary); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Monitoring sledovania:</div>
                             <div style="font-size:9px; max-height:100px; overflow-y:auto;">
-                                ${u.watchedHistory && u.watchedHistory.length ? u.watchedHistory.map(w => `
+                                ${(u.watchedHistory || []).length ? u.watchedHistory.map(w => `
                                     <div class="history-action-item">
                                         <span>${w.title.substring(0, 35)}...</span>
                                         <div style="display:flex; gap:5px;">
-                                            ${u.copyrightStrikes.includes(w.id) ? 
+                                            ${(u.copyrightStrikes || []).includes(w.id) ? 
                                                 `<button style="padding:2px 6px; font-size:8px; background:var(--success);" onclick="app.removeVideoStrike('${u.email}', '${w.id}')">Odstrániť Strike</button>` :
                                                 `<button style="padding:2px 6px; font-size:8px; background:var(--admin-color);" onclick="app.applyVideoStrike('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Strike</button>`
                                             }
@@ -601,6 +614,7 @@
             applyVideoStrike(userEmail, videoId, title) {
                 const target = this.state.users.find(u => u.email === userEmail);
                 if (!target) return;
+                if (!target.copyrightStrikes) target.copyrightStrikes = [];
 
                 if (!target.copyrightStrikes.includes(videoId)) {
                     target.copyrightStrikes.push(videoId);
@@ -610,7 +624,7 @@
                     });
                     this.save();
                     this.refreshAdminUserList();
-                    alert(`Video "${title}" bolo zablokované pre používateľa.`);
+                    alert(`Video bolo zablokované.`);
                 }
             },
 
@@ -618,32 +632,29 @@
                 const target = this.state.users.find(u => u.email === userEmail);
                 if (!target) return;
 
-                target.copyrightStrikes = target.copyrightStrikes.filter(id => id !== videoId);
+                target.copyrightStrikes = (target.copyrightStrikes || []).filter(id => id !== videoId);
                 target.violationLog.push({ 
                     date: new Date().toLocaleString(), 
-                    reason: `SYSTÉM: Blokovanie videa bolo odstránené zo zoznamu.` 
+                    reason: `SYSTÉM: Blokovanie videa bolo odstránené.` 
                 });
                 this.save();
                 this.refreshAdminUserList();
-                alert(`Video bolo opäť sprístupnené.`);
+                alert(`Video bolo odblokované.`);
             },
 
             adminPenalty(email, type) {
                 const user = this.state.users.find(u => u.email === email);
                 if (!user) return;
-
-                const timestamp = new Date().toLocaleString();
                 if (type === 'claim') {
                     user.copyrightClaims = (user.copyrightClaims || 0) + 1;
-                    user.violationLog.push({ date: timestamp, reason: "COMMUNITY CLAIM: Nahlásenie za nevhodnú aktivitu." });
+                    user.violationLog.push({ date: new Date().toLocaleString(), reason: "COMMUNITY CLAIM: Nahlásenie za nevhodnú aktivitu." });
                     alert(`Udelený CLAIM pre ${user.fullName}.`);
                 }
-
                 this.save();
                 this.refreshAdminUserList();
             },
 
-            // --- CORE LOGIKA ---
+            // --- CORE VYHĽADÁVANIE ---
             async search() {
                 const now = Date.now();
                 const user = this.state.users.find(u => u.email === this.state.session);
@@ -688,9 +699,14 @@
             render(items) {
                 const res = document.getElementById('results');
                 const user = this.state.users.find(u => u.email === this.state.session);
+                
+                // Bezpečný prístup k strikes
+                const strikes = user.copyrightStrikes || [];
+
                 res.innerHTML = items.map(i => {
-                    const isFav = user.favorites.some(f => f.id === i.id.videoId);
-                    const isStruck = user.copyrightStrikes.includes(i.id.videoId);
+                    const favorites = user.favorites || [];
+                    const isFav = favorites.some(f => f.id === i.id.videoId);
+                    const isStruck = strikes.includes(i.id.videoId);
                     return `
                     <div class="video-card" style="${isStruck ? 'opacity:0.4; filter:grayscale(1);' : ''}">
                         <span class="fav-badge" onclick="event.stopPropagation(); app.toggleFavorite('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">${isFav ? '❤️' : '🤍'}</span>
@@ -706,17 +722,12 @@
 
             play(id, title) {
                 const user = this.state.users.find(u => u.email === this.state.session);
-                
-                // Kontrola, či video nemá strike
-                if (user.copyrightStrikes.includes(id)) {
-                    return alert("Prístup zamietnutý: Toto video bolo zablokované prostredníctvom Copyright Strike.");
-                }
+                const strikes = user.copyrightStrikes || [];
 
-                if(user.credits < 10) return alert("Nedostatok kreditov!");
+                if (strikes.includes(id)) return alert("Prístup zamietnutý: Toto video má Copyright Strike.");
+                if (user.credits < 10) return alert("Nedostatok kreditov!");
                 
                 user.credits -= 10;
-                
-                // Uloženie do histórie sledovania pre Admin Panel
                 if (!user.watchedHistory) user.watchedHistory = [];
                 user.watchedHistory.unshift({ id, title, date: new Date().toLocaleString() });
                 if (user.watchedHistory.length > 20) user.watchedHistory.pop();
@@ -737,12 +748,12 @@
 
             toggleFavorite(id, title) {
                 const user = this.state.users.find(u => u.email === this.state.session);
+                if (!user.favorites) user.favorites = [];
                 const idx = user.favorites.findIndex(f => f.id === id);
                 if (idx > -1) user.favorites.splice(idx, 1);
                 else user.favorites.push({ id, title, date: new Date().toLocaleString() });
                 this.save();
-                alert(idx > -1 ? "Odstránené z obľúbených." : "Pridané do obľúbených! ⭐");
-                if(document.getElementById('query').value) this.search();
+                if(document.getElementById('query').value) this.fetchVideos(document.getElementById('query').value);
             },
 
             toggleHistoryModal() {
@@ -750,9 +761,9 @@
                 m.classList.toggle('hidden');
                 if (!m.classList.contains('hidden')) {
                     const u = this.state.users.find(u => u.email === this.state.session);
-                    document.getElementById('violation-log').innerHTML = u.violationLog.map(v => `<div style="color:red; font-size:10px; margin-bottom:5px; border-bottom:1px solid rgba(255,0,0,0.1); padding:5px;"><b>[${v.date}]</b><br>${v.reason}</div>`).join('') || "Žiadne záznamy.";
-                    document.getElementById('search-history').innerHTML = u.searchHistory.map(s => `<div style="font-size:10px; margin-bottom:3px;">${s.query}</div>`).join('') || "Prázdne.";
-                    document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:5px; cursor:pointer;" onclick="app.play('${f.id}', '${f.title.replace(/'/g, "")}')"><span style="color:var(--primary)">▶ ${f.title}</span></div>`).join('') || "Zatiaľ žiadne srdiečka.";
+                    document.getElementById('violation-log').innerHTML = (u.violationLog || []).map(v => `<div style="color:red; font-size:10px; margin-bottom:5px; border-bottom:1px solid rgba(255,0,0,0.1); padding:5px;"><b>[${v.date}]</b><br>${v.reason}</div>`).join('') || "Žiadne záznamy.";
+                    document.getElementById('search-history').innerHTML = (u.searchHistory || []).map(s => `<div style="font-size:10px; margin-bottom:3px;">${s.query}</div>`).join('') || "Prázdne.";
+                    document.getElementById('favorites-list').innerHTML = (u.favorites || []).map(f => `<div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:5px; cursor:pointer;" onclick="app.play('${f.id}', '${f.title.replace(/'/g, "")}')"><span style="color:var(--primary)">▶ ${f.title}</span></div>`).join('') || "Zatiaľ žiadne srdiečka.";
                 }
             },
 
@@ -765,11 +776,11 @@
                 if(s==='analytics') {
                     document.getElementById('modal-credits').innerText = u.credits.toLocaleString();
                     document.getElementById('api-key-input').value = this.state.apiKey;
-                    const age = new Date().getFullYear() - new Date(u.birth).getFullYear();
+                    const age = new Date().getFullYear() - new Date(u.birth || new Date()).getFullYear();
                     document.getElementById('age-status').innerText = age + " rokov (" + (age >= 18 ? "Dospelý" : "Mladistvý") + ")";
                 }
                 if(s==='main') {
-                    document.getElementById('details-box').innerHTML = `<b>Meno:</b> ${u.fullName}<br><b>Email:</b> ${u.email}<br><b>Pohlavie:</b> ${u.gender}<br><b>Krajina:</b> ${u.country}`;
+                    document.getElementById('details-box').innerHTML = `<b>Meno:</b> ${u.fullName}<br><b>Email:</b> ${u.email}<br><b>Pohlavie:</b> ${u.gender || 'Nezadané'}<br><b>Krajina:</b> ${u.country || 'Nezadané'}`;
                 }
             },
 
