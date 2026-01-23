@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BannaTube - Futuristic Community Premium</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
         :root {
             --primary: #FFD700;
@@ -61,6 +61,8 @@
 
         /* Animations */
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseRed { 0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--danger)); } 50% { transform: scale(1.05); filter: drop-shadow(0 0 20px var(--danger)); } 100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--danger)); } }
+        @keyframes scanline { 0% { top: 0%; } 100% { top: 100%; } }
 
         /* UI ELEMENTS */
         button {
@@ -176,6 +178,54 @@
             cursor: pointer;
         }
         .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* BAN SCREEN MODERNA */
+        .ban-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: radial-gradient(circle at center, #200000 0%, #050505 100%); 
+            color: white; z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; 
+            align-items: center; text-align: center; padding: 20px;
+            overflow: hidden;
+        }
+        .ban-overlay::after {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(255, 51, 51, 0.2);
+            box-shadow: 0 0 15px var(--danger);
+            animation: scanline 4s linear infinite;
+            z-index: 10000;
+        }
+        .ban-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            padding: 50px 40px;
+            border-radius: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 30px rgba(255, 51, 51, 0.1);
+            animation: slideUp 0.6s ease-out;
+            position: relative;
+            z-index: 10001;
+        }
+        .ban-icon {
+            font-size: 70px; margin-bottom: 25px;
+            animation: pulseRed 3s infinite ease-in-out;
+            display: inline-block;
+        }
+        .ban-countdown-box {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.2rem;
+            color: var(--danger);
+            margin: 25px 0;
+            background: rgba(255, 0, 0, 0.05);
+            padding: 20px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 0, 0, 0.2);
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
 
         /* AUTH CARDS */
         .auth-card {
@@ -297,13 +347,19 @@
 </head>
 <body onload="app.init()">
 
-    <!-- BAN SCREEN -->
+    <!-- BAN SCREEN MODERNA -->
     <div id="ban-screen" class="ban-overlay hidden">
-        <div style="font-size: 80px; margin-bottom: 20px;">🛡️</div>
-        <h1 style="font-size: 2.5rem; color: var(--admin-color);">PRÍSTUP ZAMIEKNUTÝ</h1>
-        <p id="ban-reason-text" style="font-size: 1.1rem; opacity: 0.8;">Váš účet bol zablokovaný systémovou autoritou.</p>
-        <div id="ban-countdown" style="font-family: monospace; font-size: 1.8rem; color: var(--admin-color); margin: 20px 0; background: rgba(255,0,0,0.1); padding: 20px; border-radius: 20px;">--:--:--</div>
-        <button onclick="app.logout()" style="padding: 15px 40px;">Zmeniť identitu</button>
+        <div class="ban-card">
+            <div class="ban-icon">🛡️</div>
+            <h1 style="font-size: 2.2rem; color: var(--admin-color); font-weight: 900; letter-spacing: -1px; margin-bottom: 10px;">PRÍSTUP ZAMIEKNUTÝ</h1>
+            <p id="ban-reason-text" style="font-size: 1rem; opacity: 0.6; line-height: 1.5; margin-bottom: 10px;">Váš účet bol zablokovaný systémovou autoritou z dôvodu porušenia pravidiel siete.</p>
+            
+            <div id="ban-countdown" class="ban-countdown-box">--:--:--</div>
+            
+            <p style="font-size: 12px; color: var(--danger); opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px;">Zostávajúci čas trestu</p>
+            
+            <button onclick="app.logout()" class="danger" style="width: 100%; padding: 16px; font-size: 12px;">ZMENIŤ IDENTITU</button>
+        </div>
     </div>
 
     <div class="main-wrapper">
@@ -733,5 +789,4 @@
     </script>
 </body>
 </html>
-
 
