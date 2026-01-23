@@ -677,15 +677,26 @@
 
                             <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:18px; margin-top:15px;">
                                 <label style="font-size:10px; opacity:0.4; display:block; margin-bottom:10px;">HISTÓRIA SLEDOVANIA (COPYRIGHT CONTROL):</label>
-                                ${u.watchedHistory.map(w => `
+                                ${u.watchedHistory.map(w => {
+                                    const hasStrike = u.copyrightStrikes.includes(w.id);
+                                    const hasClaim = u.copyrightClaims.includes(w.id);
+                                    const isBlocked = !!u.videoBlocks[w.id];
+                                    return `
                                     <div class="history-action-item">
                                         <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:10px;">${w.title}</span>
                                         <div style="display:flex; gap:5px;">
-                                            <button class="warning" style="font-size:8px; padding:4px 8px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'claim')">CLAIM</button>
-                                            <button class="danger" style="font-size:8px; padding:4px 8px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">STRIKE</button>
-                                            <button class="secondary" style="font-size:8px; padding:4px 8px;" onclick="app.adminBlockVideo('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">${u.videoBlocks[w.id] ? 'UNBLOCK' : 'BLOCK'}</button>
+                                            <button class="warning" style="font-size:8px; padding:4px 8px; filter: ${hasClaim ? 'none' : 'grayscale(1)'}" onclick="app.adminCopyright('${u.email}', '${w.id}', 'claim')">
+                                                ${hasClaim ? 'UNCLAIM' : 'CLAIM'}
+                                            </button>
+                                            <button class="danger" style="font-size:8px; padding:4px 8px; filter: ${hasStrike ? 'none' : 'grayscale(1)'}" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">
+                                                ${hasStrike ? 'UNSTRIKE' : 'STRIKE'}
+                                            </button>
+                                            <button class="secondary" style="font-size:8px; padding:4px 8px;" onclick="app.adminBlockVideo('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">
+                                                ${isBlocked ? 'UNBLOCK' : 'BLOCK'}
+                                            </button>
                                         </div>
-                                    </div>`).join('') || '<div style="font-size:10px; opacity:0.3; text-align:center;">Žiadna aktivita.</div>'}
+                                    </div>`;
+                                }).join('') || '<div style="font-size:10px; opacity:0.3; text-align:center;">Žiadna aktivita.</div>'}
                             </div>
                         </div>`;
                     }).join('');
@@ -719,25 +730,38 @@
 
             adminCopyright(email, vid, type) {
                 const u = this.state.users.find(x => x.email === email);
-                if (type === 'strike') {
-                    if (!u.copyrightStrikes.includes(vid)) u.copyrightStrikes.push(vid);
-                    if (u.copyrightStrikes.length >= 3) {
+                const list = type === 'strike' ? u.copyrightStrikes : u.copyrightClaims;
+                const index = list.indexOf(vid);
+
+                if (index > -1) {
+                    // Ak už existuje, odstránime (Zrušíme)
+                    list.splice(index, 1);
+                    alert(`Akcia ${type.toUpperCase()} bola zrušená pre toto video.`);
+                } else {
+                    // Ak neexistuje, pridáme
+                    list.push(vid);
+                    if (type === 'strike' && u.copyrightStrikes.length >= 3) {
                         u.banExpiresAt = -1;
                         u.banReason = "Dosiahnutý limit 3 Copyright Strikov (Trvalý Ban)";
                     }
-                } else {
-                    if (!u.copyrightClaims.includes(vid)) u.copyrightClaims.push(vid);
+                    alert(`Akcia ${type.toUpperCase()} bola úspešne vykonaná.`);
                 }
+                
                 this.save();
-                alert(`Akcia ${type.toUpperCase()} bola úspešne vykonaná.`);
-                this.toggleAdminModal(); this.toggleAdminModal();
+                this.toggleAdminModal(); this.toggleAdminModal(); // Obnoviť panel
             },
 
             adminBlockVideo(email, vid, title) {
                 const u = this.state.users.find(x => x.email === email);
-                if (!u.videoBlocks[vid]) u.videoBlocks[vid] = "99€ (Admin Block)"; 
-                else delete u.videoBlocks[vid];
-                this.save(); this.toggleAdminModal(); this.toggleAdminModal();
+                if (!u.videoBlocks[vid]) {
+                    u.videoBlocks[vid] = "99€ (Admin Block)"; 
+                    alert("Video bolo zablokované.");
+                } else {
+                    delete u.videoBlocks[vid];
+                    alert("Video bolo odblokované.");
+                }
+                this.save(); 
+                this.toggleAdminModal(); this.toggleAdminModal();
             },
 
             updateAvatar() {
@@ -789,4 +813,3 @@
     </script>
 </body>
 </html>
-
