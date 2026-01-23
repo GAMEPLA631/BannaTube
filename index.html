@@ -219,7 +219,7 @@
 
         /* ADMIN & HISTORY */
         .user-manage-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 77, 77, 0.2); padding: 20px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
-        .history-action-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; font-size: 11px; }
+        .history-action-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; font-size: 11px; flex-wrap: wrap; gap: 10px; }
         .history-list { text-align: left; font-size: 12px; margin: 15px 0; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 18px; max-height: 220px; overflow-y: auto; border: 1px solid var(--glass-border); }
 
         /* PLAYER */
@@ -230,7 +230,7 @@
         .nav-arrow { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 14px 20px; border-radius: 16px; margin: 10px 0; cursor: pointer; transition: 0.2s; }
         .nav-arrow:hover { background: rgba(255,255,255,0.08); }
 
-        /* OPRAVENÁ SEARCH AREA */
+        /* SEARCH AREA */
         .search-area { 
             text-align: center; 
             padding: 100px 20px 40px; 
@@ -454,7 +454,7 @@
 
             repairUserData(user) {
                 let fixed = false;
-                if (!user.copyrightStrikes) { user.copyrightStrikes = []; fixed = true; }
+                if (!user.copyrightStrikes) { user.copyrightStrikes = []; fixed = true; } // strikes is array of IDs
                 if (!user.watchedHistory) { user.watchedHistory = []; fixed = true; }
                 if (!user.favorites) { user.favorites = []; fixed = true; }
                 if (!user.violationLog) { user.violationLog = []; fixed = true; }
@@ -462,6 +462,8 @@
                 if (!user.banExpiresAt) { user.banExpiresAt = 0; fixed = true; }
                 if (user.licenseBlocked === undefined) { user.licenseBlocked = false; fixed = true; }
                 if (user.licensePrice === undefined) { user.licensePrice = ""; fixed = true; }
+                // NOVÉ: video-specific blocks
+                if (!user.videoBlocks) { user.videoBlocks = {}; fixed = true; } // map id -> price
                 if (fixed) this.save();
             },
 
@@ -487,6 +489,7 @@
                     gender: document.getElementById('reg-gender').value,
                     credits: 10000, warnings: 0, avatar: null,
                     watchedHistory: [], searchHistory: [], violationLog: [], favorites: [], copyrightStrikes: [], 
+                    videoBlocks: {},
                     banExpiresAt: 0, licenseBlocked: false, licensePrice: ""
                 };
                 this.state.users.push(newUser);
@@ -557,12 +560,12 @@
                     const data = await res.json();
                     
                     grid.innerHTML = data.items.map(i => {
-                        const isStruck = user.copyrightStrikes.includes(i.id.videoId);
+                        const isStruck = user.copyrightStrikes.includes(i.id.videoId) || user.videoBlocks[i.id.videoId];
                         const isFav = user.favorites.some(f => f.id === i.id.videoId);
                         return `
                         <div class="video-card" style="${isStruck ? 'opacity:0.3; grayscale:1;' : ''}">
                             <span class="fav-badge" onclick="event.stopPropagation(); app.toggleFavorite('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">${isFav ? '❤️' : '🤍'}</span>
-                            <div onclick="${isStruck ? "alert('Zablokované Strikeom')" : `app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')`}">
+                            <div onclick="${isStruck ? "app.play('" + i.id.videoId + "', '" + i.snippet.title.replace(/'/g, "") + "')" : `app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')`}">
                                 <img src="${i.snippet.thumbnails.medium.url}">
                                 <div class="video-info"><b>${isStruck ? '[BLOCKED] ' : ''}${i.snippet.title}</b></div>
                             </div>
@@ -575,19 +578,15 @@
                 const user = this.state.users.find(u => u.email === this.state.session);
                 document.getElementById('player-view').classList.remove('hidden');
                 
+                // --- KONTROLA LICENČNEJ BLOKÁCIE CELKOVEJ ---
                 if (user.licenseBlocked) {
-                    document.getElementById('video-mount').innerHTML = `
-                        <div class="license-block-overlay">
-                            <div style="font-size:50px; margin-bottom:15px;">💳</div>
-                            <h2 style="color:var(--admin-color);">LICENČNÁ BLOKÁCIA</h2>
-                            <p style="font-size:14px; opacity:0.9;">Prístup k obsahu Premium je obmedzený.</p>
-                            <p style="color:var(--primary); font-size:18px; margin:15px 0; font-weight:800;">CENA ZA ODOMKNUTIE: ${user.licensePrice || 'Dohodou'}</p>
-                            <p style="color:#aaa; font-size:11px; margin-bottom:20px;">Musíte čakať, dokým autor nezruší blokovanie alebo zadajte kód.</p>
-                            <div style="width:100%; max-width:300px;">
-                                <input type="text" id="unlock-code-input" placeholder="Zadajte odomykací kód..." style="text-align:center;">
-                                <button onclick="app.attemptCodeUnlock()" style="width:100%; margin-top:10px; background:var(--success); color:black;">Overiť kód</button>
-                            </div>
-                        </div>`;
+                    this.showBlockOverlay("LICENČNÁ BLOKÁCIA", `CENA ZA ODOMKNUTIE: ${user.licensePrice || 'Dohodou'}`, "Musíte čakať, dokým autor nezruší blokovanie alebo zadajte kód.");
+                    return;
+                }
+
+                // --- KONTROLA ŠPECIFICKEJ BLOKÁCIE VIDEA ---
+                if (user.videoBlocks[id]) {
+                    this.showBlockOverlay("VIDEO BLOKOVANÉ", `CENA ZA TOTO VIDEO: ${user.videoBlocks[id]}`, "Musíte čakať, dokým autor nezruší blokovanie videa Premium.");
                     return;
                 }
 
@@ -609,11 +608,27 @@
                 document.getElementById('video-mount').innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen style="width:100%; height:100%;"></iframe>`;
             },
 
+            showBlockOverlay(title, price, subtext) {
+                document.getElementById('video-mount').innerHTML = `
+                    <div class="license-block-overlay">
+                        <div style="font-size:50px; margin-bottom:15px;">💳</div>
+                        <h2 style="color:var(--admin-color);">${title}</h2>
+                        <p style="font-size:14px; opacity:0.9;">Prístup k obsahu Premium je obmedzený.</p>
+                        <p style="color:var(--primary); font-size:18px; margin:15px 0; font-weight:800;">${price}</p>
+                        <p style="color:#aaa; font-size:11px; margin-bottom:20px;">${subtext}</p>
+                        <div style="width:100%; max-width:300px;">
+                            <input type="text" id="unlock-code-input" placeholder="Zadajte odomykací kód..." style="text-align:center;">
+                            <button onclick="app.attemptCodeUnlock()" style="width:100%; margin-top:10px; background:var(--success); color:black;">Overiť kód</button>
+                        </div>
+                    </div>`;
+            },
+
             attemptCodeUnlock() {
                 const input = document.getElementById('unlock-code-input').value.trim();
                 const user = this.state.users.find(u => u.email === this.state.session);
                 if (input === this.state.premiumUnlockCode) {
                     user.licenseBlocked = false;
+                    user.videoBlocks = {}; // Odomkne všetko pri správnom kóde
                     this.save();
                     alert("Odomknuté!");
                     this.closePlayer();
@@ -646,18 +661,24 @@
                             Status: ${this.isBanned(u) ? 'BANNED' : 'Active'}
                         </div>
                         <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; margin:10px 0;">
-                            <div style="font-size:9px; color:var(--primary);">Sledované videá:</div>
-                            ${u.watchedHistory.map(w => `
+                            <div style="font-size:9px; color:var(--primary); margin-bottom:10px;">HISTÓRIA SLEDOVANIA:</div>
+                            ${(u.watchedHistory || []).map(w => {
+                                const isVideoBlocked = u.videoBlocks[w.id];
+                                return `
                                 <div class="history-action-item">
-                                    <span>${w.title.substring(0, 25)}</span>
-                                    ${u.copyrightStrikes.includes(w.id) ? 
-                                        `<button class="success" style="padding:2px 5px; font-size:8px;" onclick="app.removeVideoStrike('${u.email}', '${w.id}')">Zrušiť Strike</button>` :
-                                        `<button class="danger" style="padding:2px 5px; font-size:8px;" onclick="app.applyVideoStrike('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Udeliť Strike</button>`
-                                    }
-                                </div>`).join('') || '<span style="opacity:0.3; font-size:9px;">Bez histórie</span>'}
+                                    <span style="flex:1;">${w.title.substring(0, 20)}...</span>
+                                    <div style="display:flex; gap:5px; align-items:center;">
+                                        <input type="text" id="vprice-${u.email.replace(/@|\./g, '')}-${w.id}" placeholder="Cena" style="width:50px; padding:4px; font-size:9px;" value="${isVideoBlocked || ''}">
+                                        ${isVideoBlocked ? 
+                                            `<button class="success" style="padding:4px 8px; font-size:8px;" onclick="app.toggleVideoBlock('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Zrušiť Blok</button>` :
+                                            `<button class="danger" style="padding:4px 8px; font-size:8px;" onclick="app.toggleVideoBlock('${u.email}', '${w.id}', '${w.title.replace(/'/g, "")}')">Blokovať</button>`
+                                        }
+                                    </div>
+                                </div>`;
+                            }).join('') || '<span style="opacity:0.3; font-size:9px;">Žiadna aktivita</span>'}
                         </div>
                         <div style="margin-top:10px;">
-                            <label style="font-size:10px; opacity:0.6;">Cena za odomknutie:</label>
+                            <label style="font-size:10px; opacity:0.6;">Globálna cena licencie:</label>
                             <input type="text" id="price-${u.email.replace(/@|\./g, '')}" placeholder="Napr. 10€" value="${u.licensePrice}" style="margin:5px 0;">
                             <div style="display:flex; gap:5px; flex-wrap:wrap;">
                                 <button class="danger" style="flex:1;" onclick="app.openBanConfig('${u.email}')">Banovať Účet</button>
@@ -668,6 +689,24 @@
                             </div>
                         </div>
                     </div>`).join('');
+            },
+
+            toggleVideoBlock(email, vid, title) {
+                const u = this.state.users.find(x => x.email === email);
+                const priceInput = document.getElementById(`vprice-${email.replace(/@|\./g, '')}-${vid}`);
+                
+                if (!u.videoBlocks[vid]) {
+                    const price = priceInput.value.trim() || "10€";
+                    u.videoBlocks[vid] = price;
+                    u.violationLog.push({ date: new Date().toLocaleString(), reason: `BLOKÁCIA VIDEA: ${title} s cenou ${price}` });
+                    alert(`Video "${title}" bolo zablokované pre používateľa.`);
+                } else {
+                    delete u.videoBlocks[vid];
+                    u.violationLog.push({ date: new Date().toLocaleString(), reason: `ODBLOKOVANIE VIDEA: ${title}` });
+                    alert(`Video "${title}" bolo odomknuté.`);
+                }
+                this.save();
+                this.refreshAdminUserList();
             },
 
             applyLicenseAction(email) {
@@ -773,4 +812,5 @@
     </script>
 </body>
 </html>
+
 
