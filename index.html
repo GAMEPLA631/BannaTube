@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannaTube - Futuristic Local Core (V300)</title>
+    <title>BannaTube - Futuristic Local Core (Chrome Fix)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -174,6 +174,7 @@
                     
                     <div><label class="reg-label">7. Referenčný kód</label><input type="text" id="reg-ref" placeholder="CODE-X"></div>
                     <div><label class="reg-label">Pohlavie</label><select id="reg-gender"><option>Muž</option><option>Žena</option></select></div>
+                    
                     <div><label class="reg-label">Narodenie</label><input type="date" id="reg-birth"></div>
                     <div><label class="reg-label">Heslo</label><input type="password" id="reg-pass" placeholder="••••••••"></div>
 
@@ -282,21 +283,21 @@
     </div>
 
     <script>
+        // BANNATUBE CHROME OPTIMIZED CORE V400
         window.app = {
             state: {
-                session: localStorage.getItem('bannatube_gh_v300_session'),
+                session: localStorage.getItem('bannatube_chrome_v400'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 localDb: null,
                 profile: null,
                 historyTab: 'history',
-                isDbReady: false
+                isReady: false
             },
 
             async init() {
                 try {
                     await this.initLocalDB();
-                    this.state.isDbReady = true;
-                    console.log("Core Database V300 Ready.");
+                    this.state.isReady = true;
                     
                     if (this.state.session) {
                         const user = await this.getUserByEmail(this.state.session);
@@ -311,13 +312,14 @@
                     this.syncVideosUI();
                     setInterval(() => this.tickVault(), 1000);
                 } catch (e) {
-                    this.showMsg("Kritická chyba databázy.");
+                    console.error("Critical Failure:", e);
+                    this.showMsg("Databáza zablokovaná prehliadačom.");
                 }
             },
 
             async initLocalDB() {
                 return new Promise((resolve, reject) => {
-                    const req = indexedDB.open('BannaTube_GitHub_V300', 1);
+                    const req = indexedDB.open('BannaTube_ChromeFix_V400', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -328,12 +330,15 @@
                         resolve(); 
                     };
                     req.onerror = (e) => reject(e);
+                    req.onblocked = () => {
+                        alert("Prosím zavrite iné karty s touto aplikáciou (Chrome lock).");
+                        reject("Blocked");
+                    };
                 });
             },
 
             async getUserByEmail(email) {
                 if (!email) return null;
-                // Vždy pre istotu čakáme na DB
                 if (!this.state.localDb) await this.initLocalDB();
                 
                 return new Promise((resolve) => {
@@ -349,11 +354,14 @@
 
             async saveUserDB(user) {
                 if (!this.state.localDb) await this.initLocalDB();
-                return new Promise((resolve) => {
-                    const tx = this.state.localDb.transaction('users', 'readwrite');
-                    const store = tx.objectStore('users');
-                    store.put(user);
-                    tx.oncomplete = () => resolve();
+                return new Promise((resolve, reject) => {
+                    try {
+                        const tx = this.state.localDb.transaction('users', 'readwrite');
+                        const store = tx.objectStore('users');
+                        store.put(user);
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = (e) => reject(e);
+                    } catch(e) { reject(e); }
                 });
             },
 
@@ -364,12 +372,12 @@
                     user.credits = 10000;
                     user.lastResetYear = currentYear;
                     this.saveUserDB(user);
-                    this.showMsg(`🎉 Nový rok ${currentYear}: Kredity obnovené!`);
+                    this.showMsg(`Nový rok ${currentYear}: Kredity obnovené!`);
                 }
             },
 
             async handleRegister() {
-                if (!this.state.isDbReady) await this.initLocalDB();
+                if (!this.state.isReady) return this.showMsg("Načítavam jadro...");
                 
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value.trim();
@@ -379,11 +387,11 @@
                 const terms = document.getElementById('reg-terms').checked;
 
                 if (!email || !pass || !name || !nick || !terms) {
-                    return this.showMsg("Vyplňte všetky polia a súhlaste s TOS.");
+                    return this.showMsg("Doplňte polia a súhlaste s TOS.");
                 }
 
                 const existing = await this.getUserByEmail(email);
-                if (existing) return this.showMsg("Email už v jadre existuje.");
+                if (existing) return this.showMsg("Email už je registrovaný.");
 
                 const newUser = { 
                     email, pass, name, fullName: name + " " + surname, nick, 
@@ -399,34 +407,33 @@
                     lastResetYear: new Date().getFullYear()
                 };
 
-                await this.saveUserDB(newUser);
-                
-                // AUTO-LOGIN PO REGISTRÁCII
-                this.state.session = email;
-                this.state.profile = newUser;
-                localStorage.setItem('bannatube_gh_v300_session', email);
-                this.onLogin(newUser);
-                this.showMsg("Identita vytvorená a aktivovaná.");
+                try {
+                    await this.saveUserDB(newUser);
+                    // AUTO-LOGIN
+                    this.state.session = email;
+                    this.state.profile = newUser;
+                    localStorage.setItem('bannatube_chrome_v400', email);
+                    this.onLogin(newUser);
+                    this.showMsg("Licencia aktivovaná!");
+                } catch(e) { this.showMsg("Chyba zápisu do prehliadača."); }
             },
 
             async handleLogin() {
-                if (!this.state.isDbReady) await this.initLocalDB();
-                
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 
-                if (!email || !pass) return this.showMsg("Zadajte prihlasovacie údaje.");
+                if (!email || !pass) return this.showMsg("Zadajte údaje.");
 
                 const user = await this.getUserByEmail(email);
                 
-                if (!user) return this.showMsg("Identita nenájdená. Vykonali sme globálny reset.");
-                if (user.pass !== pass) return this.showMsg("Nesprávny kód (Heslo).");
+                if (!user) return this.showMsg("Identita nenájdená (Vykonal sa reset).");
+                if (user.pass !== pass) return this.showMsg("Nesprávne heslo.");
 
                 this.state.session = email;
                 this.state.profile = user;
-                localStorage.setItem('bannatube_gh_v300_session', email);
+                localStorage.setItem('bannatube_chrome_v400', email);
                 this.onLogin(user);
-                this.showMsg("Vstup povolený.");
+                this.showMsg("Prístup povolený.");
             },
 
             onLogin(user) {
@@ -443,20 +450,15 @@
             async uploadLocalVideo() {
                 const file = document.getElementById('local-video-input').files[0];
                 if (!file) return;
-                
-                this.showMsg("ARCHIVUJEM MP4...");
+                this.showMsg("UKLADÁM MP4...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
-                
-                tx.oncomplete = () => {
-                    this.showMsg("Video uložené.");
-                    this.syncVideosUI();
-                };
+                tx.oncomplete = () => { this.showMsg("Uložené na disk."); this.syncVideosUI(); };
             },
 
             async syncVideosUI() {
-                if(!this.state.localDb) await this.initLocalDB();
+                if(!this.state.localDb) return;
                 const grid = document.getElementById('local-videos-results');
                 if(!grid) return;
                 const tx = this.state.localDb.transaction('videos', 'readonly');
@@ -466,14 +468,14 @@
                     grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="local-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><br><small>Vlastník: ${v.uploader}</small></div>
+                            <div class="video-info"><b>${v.name}</b><br><small>Sektor: ${v.uploader}</small></div>
                         </div>
                     `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor je prázdny.</p>';
                 };
             },
 
             async search() {
-                if (!this.state.apiKey) return this.showMsg("Zadajte API kľúč.");
+                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
 
@@ -482,7 +484,7 @@
                 await this.saveUserDB(this.state.profile);
 
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Skenujem jadro...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Skenujem...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -492,10 +494,10 @@
                                 <img src="${i.snippet.thumbnails.medium.url}">
                                 <div class="video-info"><b>${i.snippet.title}</b></div>
                             </div>
-                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ OBLOŽIŤ DO OBĽÚBENÝCH</button>
+                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ DO OBĽÚBENÝCH</button>
                         </div>
                     `).join('');
-                } catch(e) { grid.innerHTML = 'Chyba API.'; }
+                } catch(e) { grid.innerHTML = 'API Error.'; }
             },
 
             async playYT(id, title) {
@@ -529,7 +531,7 @@
                 if(idx > -1) this.state.profile.favorites.splice(idx, 1);
                 else this.state.profile.favorites.push({ id, title, date: Date.now() });
                 await this.saveUserDB(this.state.profile);
-                this.showMsg("Log obľúbených aktualizovaný.");
+                this.showMsg("Zoznam obľúbených aktualizovaný.");
             },
 
             async toggleAdminModal() {
@@ -559,7 +561,7 @@
                     if(!u.strikes) u.strikes = [];
                     u.strikes.push({ reason: "Manuálny Admin Strike", date: Date.now() });
                     await this.saveUserDB(u);
-                    this.showMsg("Strike udelený: " + email);
+                    this.showMsg("Strike udelený subjektu: " + email);
                     this.toggleAdminModal(); this.toggleAdminModal();
                 }
             },
@@ -622,10 +624,9 @@
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             showMsg(t) { const b = document.getElementById('msg-box'); if(b){ b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); } },
-            logout() { localStorage.removeItem('bannatube_gh_v300_session'); location.reload(); }
+            logout() { localStorage.removeItem('bannatube_chrome_v400'); location.reload(); }
         };
     </script>
 </body>
 </html>
-
 
