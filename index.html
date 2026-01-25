@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannaTube - Futuristic Local Core (V200)</title>
+    <title>BannaTube - Futuristic Local Core (V300)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -107,16 +107,10 @@
         .search-area h1 { margin-bottom: 40px; font-weight: 900; font-size: clamp(2.5rem, 6vw, 4.5rem); text-transform: uppercase; letter-spacing: -3px; }
         .search-bar-container { display: flex; width: 100%; max-width: 750px; gap: 15px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 30px; border: 1px solid var(--glass-border); margin: 0 auto; backdrop-filter: blur(15px); }
 
-        /* FLOATING ACTION CENTER */
-        .action-center {
-            position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 2000;
-        }
-        .action-fab {
-            width: 56px; height: 56px; border-radius: 20px; background: var(--surface); border: 1px solid var(--glass-border); color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(20px);
-        }
+        .action-center { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 2000; }
+        .action-fab { width: 56px; height: 56px; border-radius: 20px; background: var(--surface); border: 1px solid var(--glass-border); color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
         .action-fab:hover { transform: scale(1.1); border-color: var(--primary); background: rgba(255,215,0,0.1); }
 
-        /* LISTS IN MODALS */
         .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
         .log-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--primary); color: black; }
         .log-tag.danger { background: var(--danger); color: white; }
@@ -126,7 +120,6 @@
         .progress-container { width: 100%; height: 10px; background: rgba(255,255,255,0.05); border-radius: 20px; margin-top: 20px; overflow: hidden; display: none; }
         .progress-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 15px var(--primary); transition: width 0.1s linear; }
 
-        /* REGISTRATION GRID */
         .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
         .reg-full { grid-column: span 2; }
         .reg-label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 5px; display: block; }
@@ -197,7 +190,6 @@
             </div>
         </div>
 
-        <!-- APP CONTENT -->
         <div id="app-view" class="hidden">
             <div id="section-main">
                 <div class="search-area">
@@ -213,7 +205,7 @@
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
                     <h1 style="color:var(--primary);">LOCAL <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny archív uložený v zariadení.</p>
+                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny šifrovaný archív.</p>
                 </div>
                 <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary); margin-top: 20px;">
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
@@ -223,7 +215,7 @@
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
                     <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
-                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">ULOŽIŤ MP4 ARCHÍV</h4>
+                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">OKAMŽITÝ MP4 UPLOAD</h4>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
                         <button onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
                     </div>
@@ -233,13 +225,11 @@
         </div>
     </div>
 
-    <!-- ACTION CENTER -->
     <div id="action-center" class="action-center hidden">
         <div class="action-fab" title="Admin Hub" onclick="app.toggleAdminModal()">🛡️</div>
         <div class="action-fab" title="História a Obľúbené" onclick="app.toggleHistoryModal()">📊</div>
     </div>
 
-    <!-- MODALS -->
     <div id="profile-modal" class="modal hidden">
         <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:35px;">
             <div style="position:relative; width:120px; height:120px; border:4px solid var(--primary); border-radius:35px; overflow:hidden; background: #111;">
@@ -292,37 +282,42 @@
     </div>
 
     <script>
-        // CORE GLOBAL SCRIPT - VERZIA 2.5 (FIX PRE GITHUB PAGES)
         window.app = {
             state: {
-                session: localStorage.getItem('bannatube_gh_session'), // Nový kľúč pre GitHub verziu
+                session: localStorage.getItem('bannatube_gh_v300_session'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 localDb: null,
                 profile: null,
-                historyTab: 'history'
+                historyTab: 'history',
+                isDbReady: false
             },
 
             async init() {
-                // RESET SYSTÉMU: Databáza pre GitHub Pages
-                await this.initLocalDB();
-                
-                if (this.state.session) {
-                    const user = await this.getUserByEmail(this.state.session);
-                    if (user) {
-                        this.state.profile = user;
-                        this.checkAnnualReset(user);
-                        this.onLogin(user);
-                    } else {
-                        this.logout();
+                try {
+                    await this.initLocalDB();
+                    this.state.isDbReady = true;
+                    console.log("Core Database V300 Ready.");
+                    
+                    if (this.state.session) {
+                        const user = await this.getUserByEmail(this.state.session);
+                        if (user) {
+                            this.state.profile = user;
+                            this.checkAnnualReset(user);
+                            this.onLogin(user);
+                        } else {
+                            this.logout();
+                        }
                     }
+                    this.syncVideosUI();
+                    setInterval(() => this.tickVault(), 1000);
+                } catch (e) {
+                    this.showMsg("Kritická chyba databázy.");
                 }
-                this.syncVideosUI();
-                setInterval(() => this.tickVault(), 1000);
             },
 
             async initLocalDB() {
-                return new Promise((resolve) => {
-                    const req = indexedDB.open('BannaTube_GitHub_Local_V1', 1);
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open('BannaTube_GitHub_V300', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -332,18 +327,20 @@
                         this.state.localDb = e.target.result; 
                         resolve(); 
                     };
-                    req.onerror = () => resolve();
+                    req.onerror = (e) => reject(e);
                 });
             },
 
             async getUserByEmail(email) {
                 if (!email) return null;
+                // Vždy pre istotu čakáme na DB
                 if (!this.state.localDb) await this.initLocalDB();
                 
                 return new Promise((resolve) => {
                     try {
                         const tx = this.state.localDb.transaction('users', 'readonly');
-                        const req = tx.objectStore('users').get(email.toLowerCase().trim());
+                        const store = tx.objectStore('users');
+                        const req = store.get(email.toLowerCase().trim());
                         req.onsuccess = () => resolve(req.result || null);
                         req.onerror = () => resolve(null);
                     } catch(e) { resolve(null); }
@@ -354,7 +351,8 @@
                 if (!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
-                    tx.objectStore('users').put(user);
+                    const store = tx.objectStore('users');
+                    store.put(user);
                     tx.oncomplete = () => resolve();
                 });
             },
@@ -371,6 +369,8 @@
             },
 
             async handleRegister() {
+                if (!this.state.isDbReady) await this.initLocalDB();
+                
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
@@ -379,11 +379,11 @@
                 const terms = document.getElementById('reg-terms').checked;
 
                 if (!email || !pass || !name || !nick || !terms) {
-                    return this.showMsg("Doplňte všetky polia a súhlaste s TOS.");
+                    return this.showMsg("Vyplňte všetky polia a súhlaste s TOS.");
                 }
 
                 const existing = await this.getUserByEmail(email);
-                if (existing) return this.showMsg("Tento email je už v systéme.");
+                if (existing) return this.showMsg("Email už v jadre existuje.");
 
                 const newUser = { 
                     email, pass, name, fullName: name + " " + surname, nick, 
@@ -401,31 +401,32 @@
 
                 await this.saveUserDB(newUser);
                 
-                // AUTO-LOGIN
+                // AUTO-LOGIN PO REGISTRÁCII
                 this.state.session = email;
                 this.state.profile = newUser;
-                localStorage.setItem('bannatube_gh_session', email);
+                localStorage.setItem('bannatube_gh_v300_session', email);
                 this.onLogin(newUser);
-                this.showMsg("Core Licencia aktivovaná. Vitajte.");
+                this.showMsg("Identita vytvorená a aktivovaná.");
             },
 
             async handleLogin() {
+                if (!this.state.isDbReady) await this.initLocalDB();
+                
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 
                 if (!email || !pass) return this.showMsg("Zadajte prihlasovacie údaje.");
 
-                // Vždy kontrolujeme databázu
                 const user = await this.getUserByEmail(email);
                 
-                if (!user) return this.showMsg("Účet neexistuje. Znova sa registrujte.");
-                if (user.pass !== pass) return this.showMsg("Nesprávne heslo.");
+                if (!user) return this.showMsg("Identita nenájdená. Vykonali sme globálny reset.");
+                if (user.pass !== pass) return this.showMsg("Nesprávny kód (Heslo).");
 
                 this.state.session = email;
                 this.state.profile = user;
-                localStorage.setItem('bannatube_gh_session', email);
+                localStorage.setItem('bannatube_gh_v300_session', email);
                 this.onLogin(user);
-                this.showMsg("Prístup povolený.");
+                this.showMsg("Vstup povolený.");
             },
 
             onLogin(user) {
@@ -449,14 +450,15 @@
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
                 
                 tx.oncomplete = () => {
-                    this.showMsg("Video bezpečne uložené.");
+                    this.showMsg("Video uložené.");
                     this.syncVideosUI();
                 };
             },
 
             async syncVideosUI() {
+                if(!this.state.localDb) await this.initLocalDB();
                 const grid = document.getElementById('local-videos-results');
-                if(!grid || !this.state.localDb) return;
+                if(!grid) return;
                 const tx = this.state.localDb.transaction('videos', 'readonly');
                 const req = tx.objectStore('videos').getAll();
                 req.onsuccess = () => {
@@ -464,7 +466,7 @@
                     grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="local-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><br><small>Sektor: ${v.uploader}</small></div>
+                            <div class="video-info"><b>${v.name}</b><br><small>Vlastník: ${v.uploader}</small></div>
                         </div>
                     `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor je prázdny.</p>';
                 };
@@ -480,7 +482,7 @@
                 await this.saveUserDB(this.state.profile);
 
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Prehľadávam jadro...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Skenujem jadro...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -490,7 +492,7 @@
                                 <img src="${i.snippet.thumbnails.medium.url}">
                                 <div class="video-info"><b>${i.snippet.title}</b></div>
                             </div>
-                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ DO OBĽÚBENÝCH</button>
+                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ OBLOŽIŤ DO OBĽÚBENÝCH</button>
                         </div>
                     `).join('');
                 } catch(e) { grid.innerHTML = 'Chyba API.'; }
@@ -527,7 +529,7 @@
                 if(idx > -1) this.state.profile.favorites.splice(idx, 1);
                 else this.state.profile.favorites.push({ id, title, date: Date.now() });
                 await this.saveUserDB(this.state.profile);
-                this.showMsg("Obľúbené aktualizované.");
+                this.showMsg("Log obľúbených aktualizovaný.");
             },
 
             async toggleAdminModal() {
@@ -557,7 +559,7 @@
                     if(!u.strikes) u.strikes = [];
                     u.strikes.push({ reason: "Manuálny Admin Strike", date: Date.now() });
                     await this.saveUserDB(u);
-                    this.showMsg("Strike udelený subjektu: " + email);
+                    this.showMsg("Strike udelený: " + email);
                     this.toggleAdminModal(); this.toggleAdminModal();
                 }
             },
@@ -587,13 +589,13 @@
                 if (tabEl) tabEl.style.opacity = '1';
                 
                 if(tab === 'history') {
-                    content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Prázdna história.";
+                    content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Čistá história.";
                 } else if(tab === 'favs') {
                     content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne obľúbené.";
                 } else if(tab === 'strikes') {
                     content.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.reason}</span><span class="log-tag danger">STRIKE</span></div>`).join('') || "Bez priestupkov.";
                 } else {
-                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Hľadané</span></div>`).join('') || "Žiadne hľadania.";
+                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Core Search</span></div>`).join('') || "Žiadne hľadania.";
                 }
             },
 
@@ -620,7 +622,7 @@
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             showMsg(t) { const b = document.getElementById('msg-box'); if(b){ b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); } },
-            logout() { localStorage.removeItem('bannatube_gh_session'); location.reload(); }
+            logout() { localStorage.removeItem('bannatube_gh_v300_session'); location.reload(); }
         };
     </script>
 </body>
