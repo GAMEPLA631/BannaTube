@@ -316,10 +316,11 @@
 
             async initDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('bt_vault', 2);
+                    const req = indexedDB.open('bt_vault', 3); // Verzia 3 pre profilovky
                     req.onupgradeneeded = (e) => {
                         const db = e.target.result;
                         if (!db.objectStoreNames.contains('videos')) db.createObjectStore('videos', { keyPath: 'id', autoIncrement: true });
+                        if (!db.objectStoreNames.contains('avatars')) db.createObjectStore('avatars', { keyPath: 'email' });
                     };
                     req.onsuccess = (e) => { this.state.db = e.target.result; resolve(); };
                 });
@@ -336,6 +337,8 @@
                 if (!user.videoBlocks) { user.videoBlocks = {}; fixed = true; }
                 if (user.banExpiresAt === undefined) { user.banExpiresAt = 0; fixed = true; }
                 if (user.credits === undefined) { user.credits = 10000; fixed = true; }
+                // Odstraňujeme avatar z localStorage objektu, aby nezaberal miesto
+                if (user.avatar) { delete user.avatar; fixed = true; }
                 if (fixed) this.save();
             },
 
@@ -346,7 +349,6 @@
                     localStorage.setItem('bt_db_v3', JSON.stringify(this.state.users)); 
                 } catch (e) {
                     console.error("Storage error:", e);
-                    alert("Chyba pri ukladaní údajov. Možno ste dosiahli limit prehliadača (skúste menšiu profilovku).");
                 }
             },
 
@@ -383,11 +385,14 @@
                 if(section === 'vault') this.updateVaultUI();
             },
 
-            updateVaultUI() {
+            async updateVaultUI() {
                 const user = this.state.users.find(u => u.email === this.state.session);
+                // Kontrola avatara v IndexedDB
+                const avatar = await this.getAvatarDB(user.email);
+                
                 const reqs = [
                     { label: "Kredity (min. 12k)", val: user.credits >= 12000 },
-                    { label: "Profilová fotka", val: !!user.avatar },
+                    { label: "Profilová fotka", val: !!avatar },
                     { label: "YT Sken aktivita (3x)", val: (user.searchHistory || []).length >= 3 },
                     { label: "Obľúbené (1x)", val: (user.favorites || []).length >= 1 },
                     { label: "História videní (5x)", val: (user.watchedHistory || []).length >= 5 }
@@ -439,7 +444,7 @@
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const name = document.getElementById('reg-name').value.trim();
                 if (!email || !name) return alert("Dáta chýbajú.");
-                const newUser = { email, name, fullName: name + " " + document.getElementById('reg-surname').value, pass: document.getElementById('reg-pass').value, birth: document.getElementById('reg-birth').value, gender: document.getElementById('reg-gender').value, credits: 10000, avatar: null, watchedHistory: [], searchHistory: [], favorites: [], copyrightStrikes: [], copyrightClaims: [], identityStrikes: [], videoBlocks: {}, banExpiresAt: 0, banReason: "" };
+                const newUser = { email, name, fullName: name + " " + document.getElementById('reg-surname').value, pass: document.getElementById('reg-pass').value, birth: document.getElementById('reg-birth').value, gender: document.getElementById('reg-gender').value, credits: 10000, watchedHistory: [], searchHistory: [], favorites: [], copyrightStrikes: [], copyrightClaims: [], identityStrikes: [], videoBlocks: {}, banExpiresAt: 0, banReason: "" };
                 this.state.users.push(newUser); this.save(); this.showView('login-view');
             },
 
@@ -452,15 +457,17 @@
                 this.state.session = email; localStorage.setItem('bt_session_v3', email); this.onLogin(user);
             },
 
-            onLogin(user) {
+            async onLogin(user) {
                 this.showView('app-view'); 
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 
-                // NAČÍTANIE AVATARU Z PROFILU
-                const avatar = user.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
-                document.getElementById('user-avatar').src = avatar; 
-                document.getElementById('modal-avatar').src = avatar;
+                // NAČÍTANIE AVATARU Z INDEXEDDB
+                const avatarData = await this.getAvatarDB(user.email);
+                const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                
+                document.getElementById('user-avatar').src = avatarData || defaultAvatar; 
+                document.getElementById('modal-avatar').src = avatarData || defaultAvatar;
                 
                 if(user.birth) { const age = Math.floor((new Date() - new Date(user.birth)) / (365.25 * 24 * 60 * 60 * 1000)); document.getElementById('stat-age').innerText = age + " r."; }
             },
@@ -563,35 +570,63 @@
                 if (u.identityStrikes.includes('meno')) document.getElementById('identity-fix-panel').classList.remove('hidden');
             },
 
+            async getAvatarDB(email) {
+                return new Promise((resolve) => {
+                    if (!this.state.db) return resolve(null);
+                    const tx = this.state.db.transaction('avatars', 'readonly');
+                    const store = tx.objectStore('avatars');
+                    const req = store.get(email);
+                    req.onsuccess = () => resolve(req.result ? req.result.data : null);
+                    req.onerror = () => resolve(null);
+                });
+            },
+
+            async saveAvatarDB(email, data) {
+                return new Promise((resolve) => {
+                    const tx = this.state.db.transaction('avatars', 'readwrite');
+                    const store = tx.objectStore('avatars');
+                    // Store prepíše starú verziu automaticky, pretože email je kľúč
+                    store.put({ email, data });
+                    tx.oncomplete = () => resolve(true);
+                });
+            },
+
             updateAvatar() { 
                 const file = document.getElementById('avatar-input').files[0]; 
                 if (!file) return; 
                 
                 const rd = new FileReader(); 
-                rd.onload = (e) => { 
-                    const user = this.state.users.find(u => u.email === this.state.session); 
-                    if (user) {
-                        user.avatar = e.target.result; 
-                        this.save(); // OKAMŽITÉ ULOŽENIE DO PREHLIADAČA (Local Storage)
+                rd.onload = async (e) => { 
+                    const email = this.state.session;
+                    if (email) {
+                        const avatarBase64 = e.target.result;
+                        // ULOŽENIE DO INDEXEDDB (Bezpečné pred limitmi)
+                        await this.saveAvatarDB(email, avatarBase64);
                         
                         // OKAMŽITÁ AKTUALIZÁCIA UI
-                        document.getElementById('user-avatar').src = user.avatar; 
-                        document.getElementById('modal-avatar').src = user.avatar; 
-                        alert("Profilová fotka bola úspešne uložená a synchronizovaná!");
+                        document.getElementById('user-avatar').src = avatarBase64; 
+                        document.getElementById('modal-avatar').src = avatarBase64; 
+                        alert("Profilová fotka bola natrvalo uložená do databázy prehliadača!");
                     }
                 }; 
                 rd.readAsDataURL(file); 
             },
 
-            toggleProfileModal() { 
-                document.getElementById('profile-modal').classList.toggle('hidden'); 
-                const u = this.state.users.find(u => u.email === this.state.session); 
-                if (u) {
-                    document.getElementById('profile-name-title').innerText = u.fullName; 
-                    document.getElementById('stat-credits').innerText = u.credits.toLocaleString(); 
-                    // Nastavenie obrázka pri otvorení modalu (ak existuje)
-                    document.getElementById('modal-avatar').src = u.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
-                    this.switchSettings('main');
+            async toggleProfileModal() { 
+                const m = document.getElementById('profile-modal');
+                m.classList.toggle('hidden'); 
+                if (!m.classList.contains('hidden')) {
+                    const u = this.state.users.find(u => u.email === this.state.session); 
+                    if (u) {
+                        document.getElementById('profile-name-title').innerText = u.fullName; 
+                        document.getElementById('stat-credits').innerText = u.credits.toLocaleString(); 
+                        
+                        const avatarData = await this.getAvatarDB(u.email);
+                        const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                        document.getElementById('modal-avatar').src = avatarData || defaultAvatar;
+                        
+                        this.switchSettings('main');
+                    }
                 }
             },
 
