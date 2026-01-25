@@ -340,7 +340,15 @@
             },
 
             isBanned(u) { return u.banExpiresAt === -1 || (u.banExpiresAt > 0 && Date.now() < u.banExpiresAt); },
-            save() { localStorage.setItem('bt_db_v3', JSON.stringify(this.state.users)); },
+            
+            save() { 
+                try {
+                    localStorage.setItem('bt_db_v3', JSON.stringify(this.state.users)); 
+                } catch (e) {
+                    console.error("Storage error:", e);
+                    alert("Chyba pri ukladaní údajov. Možno ste dosiahli limit prehliadača (skúste menšiu profilovku).");
+                }
+            },
 
             startBanTick() {
                 setInterval(() => {
@@ -396,7 +404,7 @@
                 if(!file) return;
                 const tx = this.state.db.transaction('videos', 'readwrite');
                 tx.objectStore('videos').add({ userEmail: this.state.session, name: file.name, data: file, date: Date.now() });
-                tx.oncomplete = () => { alert("Video uložené."); this.renderLocalVideos(); };
+                tx.oncomplete = () => { alert("Video uložené do trezoru."); this.renderLocalVideos(); };
             },
 
             async renderLocalVideos() {
@@ -438,7 +446,7 @@
             handleLogin() {
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const user = this.state.users.find(u => u.email === email && u.pass === document.getElementById('login-pass').value);
-                if (!user) return alert("Chyba.");
+                if (!user) return alert("Chyba identity.");
                 this.repairUserData(user);
                 if (this.isBanned(user)) return this.showBan(user);
                 this.state.session = email; localStorage.setItem('bt_session_v3', email); this.onLogin(user);
@@ -448,9 +456,12 @@
                 this.showView('app-view'); 
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
+                
+                // NAČÍTANIE AVATARU Z PROFILU
                 const avatar = user.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
                 document.getElementById('user-avatar').src = avatar; 
                 document.getElementById('modal-avatar').src = avatar;
+                
                 if(user.birth) { const age = Math.floor((new Date() - new Date(user.birth)) / (365.25 * 24 * 60 * 60 * 1000)); document.getElementById('stat-age').innerText = age + " r."; }
             },
 
@@ -537,9 +548,9 @@
                                 <button class="danger" style="flex:1; font-size:8px;" onclick="app.adminIdentityStrike('${u.email}', 'meno')">IDENTITY STRIKE</button>
                             </div>
                             <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:15px; margin-top:15px;">
-                                <small style="opacity:0.4; font-size:9px;">YT HISTÓRIA & LOCAL VAULT:</small>
-                                ${u.watchedHistory.map(w => `<div class="history-action-item"><span>YT: ${w.title.substring(0,15)}</span><div><button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">STRIKE</button><button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', '${w.id}')">BLOCK</button></div></div>`).join('')}
-                                ${userVault.map(v => `<div class="history-action-item" style="border:1px solid rgba(0,255,136,0.1);"><span>FILE: ${v.name.substring(0,15)}</span><div><button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', 'local_${v.id}', 'strike')">STRIKE</button><button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', 'local_${v.id}')">${u.videoBlocks["local_"+v.id] ? 'UNBLOCK' : 'BLOCK'}</button></div></div>`).join('')}
+                                <small style="opacity:0.4; font-size:9px;">HISTÓRIA & VAULT:</small>
+                                ${u.watchedHistory.map(w => `<div class="history-action-item"><span>YT: ${w.title.substring(0,15)}</span><div><button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">STRIKE</button></div></div>`).join('')}
+                                ${userVault.map(v => `<div class="history-action-item"><span>FILE: ${v.name.substring(0,15)}</span><div><button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', 'local_${v.id}')">${u.videoBlocks["local_"+v.id] ? 'UNBLOCK' : 'BLOCK'}</button></div></div>`).join('')}
                             </div>
                         </div>`;
                     }).join('') || '<p style="opacity:0.3; text-align:center;">Prázdne.</p>';
@@ -555,15 +566,18 @@
             updateAvatar() { 
                 const file = document.getElementById('avatar-input').files[0]; 
                 if (!file) return; 
+                
                 const rd = new FileReader(); 
                 rd.onload = (e) => { 
                     const user = this.state.users.find(u => u.email === this.state.session); 
                     if (user) {
                         user.avatar = e.target.result; 
-                        this.save(); // OKAMŽITÉ ULOŽENIE DO LOCALSTORAGE
+                        this.save(); // OKAMŽITÉ ULOŽENIE DO PREHLIADAČA (Local Storage)
+                        
+                        // OKAMŽITÁ AKTUALIZÁCIA UI
                         document.getElementById('user-avatar').src = user.avatar; 
                         document.getElementById('modal-avatar').src = user.avatar; 
-                        alert("Profilová fotka bola úspešne uložená!");
+                        alert("Profilová fotka bola úspešne uložená a synchronizovaná!");
                     }
                 }; 
                 rd.readAsDataURL(file); 
@@ -575,6 +589,7 @@
                 if (u) {
                     document.getElementById('profile-name-title').innerText = u.fullName; 
                     document.getElementById('stat-credits').innerText = u.credits.toLocaleString(); 
+                    // Nastavenie obrázka pri otvorení modalu (ak existuje)
                     document.getElementById('modal-avatar').src = u.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
                     this.switchSettings('main');
                 }
@@ -584,7 +599,7 @@
                 document.getElementById('history-modal').classList.toggle('hidden'); 
                 const u = this.state.users.find(u => u.email === this.state.session); 
                 if(u) {
-                    document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="font-size:12px; color:var(--primary); padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;" onclick="app.play('${f.id}', '${f.title}')">❤️ ${f.title}</div>`).join('') || "Zoznam prázdny."; 
+                    document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="font-size:12px; color:var(--primary); padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;" onclick="app.play('${f.id}', '${f.title}')">❤️ ${f.title}</div>`).join('') || "Prázdne."; 
                 }
             },
 
