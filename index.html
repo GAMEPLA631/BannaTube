@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannaTube - Futuristic Local Core (Chrome Fix)</title>
+    <title>BannaTube - Futuristic Local Core (V500 Stable)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -283,10 +283,10 @@
     </div>
 
     <script>
-        // BANNATUBE CHROME OPTIMIZED CORE V400
+        // BANNATUBE CHROME OPTIMIZED CORE V500
         window.app = {
             state: {
-                session: localStorage.getItem('bannatube_chrome_v400'),
+                session: localStorage.getItem('bannatube_chrome_v500'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 localDb: null,
                 profile: null,
@@ -298,6 +298,7 @@
                 try {
                     await this.initLocalDB();
                     this.state.isReady = true;
+                    console.log("Core Database V500 Online.");
                     
                     if (this.state.session) {
                         const user = await this.getUserByEmail(this.state.session);
@@ -313,13 +314,13 @@
                     setInterval(() => this.tickVault(), 1000);
                 } catch (e) {
                     console.error("Critical Failure:", e);
-                    this.showMsg("Databáza zablokovaná prehliadačom.");
+                    this.showMsg("Chyba inicializácie úložiska.");
                 }
             },
 
             async initLocalDB() {
                 return new Promise((resolve, reject) => {
-                    const req = indexedDB.open('BannaTube_ChromeFix_V400', 1);
+                    const req = indexedDB.open('BannaTube_Stable_V500', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -329,21 +330,28 @@
                         this.state.localDb = e.target.result; 
                         resolve(); 
                     };
-                    req.onerror = (e) => reject(e);
+                    req.onerror = (e) => {
+                        console.error("Database Error:", e.target.error);
+                        reject(e.target.error);
+                    };
                     req.onblocked = () => {
-                        alert("Prosím zavrite iné karty s touto aplikáciou (Chrome lock).");
-                        reject("Blocked");
+                        alert("Databáza je blokovaná inou kartou. Zavrite ostatné okná BannaTube.");
                     };
                 });
             },
 
+            // Pomocná funkcia na zaručenie pripojenia
+            async ensureDb() {
+                if (!this.state.localDb) await this.initLocalDB();
+                return this.state.localDb;
+            },
+
             async getUserByEmail(email) {
                 if (!email) return null;
-                if (!this.state.localDb) await this.initLocalDB();
-                
+                const db = await this.ensureDb();
                 return new Promise((resolve) => {
                     try {
-                        const tx = this.state.localDb.transaction('users', 'readonly');
+                        const tx = db.transaction('users', 'readonly');
                         const store = tx.objectStore('users');
                         const req = store.get(email.toLowerCase().trim());
                         req.onsuccess = () => resolve(req.result || null);
@@ -353,10 +361,10 @@
             },
 
             async saveUserDB(user) {
-                if (!this.state.localDb) await this.initLocalDB();
+                const db = await this.ensureDb();
                 return new Promise((resolve, reject) => {
                     try {
-                        const tx = this.state.localDb.transaction('users', 'readwrite');
+                        const tx = db.transaction('users', 'readwrite');
                         const store = tx.objectStore('users');
                         store.put(user);
                         tx.oncomplete = () => resolve();
@@ -377,63 +385,76 @@
             },
 
             async handleRegister() {
-                if (!this.state.isReady) return this.showMsg("Načítavam jadro...");
-                
-                const email = document.getElementById('reg-email').value.trim().toLowerCase();
-                const pass = document.getElementById('reg-pass').value.trim();
-                const name = document.getElementById('reg-name').value.trim();
-                const surname = document.getElementById('reg-surname').value.trim();
-                const nick = document.getElementById('reg-nick').value.trim();
-                const terms = document.getElementById('reg-terms').checked;
+                const emailInput = document.getElementById('reg-email');
+                const passInput = document.getElementById('reg-pass');
+                const nameInput = document.getElementById('reg-name');
+                const surnameInput = document.getElementById('reg-surname');
+                const nickInput = document.getElementById('reg-nick');
+                const termsInput = document.getElementById('reg-terms');
 
-                if (!email || !pass || !name || !nick || !terms) {
-                    return this.showMsg("Doplňte polia a súhlaste s TOS.");
+                const email = emailInput.value.trim().toLowerCase();
+                const pass = passInput.value.trim();
+                const name = nameInput.value.trim();
+                const nick = nickInput.value.trim();
+
+                if (!email || !pass || !name || !nick || !termsInput.checked) {
+                    return this.showMsg("Vyplňte polia a súhlaste s podmienkami.");
                 }
 
-                const existing = await this.getUserByEmail(email);
-                if (existing) return this.showMsg("Email už je registrovaný.");
-
-                const newUser = { 
-                    email, pass, name, fullName: name + " " + surname, nick, 
-                    country: document.getElementById('reg-country').value,
-                    phone: document.getElementById('reg-phone').value.trim(),
-                    level: document.getElementById('reg-level').value,
-                    question: document.getElementById('reg-question').value,
-                    answer: document.getElementById('reg-answer').value.trim(),
-                    ref: document.getElementById('reg-ref').value.trim(),
-                    news: document.getElementById('reg-news').checked,
-                    credits: 10000, createdAt: Date.now(), unlocked: false, avatar: null,
-                    history: [], favorites: [], strikes: [], searchHistory: [], 
-                    lastResetYear: new Date().getFullYear()
-                };
-
                 try {
+                    const existing = await this.getUserByEmail(email);
+                    if (existing) return this.showMsg("Tento subjekt už existuje.");
+
+                    const newUser = { 
+                        email, pass, name, fullName: name + " " + surnameInput.value.trim(), nick, 
+                        country: document.getElementById('reg-country').value,
+                        phone: document.getElementById('reg-phone').value.trim(),
+                        level: document.getElementById('reg-level').value,
+                        question: document.getElementById('reg-question').value,
+                        answer: document.getElementById('reg-answer').value.trim(),
+                        ref: document.getElementById('reg-ref').value.trim(),
+                        news: document.getElementById('reg-news').checked,
+                        credits: 10000, createdAt: Date.now(), unlocked: false, avatar: null,
+                        history: [], favorites: [], strikes: [], searchHistory: [], 
+                        lastResetYear: new Date().getFullYear()
+                    };
+
                     await this.saveUserDB(newUser);
-                    // AUTO-LOGIN
+                    
+                    // AUTO-LOGIN PO REGISTRÁCII
                     this.state.session = email;
                     this.state.profile = newUser;
-                    localStorage.setItem('bannatube_chrome_v400', email);
+                    localStorage.setItem('bannatube_chrome_v500', email);
                     this.onLogin(newUser);
-                    this.showMsg("Licencia aktivovaná!");
-                } catch(e) { this.showMsg("Chyba zápisu do prehliadača."); }
+                    this.showMsg("Licencia aktivovaná. Vitajte v Core.");
+                } catch(e) { 
+                    console.error(e);
+                    this.showMsg("Chyba pri registrácii."); 
+                }
             },
 
             async handleLogin() {
-                const email = document.getElementById('login-email').value.trim().toLowerCase();
-                const pass = document.getElementById('login-pass').value.trim();
+                const emailInput = document.getElementById('login-email');
+                const passInput = document.getElementById('login-pass');
+                const email = emailInput.value.trim().toLowerCase();
+                const pass = passInput.value.trim();
                 
-                if (!email || !pass) return this.showMsg("Zadajte údaje.");
+                if (!email || !pass) return this.showMsg("Zadajte prihlasovacie údaje.");
 
-                const user = await this.getUserByEmail(email);
-                
-                if (!user) return this.showMsg("Identita nenájdená (Vykonal sa reset).");
-                if (user.pass !== pass) return this.showMsg("Nesprávne heslo.");
+                try {
+                    const user = await this.getUserByEmail(email);
+                    
+                    if (!user) return this.showMsg("Subjekt nenájdený v jadre.");
+                    if (user.pass !== pass) return this.showMsg("Nesprávna autorizácia.");
 
-                this.state.session = email;
-                this.state.profile = user;
-                localStorage.setItem('bannatube_chrome_v400', email);
-                this.onLogin(user);
-                this.showMsg("Prístup povolený.");
+                    this.state.session = email;
+                    this.state.profile = user;
+                    localStorage.setItem('bannatube_chrome_v500', email);
+                    this.onLogin(user);
+                    this.showMsg("Prístup odomknutý.");
+                } catch(e) {
+                    this.showMsg("Chyba pri prihlasovaní.");
+                }
             },
 
             onLogin(user) {
@@ -450,32 +471,33 @@
             async uploadLocalVideo() {
                 const file = document.getElementById('local-video-input').files[0];
                 if (!file) return;
-                this.showMsg("UKLADÁM MP4...");
+                this.showMsg("SYNCHRONIZÁCIA MP4...");
                 const videoId = crypto.randomUUID();
-                const tx = this.state.localDb.transaction('videos', 'readwrite');
+                const db = await this.ensureDb();
+                const tx = db.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
-                tx.oncomplete = () => { this.showMsg("Uložené na disk."); this.syncVideosUI(); };
+                tx.oncomplete = () => { this.showMsg("Dáta bezpečne zapísané."); this.syncVideosUI(); };
             },
 
             async syncVideosUI() {
-                if(!this.state.localDb) return;
+                const db = await this.ensureDb();
                 const grid = document.getElementById('local-videos-results');
                 if(!grid) return;
-                const tx = this.state.localDb.transaction('videos', 'readonly');
+                const tx = db.transaction('videos', 'readonly');
                 const req = tx.objectStore('videos').getAll();
                 req.onsuccess = () => {
                     const videos = req.result;
                     grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="local-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><br><small>Sektor: ${v.uploader}</small></div>
+                            <div class="video-info"><b>${v.name}</b><br><small>Identita: ${v.uploader}</small></div>
                         </div>
                     `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor je prázdny.</p>';
                 };
             },
 
             async search() {
-                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
+                if (!this.state.apiKey) return this.showMsg("Chýba API kľúč.");
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
 
@@ -494,10 +516,10 @@
                                 <img src="${i.snippet.thumbnails.medium.url}">
                                 <div class="video-info"><b>${i.snippet.title}</b></div>
                             </div>
-                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ DO OBĽÚBENÝCH</button>
+                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ OBLOŽIŤ DO LOGU</button>
                         </div>
                     `).join('');
-                } catch(e) { grid.innerHTML = 'API Error.'; }
+                } catch(e) { grid.innerHTML = 'Chyba API spojenia.'; }
             },
 
             async playYT(id, title) {
@@ -511,7 +533,8 @@
             },
 
             async playVideo(id) {
-                const tx = this.state.localDb.transaction('videos', 'readonly');
+                const db = await this.ensureDb();
+                const tx = db.transaction('videos', 'readonly');
                 const req = tx.objectStore('videos').get(id);
                 req.onsuccess = async () => {
                     if (req.result) {
@@ -531,14 +554,15 @@
                 if(idx > -1) this.state.profile.favorites.splice(idx, 1);
                 else this.state.profile.favorites.push({ id, title, date: Date.now() });
                 await this.saveUserDB(this.state.profile);
-                this.showMsg("Zoznam obľúbených aktualizovaný.");
+                this.showMsg("Záznam aktualizovaný.");
             },
 
             async toggleAdminModal() {
                 const m = document.getElementById('admin-modal');
                 m.classList.toggle('hidden');
                 if(!m.classList.contains('hidden')) {
-                    const tx = this.state.localDb.transaction('users', 'readonly');
+                    const db = await this.ensureDb();
+                    const tx = db.transaction('users', 'readonly');
                     const req = tx.objectStore('users').getAll();
                     req.onsuccess = () => {
                         const users = req.result;
@@ -550,7 +574,7 @@
                                     <button class="secondary" style="padding:5px 10px; font-size:9px;" onclick="app.adminDeleteUser('${u.email}')">DELETE</button>
                                 </div>
                             </div>
-                        `).join('') || "Zoznam je prázdny.";
+                        `).join('') || "Jadro je prázdne.";
                     };
                 }
             },
@@ -559,18 +583,19 @@
                 const u = await this.getUserByEmail(email);
                 if(u) {
                     if(!u.strikes) u.strikes = [];
-                    u.strikes.push({ reason: "Manuálny Admin Strike", date: Date.now() });
+                    u.strikes.push({ reason: "Admin disciplína", date: Date.now() });
                     await this.saveUserDB(u);
-                    this.showMsg("Strike udelený subjektu: " + email);
+                    this.showMsg("Strike udelený: " + email);
                     this.toggleAdminModal(); this.toggleAdminModal();
                 }
             },
 
             async adminDeleteUser(email) {
-                if(!confirm("TRVALO ODSTRÁNIŤ ÚČET?")) return;
-                const tx = this.state.localDb.transaction('users', 'readwrite');
+                if(!confirm("TRVALO VYMAZAŤ LICENCIU?")) return;
+                const db = await this.ensureDb();
+                const tx = db.transaction('users', 'readwrite');
                 tx.objectStore('users').delete(email);
-                tx.oncomplete = () => { this.showMsg("Účet zmazaný."); this.toggleAdminModal(); this.toggleAdminModal(); };
+                tx.oncomplete = () => { this.showMsg("Subjekt odstránený."); this.toggleAdminModal(); this.toggleAdminModal(); };
             },
 
             async toggleHistoryModal() {
@@ -591,13 +616,13 @@
                 if (tabEl) tabEl.style.opacity = '1';
                 
                 if(tab === 'history') {
-                    content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Čistá história.";
+                    content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "História je prázdna.";
                 } else if(tab === 'favs') {
-                    content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne obľúbené.";
+                    content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne Elite záznamy.";
                 } else if(tab === 'strikes') {
                     content.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.reason}</span><span class="log-tag danger">STRIKE</span></div>`).join('') || "Bez priestupkov.";
                 } else {
-                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Core Search</span></div>`).join('') || "Žiadne hľadania.";
+                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Hľadané</span></div>`).join('') || "Žiadne hľadania.";
                 }
             },
 
@@ -624,7 +649,7 @@
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             showMsg(t) { const b = document.getElementById('msg-box'); if(b){ b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); } },
-            logout() { localStorage.removeItem('bannatube_chrome_v400'); location.reload(); }
+            logout() { localStorage.removeItem('bannatube_chrome_v500'); location.reload(); }
         };
     </script>
 </body>
