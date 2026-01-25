@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannaTube - Futuristic Community Premium</title>
+    <title>BannaTube - Futuristic Local Core</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -28,7 +28,6 @@
         @keyframes logoPulse { 0% { text-shadow: 0 0 10px var(--primary-glow); } 50% { text-shadow: 0 0 30px var(--primary-glow); } 100% { text-shadow: 0 0 10px var(--primary-glow); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -57,8 +56,8 @@
         button {
             position: relative;
             background: linear-gradient(135deg, #FFD700, #b8860b);
-            color: #000; border: none; padding: 14px 28px; font-weight: 800;
-            border-radius: 16px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #000; border: none; padding: 12px 24px; font-weight: 800;
+            border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-transform: uppercase; font-size: 11px; letter-spacing: 1.5px;
             overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
         }
@@ -99,7 +98,7 @@
         .video-info { padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); }
         .video-info b { font-size: 14px; color: #fff; display: block; height: 40px; overflow: hidden; font-weight: 700; }
 
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.98); padding: 40px; border-radius: 40px; border: 1px solid var(--glass-border); z-index: 3000; width: 95%; max-width: 550px; text-align: center; backdrop-filter: blur(45px); max-height: 85vh; overflow-y: auto; box-shadow: 0 0 100px rgba(0,0,0,0.8); }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.98); padding: 40px; border-radius: 40px; border: 1px solid var(--glass-border); z-index: 3000; width: 95%; max-width: 600px; text-align: center; backdrop-filter: blur(45px); max-height: 85vh; overflow-y: auto; box-shadow: 0 0 100px rgba(0,0,0,0.8); }
 
         .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); z-index: 4000; display: flex; align-items: center; justify-content: center; }
         .player-wrapper { width: 92%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 40px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.2); }
@@ -112,14 +111,19 @@
         .progress-container { width: 100%; height: 10px; background: rgba(255,255,255,0.05); border-radius: 20px; margin-top: 20px; overflow: hidden; display: none; }
         .progress-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 15px var(--primary); transition: width 0.1s linear; }
 
-        .unlock-timer { font-family: 'JetBrains Mono'; color: var(--primary); font-size: 20px; margin: 15px 0; text-shadow: 0 0 10px var(--primary-glow); }
-
-        #msg-box {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            padding: 15px 30px; border-radius: 15px; background: var(--surface);
-            border: 1px solid var(--primary); color: white; z-index: 11000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; font-weight: bold;
+        /* FLOATING ACTION CENTER */
+        .action-center {
+            position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 2000;
         }
+        .action-fab {
+            width: 56px; height: 56px; border-radius: 20px; background: var(--surface); border: 1px solid var(--glass-border); color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(20px);
+        }
+        .action-fab:hover { transform: scale(1.1); border-color: var(--primary); background: rgba(255,215,0,0.1); }
+
+        /* LISTS IN MODALS */
+        .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        .log-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--primary); color: black; }
+        .log-tag.danger { background: var(--danger); color: white; }
     </style>
 </head>
 <body onload="app.init()">
@@ -130,25 +134,25 @@
         <header>
             <div class="logo" style="cursor:pointer" onclick="app.showAppSection('main')">BANNA<span style="opacity: 0.3;">TUBE</span></div>
             <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:20px;">
-                <button onclick="app.showAppSection('vault')" style="background:rgba(255,215,0,0.1); color:var(--primary); border:1px solid rgba(255,215,0,0.3); padding:8px 15px; border-radius:12px; font-weight: 800;">LOCAL VAULT 📂</button>
+                <button onclick="app.showAppSection('vault')" style="background:rgba(255,215,0,0.1); color:var(--primary); border:1px solid rgba(255,215,0,0.3); padding:8px 15px; border-radius:12px; font-weight: 800;">VAULT 📂</button>
                 <div style="background:rgba(255,215,0,0.08); padding:8px 18px; border-radius:14px; font-size:11px; color:var(--primary); font-weight: 800; border: 1px solid rgba(255,215,0,0.2);">
                     🪙 <span id="header-credits">0</span>
                 </div>
-                <div class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:44px; height:44px; border-radius:12px; overflow:hidden; border:2px solid var(--primary); background:#111; cursor: pointer;">
-                    <img id="user-avatar" src="" alt="Avatar" style="width:100%; height:100%; object-fit: cover;">
+                <div class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:44px; height:44px; border-radius:12px; overflow:hidden; border:2px solid var(--primary); background:#111; cursor:pointer;">
+                    <img id="user-avatar" src="" style="width:100%; height:100%; object-fit: cover;">
                 </div>
                 <button onclick="app.logout()" class="secondary" style="padding:8px 12px; font-size:9px;">LOGOFF</button>
             </div>
         </header>
 
-        <!-- AUTH -->
+        <!-- AUTH VIEWS -->
         <div id="login-view">
             <div class="auth-card">
                 <div style="font-size:45px; margin-bottom:15px;">🔒</div>
                 <h2 style="font-weight: 800; color:var(--primary);">Skenovanie Identity</h2>
                 <input type="email" id="login-email" placeholder="Emailová adresa">
                 <input type="password" id="login-pass" placeholder="Heslo" style="margin-top:10px;">
-                <button id="login-btn" onclick="app.handleLogin()" style="width:100%; margin-top:25px; padding:18px;">VSTÚPIŤ DO SYSTÉMU</button>
+                <button onclick="app.handleLogin()" style="width:100%; margin-top:25px; padding:18px;">VSTÚPIŤ DO SYSTÉMU</button>
                 <p style="font-size:14px; color:#666; margin-top:30px;">Nová licencia? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer; font-weight:700;">Registrovať</span></p>
             </div>
         </div>
@@ -159,7 +163,7 @@
                 <div class="form-row" style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" id="reg-name" placeholder="Meno"><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
                 <input type="email" id="reg-email" placeholder="Emailová adresa">
                 <input type="password" id="reg-pass" placeholder="Heslo" style="margin-top:10px;">
-                <button id="reg-btn" onclick="app.handleRegister()" style="width:100%; margin-top:25px; padding:18px;">AKTIVOVAŤ LICENCIU</button>
+                <button onclick="app.handleRegister()" style="width:100%; margin-top:25px; padding:18px;">AKTIVOVAŤ LICENCIU</button>
                 <p style="font-size:14px; color:#666; margin-top:25px;" onclick="app.showView('login-view')">Späť na <span style="color:var(--primary); cursor:pointer;">Prihlásenie</span></p>
             </div>
         </div>
@@ -168,10 +172,10 @@
         <div id="app-view" class="hidden">
             <div id="section-main">
                 <div class="search-area">
-                    <h1>CORE <span style="color:var(--primary); text-shadow: 0 0 20px var(--primary-glow);">SCANNER</span></h1>
+                    <h1>CORE <span style="color:var(--primary);">SCANNER</span></h1>
                     <div class="search-bar-container">
                         <input type="text" id="query" placeholder="Skenovať YouTube (Vyžaduje API kľúč)..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; margin:0; font-size: 18px;">
-                        <button onclick="app.search()" style="min-width: 140px; height: 50px;">SPUSTIŤ SCAN</button>
+                        <button onclick="app.search()" style="min-width: 140px; height: 50px;">SCAN</button>
                     </div>
                 </div>
                 <div id="results" class="video-grid"></div>
@@ -180,32 +184,34 @@
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
                     <h1 style="color:var(--primary);">LOCAL <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny archív uložený bezpečne v prehliadači.</p>
+                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny šifrovaný archív.</p>
                 </div>
                 <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary); margin-top: 20px;">
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
                     <h3>PRÍSTUP OBMEDZENÝ</h3>
-                    <p style="opacity: 0.6; margin-bottom: 20px;">Vaša identita je v stave verifikácie (24h zámok).</p>
                     <div id="vault-countdown" class="unlock-timer">--h --m --s</div>
-                    <div style="margin: 25px 0;">
-                        <button onclick="app.instantUnlockVault()" class="success" style="padding: 20px 40px; font-size: 14px; box-shadow: 0 0 30px rgba(0,255,149,0.3);">🔓 FREE FUNKCIA</button>
-                    </div>
+                    <button onclick="app.instantUnlockVault()" class="success" style="margin-top: 20px;">🔓 FREE ODOMKNUTIE</button>
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
-                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-                        <div style="font-size: 40px; margin-bottom: 20px;">📤</div>
+                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
                         <h4 style="margin-bottom: 20px; letter-spacing: 1px;">ULOŽIŤ MP4 ARCHÍV</h4>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
-                        <button id="upload-btn" onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
+                        <button onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
                         <div id="up-progress-cont" class="progress-container"><div id="up-progress-bar" class="progress-bar"></div></div>
                     </div>
-                    <div id="public-videos-results" class="video-grid"></div>
+                    <div id="local-videos-results" class="video-grid"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- PROFILE MODAL -->
+    <!-- ACTION CENTER -->
+    <div id="action-center" class="action-center hidden">
+        <div class="action-fab" title="Admin Hub" onclick="app.toggleAdminModal()">🛡️</div>
+        <div class="action-fab" title="História a Obľúbené" onclick="app.toggleHistoryModal()">📊</div>
+    </div>
+
+    <!-- MODALS -->
     <div id="profile-modal" class="modal hidden">
         <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:35px;">
             <div style="position:relative; width:120px; height:120px; border:4px solid var(--primary); border-radius:35px; overflow:hidden; background: #111;">
@@ -213,23 +219,39 @@
                 <label for="avatar-input" style="position:absolute; bottom:8px; right:8px; background:var(--primary); color:black; padding:8px; border-radius:12px; cursor:pointer; font-size:12px; font-weight:bold; z-index:10;">✎</label>
                 <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="app.updateAvatar()">
             </div>
-            <h3 id="profile-name-title" style="color:var(--primary); font-size:22px; font-weight:800; letter-spacing: -1px;">Meno</h3>
+            <h3 id="profile-name-title" style="color:var(--primary); font-size:22px; font-weight:800;">Meno</h3>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;">
-            <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">STATUS</label><span>LOCAL MODE</span></div>
+            <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">RESETOVANÉ</label><span id="stat-reset">01.01</span></div>
             <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">KREDITY</label><span id="stat-credits">--</span></div>
         </div>
         <button onclick="app.claimCredits()" style="width:100%; background:var(--primary); color:black; margin-bottom:15px; height: 50px;">ZÍSKAŤ +500 KREDITOV</button>
-        <button onclick="app.switchSettings('analytics')" style="width:100%; margin-bottom: 12px;" class="secondary">NASTAVENIA API KĽÚČA</button>
+        <button onclick="app.switchSettings('analytics')" style="width:100%; margin-bottom: 12px;" class="secondary">KONFIGURÁCIA API</button>
         <button onclick="app.toggleProfileModal()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
     </div>
 
-    <!-- ANALYTICS MODAL -->
     <div id="analytics-modal" class="modal hidden">
         <h3 style="color:var(--primary); margin-bottom:20px;">YouTube Core API</h3>
         <input type="text" id="api-key-input" placeholder="Vložte YouTube API Key" style="margin-bottom:20px; text-align:center;">
         <button onclick="app.saveApiKey()" style="width:100%; height: 50px;">ULOŽIŤ KLÚČ</button>
         <button onclick="app.switchSettings('main')" class="secondary" style="width:100%; margin-top:10px;">SPÄŤ</button>
+    </div>
+
+    <div id="admin-modal" class="modal hidden" style="max-width: 800px;">
+        <h3 style="color:var(--admin-color); font-size: 24px; font-weight:800; margin-bottom: 20px;">🛡️ ADMIN LOKÁLNY HUB</h3>
+        <div id="admin-user-list" style="max-height: 400px; overflow-y:auto;"></div>
+        <button onclick="app.toggleAdminModal()" style="width:100%; margin-top:25px;" class="secondary">ODPOJIŤ</button>
+    </div>
+
+    <div id="history-modal" class="modal hidden">
+        <h3 style="color:var(--primary); font-size: 24px; font-weight:800; margin-bottom: 20px;">📊 AKTIVITA & LOGY</h3>
+        <div style="display:flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+            <div onclick="app.switchHistoryTab('history')" id="tab-h" style="padding: 10px 20px; cursor:pointer; color:var(--primary); border-bottom: 2px solid var(--primary);">História</div>
+            <div onclick="app.switchHistoryTab('favs')" id="tab-f" style="padding: 10px 20px; cursor:pointer; opacity: 0.5;">Obľúbené</div>
+            <div onclick="app.switchHistoryTab('strikes')" id="tab-s" style="padding: 10px 20px; cursor:pointer; opacity: 0.5;">Priestupky</div>
+        </div>
+        <div id="history-content-list" style="max-height: 400px; overflow-y:auto; text-align: left;"></div>
+        <button onclick="app.toggleHistoryModal()" style="width:100%; margin-top:25px;" class="secondary">ZAVRIEŤ</button>
     </div>
 
     <div id="player-view" class="player-overlay hidden">
@@ -240,14 +262,13 @@
     </div>
 
     <script>
-        // Úplne všetko ukladáme do IndexedDB pre neobmedzený lokálny prístup
         window.app = {
             state: {
                 session: localStorage.getItem('bt_session_v3'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 localDb: null,
                 profile: null,
-                isReady: false
+                historyTab: 'history'
             },
 
             async init() {
@@ -256,6 +277,7 @@
                     const user = await this.getUserByEmail(this.state.session);
                     if (user) {
                         this.state.profile = user;
+                        this.checkAnnualReset(user);
                         this.onLogin(user);
                     } else {
                         this.logout();
@@ -267,7 +289,7 @@
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('BannaTube_LocalCore', 5);
+                    const req = indexedDB.open('BannaTube_Core_Final', 10);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -277,8 +299,20 @@
                 });
             },
 
+            checkAnnualReset(user) {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                if (!user.lastResetYear || user.lastResetYear < currentYear) {
+                    user.credits = 10000;
+                    user.lastResetYear = currentYear;
+                    this.saveUserDB(user);
+                    this.showMsg(`🎉 Nový rok ${currentYear}: Kredity obnovené!`);
+                }
+            },
+
             async getUserByEmail(email) {
                 return new Promise((resolve) => {
+                    if(!this.state.localDb) return resolve(null);
                     const tx = this.state.localDb.transaction('users', 'readonly');
                     const req = tx.objectStore('users').get(email.toLowerCase().trim());
                     req.onsuccess = () => resolve(req.result);
@@ -298,19 +332,20 @@
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
-                if (!email || !pass || !name) return this.showMsg("Doplňte všetky polia.");
+                if (!email || !pass || !name) return this.showMsg("Vyplňte údaje.");
 
                 const existing = await this.getUserByEmail(email);
-                if (existing) return this.showMsg("Tento email už má licenciu.");
+                if (existing) return this.showMsg("Email už existuje.");
 
                 const newUser = { 
                     email, pass, name, 
                     fullName: name + " " + document.getElementById('reg-surname').value, 
-                    credits: 10000, createdAt: Date.now(), unlocked: false, avatar: null 
+                    credits: 10000, createdAt: Date.now(), unlocked: false, avatar: null,
+                    history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear()
                 };
 
                 await this.saveUserDB(newUser);
-                this.showMsg("Licencia aktivovaná! Môžete sa prihlásiť.");
+                this.showMsg("Licencia vytvorená.");
                 this.showView('login-view');
             },
 
@@ -318,7 +353,6 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-
                 if (!user || user.pass !== pass) return this.showMsg("Nesprávna identita.");
 
                 this.state.session = email;
@@ -330,90 +364,79 @@
             onLogin(user) {
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
+                document.getElementById('action-center').classList.remove('hidden');
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
-                document.getElementById('profile-name-title').innerText = user.fullName;
                 this.updateAvatarDisplay(user.avatar);
-            },
-
-            updateAvatarDisplay(data) {
-                const def = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
-                document.getElementById('user-avatar').src = data || def;
-                document.getElementById('modal-avatar').src = data || def;
-            },
-
-            async tickVault() {
-                if (!this.state.profile || document.getElementById('section-vault').classList.contains('hidden')) return;
-                const now = Date.now();
-                const unlockTime = (this.state.profile.createdAt || now) + (24 * 60 * 60 * 1000);
-                const isUnlocked = this.state.profile.unlocked || now >= unlockTime;
-                
-                document.getElementById('vault-locked-ui').classList.toggle('hidden', isUnlocked);
-                document.getElementById('vault-unlocked-ui').classList.toggle('hidden', !isUnlocked);
-
-                if (!isUnlocked) {
-                    const diff = unlockTime - now;
-                    const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-                    document.getElementById('vault-countdown').innerText = `${h}h ${m}m ${s}s`;
-                }
-            },
-
-            async instantUnlockVault() {
-                this.state.profile.unlocked = true;
-                await this.saveUserDB(this.state.profile);
-                this.tickVault();
-                this.showMsg("PRÍSTUP ODOMKNUTÝ!");
             },
 
             async uploadLocalVideo() {
                 const file = document.getElementById('local-video-input').files[0];
-                if (!file || file.size > 300 * 1024 * 1024) return this.showMsg("Max 300MB.");
-                
+                if (!file) return;
                 const btn = document.getElementById('upload-btn');
-                const progBar = document.getElementById('up-progress-bar');
                 document.getElementById('up-progress-cont').style.display = 'block';
                 btn.disabled = true;
 
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
-                tx.objectStore('videos').put({ 
-                    id: videoId, 
-                    name: file.name, 
-                    data: file, 
-                    uploader: this.state.profile.name, 
-                    timestamp: Date.now() 
-                });
+                tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
                 
                 tx.oncomplete = () => {
-                    progBar.style.width = '100%';
-                    this.showMsg("Video uložené do Core.");
-                    setTimeout(() => {
-                        document.getElementById('up-progress-cont').style.display = 'none';
-                        btn.disabled = false;
-                        this.syncVideosUI();
-                    }, 500);
+                    this.showMsg("MP4 uložené.");
+                    document.getElementById('up-progress-cont').style.display = 'none';
+                    btn.disabled = false;
+                    this.syncVideosUI();
                 };
             },
 
             async syncVideosUI() {
-                const grid = document.getElementById('public-videos-results');
+                const grid = document.getElementById('local-videos-results');
                 if(!grid) return;
-                
                 const tx = this.state.localDb.transaction('videos', 'readonly');
                 const req = tx.objectStore('videos').getAll();
-                
                 req.onsuccess = () => {
                     const videos = req.result;
-                    if(videos.length === 0) {
-                        grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdny trezor.</p>';
-                        return;
-                    }
                     grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="local-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><br><small>Archivár: ${v.uploader}</small></div>
+                            <div class="video-info"><b>${v.name}</b><br><small>${v.uploader}</small></div>
+                        </div>
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor je prázdny.</p>';
+                };
+            },
+
+            async search() {
+                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
+                const q = document.getElementById('query').value.trim();
+                if(!q) return;
+
+                // Log vyhľadávania
+                this.state.profile.searchHistory.unshift({ query: q, date: Date.now() });
+                this.saveUserDB(this.state.profile);
+
+                const grid = document.getElementById('results');
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Skenujem...</p>';
+                try {
+                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
+                    const data = await res.json();
+                    grid.innerHTML = data.items.map(i => `
+                        <div class="video-card">
+                            <div onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">
+                                <img src="${i.snippet.thumbnails.medium.url}">
+                                <div class="video-info"><b>${i.snippet.title}</b></div>
+                            </div>
+                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:5px; font-size:9px;">❤️ DO OBĽÚBENÝCH</button>
                         </div>
                     `).join('');
-                };
+                } catch(e) { grid.innerHTML = 'Chyba API.'; }
+            },
+
+            async playYT(id, title) {
+                this.state.profile.history.unshift({ title, type: 'YouTube', date: Date.now() });
+                this.state.profile.credits -= 10;
+                await this.saveUserDB(this.state.profile);
+                document.getElementById('header-credits').innerText = this.state.profile.credits.toLocaleString();
+                document.getElementById('player-view').classList.remove('hidden');
+                document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
             },
 
             async playVideo(id) {
@@ -422,75 +445,98 @@
                 req.onsuccess = () => {
                     if (req.result) {
                         const url = URL.createObjectURL(req.result.data);
+                        this.state.profile.history.unshift({ title: req.result.name, type: 'Local', date: Date.now() });
+                        this.saveUserDB(this.state.profile);
                         document.getElementById('player-view').classList.remove('hidden');
                         document.getElementById('video-mount').innerHTML = `<video controls autoplay style="width:100%; height:100%; border-radius:30px;"><source src="${url}" type="video/mp4"></video>`;
                     }
                 };
             },
 
-            async search() {
-                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč v nastaveniach.");
-                const q = document.getElementById('query').value.trim();
-                const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5; text-align:center; padding:50px;">Skenujem...</p>';
-                try {
-                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`);
-                    const data = await res.json();
-                    grid.innerHTML = data.items.map(i => `
-                        <div class="video-card" onclick="app.playYT('${i.id.videoId}')">
-                            <img src="${i.snippet.thumbnails.medium.url}">
-                            <div class="video-info"><b>${i.snippet.title}</b></div>
-                        </div>
-                    `).join('');
-                } catch(e) { grid.innerHTML = '<p style="grid-column:1/-1; color:red; text-align:center;">API Error.</p>'; }
+            async toggleFav(id, title) {
+                const idx = this.state.profile.favorites.findIndex(f => f.id === id);
+                if(idx > -1) this.state.profile.favorites.splice(idx, 1);
+                else this.state.profile.favorites.push({ id, title, date: Date.now() });
+                await this.saveUserDB(this.state.profile);
+                this.showMsg("Zoznam aktualizovaný.");
             },
 
-            playYT(id) {
-                document.getElementById('player-view').classList.remove('hidden');
-                document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen style="border-radius:20px;"></iframe>`;
+            async toggleAdminModal() {
+                const m = document.getElementById('admin-modal');
+                m.classList.toggle('hidden');
+                if(!m.classList.contains('hidden')) {
+                    const tx = this.state.localDb.transaction('users', 'readonly');
+                    const req = tx.objectStore('users').getAll();
+                    req.onsuccess = () => {
+                        const users = req.result;
+                        document.getElementById('admin-user-list').innerHTML = users.map(u => `
+                            <div class="log-item">
+                                <div><b>${u.fullName}</b><br><small>${u.email}</small></div>
+                                <div>
+                                    <button class="danger" style="padding:5px 10px; font-size:9px;" onclick="app.adminStrike('${u.email}')">UDELIŤ STRIKE</button>
+                                    <button class="secondary" style="padding:5px 10px; font-size:9px;" onclick="app.adminDeleteUser('${u.email}')">ZMAZAŤ ÚČET</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    };
+                }
             },
 
-            showView(id) { 
-                document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); 
-                document.getElementById(id).classList.remove('hidden'); 
+            async adminStrike(email) {
+                const u = await this.getUserByEmail(email);
+                if(u) {
+                    u.strikes.push({ reason: "Admin priestupok", date: Date.now() });
+                    await this.saveUserDB(u);
+                    this.showMsg("Strike udelený používateľovi " + email);
+                    this.toggleAdminModal(); this.toggleAdminModal();
+                }
             },
 
-            showAppSection(s) { 
-                document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); 
-                document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); 
+            async toggleHistoryModal() {
+                document.getElementById('history-modal').classList.toggle('hidden');
+                this.switchHistoryTab(this.state.historyTab);
             },
 
-            updateAvatar() { 
-                const f = document.getElementById('avatar-input').files[0];
-                if (!f) return;
-                const rd = new FileReader(); 
-                rd.onload = async (e) => { 
-                    this.state.profile.avatar = e.target.result;
-                    await this.saveUserDB(this.state.profile);
-                    this.updateAvatarDisplay(e.target.result);
-                }; 
-                rd.readAsDataURL(f); 
+            switchHistoryTab(tab) {
+                this.state.historyTab = tab;
+                const p = this.state.profile;
+                const content = document.getElementById('history-content-list');
+                ['h','f','s'].forEach(t => document.getElementById('tab-'+t).style.opacity = '0.5');
+                document.getElementById('tab-' + tab[0]).style.opacity = '1';
+                
+                if(tab === 'history') {
+                    content.innerHTML = p.history.map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Žiadna história.";
+                } else if(tab === 'favs') {
+                    content.innerHTML = p.favorites.map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne obľúbené.";
+                } else {
+                    content.innerHTML = p.strikes.map(s => `<div class="log-item"><span>${s.reason}</span><span class="log-tag danger">STRIKE</span></div>`).join('') || "Čistý štít.";
+                }
             },
 
-            async claimCredits() { 
-                this.state.profile.credits += 500; 
-                await this.saveUserDB(this.state.profile); 
-                document.getElementById('header-credits').innerText = this.state.profile.credits.toLocaleString();
+            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
+            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); this.syncVideosUI(); },
+            tickVault() {
+                if (!this.state.profile || document.getElementById('section-vault').classList.contains('hidden')) return;
+                const diff = (this.state.profile.createdAt + 86400000) - Date.now();
+                if(this.state.profile.unlocked || diff <= 0) {
+                    document.getElementById('vault-locked-ui').classList.add('hidden');
+                    document.getElementById('vault-unlocked-ui').classList.remove('hidden');
+                } else {
+                    const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+                    document.getElementById('vault-countdown').innerText = `${h}h ${m}m ${s}s`;
+                }
             },
-
-            showMsg(txt) { 
-                const b = document.getElementById('msg-box'); 
-                b.innerText = txt; b.style.display = 'block'; 
-                setTimeout(() => b.style.display = 'none', 3000); 
-            },
-
+            async instantUnlockVault() { this.state.profile.unlocked = true; await this.saveUserDB(this.state.profile); this.showMsg("Vault odomknutý!"); },
+            updateAvatarDisplay(d) { const def = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"; document.getElementById('user-avatar').src = d || def; document.getElementById('modal-avatar').src = d || def; },
+            updateAvatar() { const f = document.getElementById('avatar-input').files[0]; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.updateAvatarDisplay(e.target.result); }; rd.readAsDataURL(f); },
+            async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.onLogin(this.state.profile); },
             toggleProfileModal() { document.getElementById('profile-modal').classList.toggle('hidden'); },
-            switchSettings(s) { if (s === 'analytics') { document.getElementById('profile-modal').classList.add('hidden'); document.getElementById('analytics-modal').classList.remove('hidden'); document.getElementById('api-key-input').value = this.state.apiKey; } else { document.getElementById('analytics-modal').classList.add('hidden'); document.getElementById('profile-modal').classList.remove('hidden'); } },
+            switchSettings(s) { if(s==='analytics'){document.getElementById('profile-modal').classList.add('hidden'); document.getElementById('analytics-modal').classList.remove('hidden');} else {document.getElementById('analytics-modal').classList.add('hidden'); document.getElementById('profile-modal').classList.remove('hidden');}},
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
+            showMsg(t) { const b = document.getElementById('msg-box'); b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); },
             logout() { localStorage.removeItem('bt_session_v3'); location.reload(); }
         };
-        app.init();
     </script>
 </body>
 </html>
