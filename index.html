@@ -206,6 +206,7 @@
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
                     <h3>FUNKCIA ZAMKNUTÁ</h3>
                     <div id="requirement-list" style="max-width:400px; margin:20px auto;"></div>
+                    <p style="font-size: 12px; opacity: 0.4;">Dosiahnite požiadavky Core pre prístup k verejnej sieti.</p>
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
                     <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
@@ -272,13 +273,24 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const fbApp = initializeApp(firebaseConfig);
+        // --- KONFIGURÁCIA FIREBASE (TU VLOŽ SVOJE ÚDAJE) ---
+        // Choď na https://console.firebase.google.com/ -> Tvoj Projekt -> Project Settings -> SDK Setup and configuration
+        const myConfig = {
+            apiKey: "TU_VLOZ_SVOJ_API_KEY",
+            authDomain: "TU_VLOZ_SVOJ_AUTH_DOMAIN",
+            projectId: "TU_VLOZ_SVOJ_PROJECT_ID",
+            storageBucket: "TU_VLOZ_SVOJ_STORAGE_BUCKET",
+            messagingSenderId: "TU_VLOZ_SVOJ_SENDER_ID",
+            appId: "TU_VLOZ_SVOJ_APP_ID"
+        };
+
+        // Skontrolovať, či premenná z Canvasu existuje, inak použiť myConfig
+        const fbConfig = (typeof __firebase_config !== 'undefined') ? JSON.parse(__firebase_config) : myConfig;
+        const fbApp = initializeApp(fbConfig);
         const auth = getAuth(fbApp);
         const db = getFirestore(fbApp);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'banna-tube-public-v7';
+        const currentAppId = (typeof __app_id !== 'undefined') ? __app_id : 'banna-tube-custom-site';
 
-        // Definujeme appInstance a priradíme ju globálne na window hneď na začiatku
         window.app = {
             state: {
                 users: [],
@@ -321,7 +333,7 @@
 
             async initLocalDB() {
                 return new Promise((resolve, reject) => {
-                    const req = indexedDB.open('bt_vault', 18);
+                    const req = indexedDB.open('bt_vault', 20); // Verzia zvýšená pre stabilitu
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if (!d.objectStoreNames.contains('avatars')) d.createObjectStore('avatars', { keyPath: 'email' });
@@ -452,7 +464,7 @@
                     progBar.style.width = '50%';
 
                     try {
-                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'community_videos', videoId), {
+                        await setDoc(doc(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos', videoId), {
                             id: videoId,
                             name: file.name,
                             uploader: this.state.session,
@@ -470,13 +482,13 @@
                             progCont.style.display = 'none';
                             btn.disabled = false; btn.innerText = "NAHRAŤ VEREJNÉ VIDEO (.MP4)";
                         }, 500);
-                    } catch(err) { alert("Chyba synchronizácie."); btn.disabled = false; }
+                    } catch(err) { alert("Chyba synchronizácie s Cloudom."); btn.disabled = false; }
                 };
                 reader.readAsDataURL(file);
             },
 
             syncPublicVideos() {
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'community_videos'), (snapshot) => {
+                onSnapshot(collection(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos'), (snapshot) => {
                     const grid = document.getElementById('public-videos-results');
                     const user = this.state.users.find(u => u.email === this.state.session);
                     const videos = snapshot.docs.map(d => d.data());
@@ -510,7 +522,7 @@
                         document.getElementById('player-view').classList.remove('hidden');
                         document.getElementById('video-mount').innerHTML = `<video controls autoplay class="local-player" style="width:100%; height:100%; border-radius:30px;"><source src="${req.result.data}" type="video/mp4"></video>`;
                     } else {
-                        const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'community_videos', videoId));
+                        const snap = await getDoc(doc(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos', videoId));
                         if(snap.exists() && snap.data().data !== "REMOTE_ARCHIVE") {
                              document.getElementById('player-view').classList.remove('hidden');
                              document.getElementById('video-mount').innerHTML = `<video controls autoplay class="local-player" style="width:100%; height:100%; border-radius:30px;"><source src="${snap.data().data}" type="video/mp4"></video>`;
@@ -627,6 +639,13 @@
                 await this.saveUserDB(u); this.toggleAdminModal(); this.toggleAdminModal();
             },
 
+            async adminDeletePublicVideo(videoId) {
+                if(confirm("Zmazať z verejnej siete?")) {
+                    await deleteDoc(doc(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos', videoId));
+                    alert("Zmazané.");
+                }
+            },
+
             async submitNameChange() {
                 const val = document.getElementById('new-name-input').value.trim(), user = this.state.users.find(u => u.email === this.state.session);
                 if (val.length < 3) return alert("Krátke meno.");
@@ -641,22 +660,24 @@
                 if(!m.classList.contains('hidden')) {
                     this.state.users = await this.getAllUsersDB();
                     const list = document.getElementById('user-admin-list');
-                    const snap = await new Promise(r => onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'community_videos'), d => r(d)));
-                    const publicVideos = snap.docs.map(d => d.data());
-
-                    list.innerHTML = this.state.users.filter(u => u.email !== this.state.session).map(u => {
-                        const userPubs = publicVideos.filter(v => v.uploader === u.email);
-                        return `<div class="user-manage-card">
-                            <div style="display:flex; justify-content:space-between;">
-                                <div><b>${u.fullName}</b><br><span style="font-size:10px; opacity:0.5;">${u.email}</span></div>
-                                <button class="success" style="font-size:8px;" onclick="app.adminUnban('${u.email}')">RESET ALL</button>
-                            </div>
-                            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:20px; margin-top:15px;">
-                                ${u.watchedHistory.map(w => `<div class="history-action-item"><span>YT: ${w.title.substring(0,10)}</span><div><button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">STRIKE</button></div></div>`).join('')}
-                                ${userPubs.map(v => `<div class="history-action-item" style="border:1px solid rgba(0,212,255,0.2);"><span>PUB: ${v.name.substring(0,10)}</span><div><button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', 'pub_${v.id}')">${u.videoBlocks["pub_"+v.id] ? 'UNBLOCK' : 'BLOCK'}</button></div></div>`).join('')}
-                            </div>
-                        </div>`;
-                    }).join('') || '<p style="text-align:center; opacity:0.3;">Systém nenašiel iných používateľov.</p>';
+                    const snap = await getDoc(collection(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos'));
+                    // Získanie zoznamu videí pre Admin panel
+                    onSnapshot(collection(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos'), (snapshot) => {
+                        const publicVideos = snapshot.docs.map(d => d.data());
+                        list.innerHTML = this.state.users.filter(u => u.email !== this.state.session).map(u => {
+                            const userPubs = publicVideos.filter(v => v.uploader === u.email);
+                            return `<div class="user-manage-card">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <div><b>${u.fullName}</b><br><span style="font-size:10px; opacity:0.5;">${u.email}</span></div>
+                                    <button class="success" style="font-size:8px;" onclick="app.adminUnban('${u.email}')">RESET ALL</button>
+                                </div>
+                                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:20px; margin-top:15px;">
+                                    ${u.watchedHistory.map(w => `<div class="history-action-item"><span>YT: ${w.title.substring(0,10)}</span><div><button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">STRIKE</button></div></div>`).join('')}
+                                    ${userPubs.map(v => `<div class="history-action-item" style="border:1px solid rgba(0,212,255,0.2);"><span>PUB: ${v.name.substring(0,10)}</span><div><button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminDeletePublicVideo('${v.id}')">DELETE</button><button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', 'pub_${v.id}')">${u.videoBlocks["pub_"+v.id] ? 'UNBLOCK' : 'BLOCK'}</button></div></div>`).join('')}
+                                </div>
+                            </div>`;
+                        }).join('') || '<p style="text-align:center; opacity:0.3;">Systém nenašiel iných používateľov.</p>';
+                    });
                 }
             },
 
@@ -678,4 +699,3 @@
     </script>
 </body>
 </html>
-
