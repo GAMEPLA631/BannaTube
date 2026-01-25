@@ -250,9 +250,9 @@
     <div id="profile-modal" class="modal hidden">
         <div id="profile-main-screen">
             <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:25px;">
-                <div style="position:relative; width:110px; height:110px; border:3px solid var(--primary); border-radius:30px; overflow:hidden;">
+                <div style="position:relative; width:110px; height:110px; border:3px solid var(--primary); border-radius:30px; overflow:hidden; background: #111;">
                     <img id="modal-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
-                    <label for="avatar-input" style="position:absolute; bottom:5px; right:5px; background:var(--primary); color:black; padding:6px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">✎</label>
+                    <label for="avatar-input" style="position:absolute; bottom:5px; right:5px; background:var(--primary); color:black; padding:6px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold; z-index:10;">✎</label>
                     <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="app.updateAvatar()">
                 </div>
                 <h3 id="profile-name-title" style="color:var(--primary); font-size:22px; font-weight:800;">Meno</h3>
@@ -445,10 +445,12 @@
             },
 
             onLogin(user) {
-                this.showView('app-view'); document.getElementById('user-nav').classList.remove('hidden');
+                this.showView('app-view'); 
+                document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 const avatar = user.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
-                document.getElementById('user-avatar').src = avatar; document.getElementById('modal-avatar').src = avatar;
+                document.getElementById('user-avatar').src = avatar; 
+                document.getElementById('modal-avatar').src = avatar;
                 if(user.birth) { const age = Math.floor((new Date() - new Date(user.birth)) / (365.25 * 24 * 60 * 60 * 1000)); document.getElementById('stat-age').innerText = age + " r."; }
             },
 
@@ -550,11 +552,55 @@
                 if (u.identityStrikes.includes('meno')) document.getElementById('identity-fix-panel').classList.remove('hidden');
             },
 
-            updateAvatar() { const file = document.getElementById('avatar-input').files[0]; if (!file) return; const rd = new FileReader(); rd.onload = (e) => { const user = this.state.users.find(u => u.email === this.state.session); user.avatar = e.target.result; this.save(); document.getElementById('user-avatar').src = user.avatar; document.getElementById('modal-avatar').src = user.avatar; }; rd.readAsDataURL(file); },
-            toggleProfileModal() { document.getElementById('profile-modal').classList.toggle('hidden'); const u = this.state.users.find(u => u.email === this.state.session); document.getElementById('profile-name-title').innerText = u.fullName; document.getElementById('stat-credits').innerText = u.credits.toLocaleString(); this.switchSettings('main'); },
-            toggleHistoryModal() { document.getElementById('history-modal').classList.toggle('hidden'); const u = this.state.users.find(u => u.email === this.state.session); document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="font-size:12px; color:var(--primary); padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;" onclick="app.play('${f.id}', '${f.title}')">❤️ ${f.title}</div>`).join('') || "Zoznam prázdny."; },
-            switchSettings(s) { document.getElementById('profile-main-screen').className = s==='main'?'':'hidden'; document.getElementById('profile-analytics-screen').className = s==='analytics'?'':'hidden'; },
-            saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); location.reload(); },
+            updateAvatar() { 
+                const file = document.getElementById('avatar-input').files[0]; 
+                if (!file) return; 
+                const rd = new FileReader(); 
+                rd.onload = (e) => { 
+                    const user = this.state.users.find(u => u.email === this.state.session); 
+                    if (user) {
+                        user.avatar = e.target.result; 
+                        this.save(); // OKAMŽITÉ ULOŽENIE DO LOCALSTORAGE
+                        document.getElementById('user-avatar').src = user.avatar; 
+                        document.getElementById('modal-avatar').src = user.avatar; 
+                        alert("Profilová fotka bola úspešne uložená!");
+                    }
+                }; 
+                rd.readAsDataURL(file); 
+            },
+
+            toggleProfileModal() { 
+                document.getElementById('profile-modal').classList.toggle('hidden'); 
+                const u = this.state.users.find(u => u.email === this.state.session); 
+                if (u) {
+                    document.getElementById('profile-name-title').innerText = u.fullName; 
+                    document.getElementById('stat-credits').innerText = u.credits.toLocaleString(); 
+                    document.getElementById('modal-avatar').src = u.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                    this.switchSettings('main');
+                }
+            },
+
+            toggleHistoryModal() { 
+                document.getElementById('history-modal').classList.toggle('hidden'); 
+                const u = this.state.users.find(u => u.email === this.state.session); 
+                if(u) {
+                    document.getElementById('favorites-list').innerHTML = u.favorites.map(f => `<div style="font-size:12px; color:var(--primary); padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;" onclick="app.play('${f.id}', '${f.title}')">❤️ ${f.title}</div>`).join('') || "Zoznam prázdny."; 
+                }
+            },
+
+            switchSettings(s) { 
+                document.getElementById('profile-main-screen').className = s==='main'?'':'hidden'; 
+                document.getElementById('profile-analytics-screen').className = s==='analytics'?'':'hidden'; 
+                if(s==='analytics') document.getElementById('api-key-input').value = this.state.apiKey;
+            },
+
+            saveApiKey() { 
+                this.state.apiKey = document.getElementById('api-key-input').value.trim(); 
+                localStorage.setItem('bt_key_v3', this.state.apiKey); 
+                alert("API kľúč uložený."); 
+                this.switchSettings('main'); 
+            },
+
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             logout() { localStorage.removeItem('bt_session_v3'); location.reload(); },
             toggleFavorite(id, title) { const u = this.state.users.find(x => x.email === this.state.session); const idx = u.favorites.findIndex(f => f.id === id); if (idx > -1) u.favorites.splice(idx, 1); else u.favorites.push({id, title}); this.save(); this.search(); }
