@@ -46,20 +46,20 @@
             line-height: 1.6;
         }
 
-        /* BOOT LOADER */
+        /* BOOT LOADER - ZRYCHLENY */
         #boot-loader {
             position: fixed; inset: 0; background: #000; z-index: 10000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.4s ease, visibility 0.4s;
         }
         .boot-spinner { 
-            width: 60px; height: 60px; 
+            width: 50px; height: 50px; 
             border: 2px solid rgba(255,215,0,0.05); 
             border-top-color: var(--primary); 
             border-radius: 50%; 
-            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            animation: spin 0.6s linear infinite;
         }
-        #boot-text { margin-top: 25px; color: var(--primary); font-family: 'JetBrains Mono'; font-size: 11px; letter-spacing: 3px; animation: pulse 1.5s infinite; }
+        #boot-text { margin-top: 20px; color: var(--primary); font-family: 'JetBrains Mono'; font-size: 10px; letter-spacing: 4px; animation: pulse 1s infinite; text-transform: uppercase; }
 
         .main-wrapper {
             max-width: 1100px;
@@ -73,7 +73,7 @@
             position: relative;
             background: linear-gradient(135deg, #FFD700, #b8860b);
             color: #000; border: none; padding: 14px 28px; font-weight: 800;
-            border-radius: 16px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-transform: uppercase; font-size: 11px; letter-spacing: 1.5px;
             overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
         }
@@ -120,16 +120,11 @@
         .player-wrapper { width: 92%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 40px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.2); }
         .close-player-btn { position: absolute; top: 25px; right: 25px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: #000; border: none; font-size: 24px; cursor: pointer; z-index: 5000; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
 
-        .search-area { text-align: center; padding: 100px 0 40px; }
-        .search-area h1 { margin-bottom: 40px; font-weight: 900; font-size: clamp(2.5rem, 6vw, 4.5rem); text-transform: uppercase; letter-spacing: -3px; }
-        .search-bar-container { display: flex; width: 100%; max-width: 750px; gap: 15px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 30px; border: 1px solid var(--glass-border); margin: 0 auto; backdrop-filter: blur(15px); }
-
         .progress-container { width: 100%; height: 10px; background: rgba(255,255,255,0.05); border-radius: 20px; margin-top: 20px; overflow: hidden; display: none; }
         .progress-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 15px var(--primary); transition: width 0.1s linear; }
 
         .unlock-timer { font-family: 'JetBrains Mono'; color: var(--primary); font-size: 20px; margin: 15px 0; text-shadow: 0 0 10px var(--primary-glow); }
 
-        /* MESSAGE BOX */
         #msg-box {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             padding: 15px 30px; border-radius: 15px; background: var(--surface);
@@ -140,13 +135,12 @@
 </head>
 <body onload="app.init()">
 
-    <!-- MESSAGE BOX -->
     <div id="msg-box"></div>
 
     <!-- BOOT LOADER -->
     <div id="boot-loader">
         <div class="boot-spinner"></div>
-        <p id="boot-text">INITIALIZING CORE SYSTEM...</p>
+        <p id="boot-text">INITIALIZING CORE...</p>
     </div>
 
     <!-- BAN SCREEN -->
@@ -156,13 +150,6 @@
             <h1 style="color:var(--admin-color); font-weight:900; letter-spacing: -1px;">PRÍSTUP ZAMIEKNUTÝ</h1>
             <p id="ban-reason-text" style="color:var(--danger); font-weight:700; margin-top:15px;"></p>
             <div id="ban-countdown" class="ban-countdown-box">--:--:--</div>
-            
-            <div id="identity-fix-panel" class="hidden" style="background:rgba(255,215,0,0.05); padding:25px; border-radius:30px; border:1px dashed var(--primary); margin-top:20px; text-align: left;">
-                <p style="font-size:11px; color:var(--primary); font-weight:800; margin-bottom:12px; text-transform: uppercase;">Povinná oprava identity:</p>
-                <input type="text" id="new-name-input" placeholder="Zadajte nové legálne meno...">
-                <button onclick="app.submitNameChange()" style="width:100%; margin-top:15px;">AKTUALIZOVAŤ A POŽIADAŤ O UNBAN</button>
-            </div>
-            
             <button onclick="app.logout()" class="danger" style="width:100%; margin-top:30px;">ZMENIŤ IDENTITU</button>
         </div>
     </div>
@@ -170,13 +157,13 @@
     <div class="main-wrapper">
         <header>
             <div class="logo" style="cursor:pointer" onclick="app.showAppSection('main')">BANNA<span style="opacity: 0.3;">TUBE</span></div>
-            <div id="user-nav" class="hidden header-actions" style="display:flex; align-items:center; gap:20px;">
+            <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:20px;">
                 <button onclick="app.showAppSection('vault')" style="background:rgba(255,215,0,0.1); color:var(--primary); border:1px solid rgba(255,215,0,0.3); padding:8px 15px; border-radius:12px; font-weight: 800;">PUBLIC VAULT 🌍</button>
                 <div style="background:rgba(255,215,0,0.08); padding:8px 18px; border-radius:14px; font-size:11px; color:var(--primary); font-weight: 800; border: 1px solid rgba(255,215,0,0.2);">
                     🪙 <span id="header-credits">0</span>
                 </div>
-                <div class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:44px; height:44px; border-radius:12px; overflow:hidden; border:2px solid var(--primary); background:#111; cursor: pointer;">
-                    <img id="user-avatar" src="" alt="Avatar" style="width:100%; height:100%; object-fit: cover;">
+                <div class="profile-pic-container" onclick="app.toggleProfileModal()">
+                    <img id="user-avatar" src="" alt="Avatar">
                 </div>
                 <button onclick="app.logout()" class="secondary" style="padding:8px 12px; font-size:9px; border-radius: 12px;">LOGOFF</button>
             </div>
@@ -209,10 +196,10 @@
         <div id="app-view" class="hidden">
             <div id="section-main">
                 <div class="search-area">
-                    <h1>CORE <span style="color:var(--primary); text-shadow: 0 0 20px var(--primary-glow);">SCANNER</span></h1>
+                    <h1>CORE <span style="color:var(--primary);">SCANNER</span></h1>
                     <div class="search-bar-container">
                         <input type="text" id="query" placeholder="Skenovať YouTube (Vyžaduje API kľúč)..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; margin:0; font-size: 18px;">
-                        <button onclick="app.search()" style="min-width: 140px; height: 50px;">SPUSTIŤ SCAN</button>
+                        <button onclick="app.search()" style="min-width: 140px; height: 50px;">SCAN</button>
                     </div>
                 </div>
                 <div id="results" class="video-grid"></div>
@@ -221,23 +208,19 @@
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
                     <h1 style="color:var(--primary);">PUBLIC <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Zdieľaná sieť videí (.MP4) pre certifikovaných členov.</p>
+                    <p style="opacity:0.5; margin-top: 10px;">Zdieľaná sieť videí (.MP4).</p>
                 </div>
-                <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary); margin-top: 20px;">
+                <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary);">
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
                     <h3>PRÍSTUP OBMEDZENÝ</h3>
-                    <p style="opacity: 0.6; margin-bottom: 20px;">Vaša identita je v stave verifikácie (24h zámok).</p>
                     <div id="vault-countdown" class="unlock-timer">--h --m --s</div>
-                    <div style="margin: 25px 0;">
-                        <button onclick="app.instantUnlockVault()" class="success" style="padding: 20px 40px; font-size: 14px; box-shadow: 0 0 30px rgba(0,255,149,0.3);">🔓 FREE FUNKCIA</button>
-                    </div>
+                    <button onclick="app.instantUnlockVault()" class="success" style="margin-top: 20px; padding: 20px 40px;">🔓 FREE ODOMKNUTIE HNEĎ</button>
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
-                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-                        <div style="font-size: 40px; margin-bottom: 20px;">📤</div>
-                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">NAHRAŤ VEREJNÝ ARCHÍV (.MP4)</h4>
+                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
+                        <h4 style="margin-bottom: 20px;">PUBLIKOVAŤ VEREJNÉ VIDEO (.MP4)</h4>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadPublicVideo()">
-                        <button id="upload-btn" onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
+                        <button id="upload-btn" onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR (MAX 300MB)</button>
                         <div id="up-progress-cont" class="progress-container"><div id="up-progress-bar" class="progress-bar"></div></div>
                     </div>
                     <div id="public-videos-results" class="video-grid"></div>
@@ -254,11 +237,7 @@
                 <label for="avatar-input" style="position:absolute; bottom:8px; right:8px; background:var(--primary); color:black; padding:8px; border-radius:12px; cursor:pointer; font-size:12px; font-weight:bold; z-index:10;">✎</label>
                 <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="app.updateAvatar()">
             </div>
-            <h3 id="profile-name-title" style="color:var(--primary); font-size:22px; font-weight:800; letter-spacing: -1px;">Meno</h3>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;">
-            <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">STATUS</label><span>AKTÍVNY</span></div>
-            <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">KREDITY</label><span id="stat-credits">--</span></div>
+            <h3 id="profile-name-title" style="color:var(--primary); font-size:22px; font-weight:800;">Meno</h3>
         </div>
         <button onclick="app.claimCredits()" style="width:100%; background:var(--primary); color:black; margin-bottom:15px; height: 50px;">ZÍSKAŤ +500 KREDITOV</button>
         <button onclick="app.switchSettings('analytics')" style="width:100%; margin-bottom: 12px;" class="secondary">NASTAVENIA API KĽÚČA</button>
@@ -283,25 +262,21 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const fbApp = initializeApp(firebaseConfig);
+        const fbConfig = JSON.parse(__firebase_config);
+        const fbApp = initializeApp(fbConfig);
         const auth = getAuth(fbApp);
         const db = getFirestore(fbApp);
-        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'banna-tube-final-v10';
+        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'banna-public-v11-fast';
 
         window.app = {
-            state: {
-                session: localStorage.getItem('bt_session_v3'),
-                apiKey: localStorage.getItem('bt_key_v3') || '',
-                localDb: null,
-                isReady: false,
-                isBooting: true,
-                user: null
-            },
+            state: { session: localStorage.getItem('bt_session_v3'), apiKey: localStorage.getItem('bt_key_v3') || '', localDb: null, isReady: false, isBooting: true, user: null },
 
             async init() {
+                // Safety: finish boot no matter what after 2s
+                setTimeout(() => this.finishBoot(), 2000);
+
                 try {
                     await this.initLocalDB();
                     
@@ -314,38 +289,30 @@
                     onAuthStateChanged(auth, async (u) => {
                         this.state.user = u;
                         this.state.isReady = !!u;
-                        
                         if (u) {
                             this.syncPublicVideos();
                             if (this.state.session) {
                                 const user = await this.getUserByEmail(this.state.session);
-                                if (user) {
-                                    this.repairUserData(user);
-                                    await this.onLogin(user);
-                                } else {
-                                    this.logout();
-                                }
+                                if (user) await this.onLogin(user); else this.logout();
                             }
                         }
                         this.finishBoot();
                     });
 
-                    this.startVaultTicker();
-                } catch(e) { 
-                    console.error("Critical System Failure:", e);
-                    this.finishBoot(); 
-                }
+                    setInterval(() => this.tickVault(), 1000);
+                } catch(e) { this.finishBoot(); }
             },
 
             finishBoot() {
+                if (!this.state.isBooting) return;
                 this.state.isBooting = false;
                 const loader = document.getElementById('boot-loader');
-                if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.classList.add('hidden'), 800); }
+                if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.classList.add('hidden'), 500); }
             },
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('bt_vault', 100); 
+                    const req = indexedDB.open('bt_vault', 120); // Reset for clean start
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if (!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -358,9 +325,8 @@
             },
 
             async getUserByEmail(email) {
-                if (!email) return null;
+                if (!email || !this.state.localDb) return null;
                 return new Promise((resolve) => {
-                    if(!this.state.localDb) return resolve(null);
                     const tx = this.state.localDb.transaction('users', 'readonly');
                     const req = tx.objectStore('users').get(email.toLowerCase().trim());
                     req.onsuccess = () => resolve(req.result);
@@ -369,80 +335,49 @@
             },
 
             async saveUserDB(user) {
-                return new Promise((resolve, reject) => {
-                    if(!this.state.localDb) return reject("Databáza nie je pripravená.");
+                if(!this.state.localDb) return;
+                return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     tx.objectStore('users').put(user);
                     tx.oncomplete = () => resolve();
-                    tx.onerror = (e) => reject(e);
                 });
-            },
-
-            repairUserData(user) {
-                if (!user.createdAt) user.createdAt = Date.now();
-                if (user.unlocked === undefined) user.unlocked = false;
-                if (!user.credits) user.credits = 10000;
             },
 
             showMsg(txt) {
                 const box = document.getElementById('msg-box');
                 if (!box) return;
-                box.innerText = txt;
-                box.style.display = 'block';
+                box.innerText = txt; box.style.display = 'block';
                 setTimeout(() => box.style.display = 'none', 3000);
             },
 
             async handleRegister() {
                 if(this.state.isBooting) return;
-                const emailRaw = document.getElementById('reg-email').value;
-                const passRaw = document.getElementById('reg-pass').value;
-                const nameRaw = document.getElementById('reg-name').value;
-                const surnameRaw = document.getElementById('reg-surname').value;
-
-                const email = emailRaw ? emailRaw.trim().toLowerCase() : "";
-                const pass = passRaw ? passRaw.trim() : "";
-                const name = nameRaw ? nameRaw.trim() : "";
-                const surname = surnameRaw ? surnameRaw.trim() : "";
-
+                const email = document.getElementById('reg-email').value.trim().toLowerCase();
+                const pass = document.getElementById('reg-pass').value.trim();
+                const name = document.getElementById('reg-name').value.trim();
+                const surname = document.getElementById('reg-surname').value.trim();
                 if (!email || !pass || !name) return this.showMsg("Prosím, vyplňte údaje.");
 
-                const allUsers = await this.getAllUsersDB();
-                if (allUsers.find(u => u.email === email)) return this.showMsg("Účet s týmto emailom už existuje.");
-
-                const newUser = { email, pass, name, fullName: name + " " + surname, credits: 10000, createdAt: Date.now(), unlocked: false };
-                await this.saveUserDB(newUser);
-                this.showMsg("Registrácia úspešná.");
-                this.showView('login-view');
-            },
-
-            async getAllUsersDB() {
-                return new Promise((resolve) => {
-                    if(!this.state.localDb) return resolve([]);
+                const allUsers = await new Promise(r => {
                     const tx = this.state.localDb.transaction('users', 'readonly');
                     const req = tx.objectStore('users').getAll();
-                    req.onsuccess = () => resolve(req.result || []);
-                    req.onerror = () => resolve([]);
+                    req.onsuccess = () => r(req.result);
                 });
+
+                if (allUsers.find(u => u.email === email)) return this.showMsg("Účet už existuje.");
+                const newUser = { email, pass, name, fullName: name + " " + surname, credits: 10000, createdAt: Date.now(), unlocked: false };
+                await this.saveUserDB(newUser);
+                this.showMsg("Úspešné. Môžete sa prihlásiť.");
+                this.showView('login-view');
             },
 
             async handleLogin() {
                 if(this.state.isBooting) return;
-                const emailRaw = document.getElementById('login-email').value;
-                const passRaw = document.getElementById('login-pass').value;
-                
-                const email = emailRaw ? emailRaw.trim().toLowerCase() : "";
-                const pass = passRaw ? passRaw.trim() : "";
-
-                if (!email || !pass) return this.showMsg("Zadajte údaje.");
-
-                // Vynútená kontrola databázy pred prihlásením
+                const email = document.getElementById('login-email').value.trim().toLowerCase();
+                const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                
-                if (!user) return this.showMsg("Účet neexistuje.");
-                if (user.pass !== pass) return this.showMsg("Nesprávne heslo.");
-
-                this.state.session = email;
-                localStorage.setItem('bt_session_v3', email);
+                if (!user || user.pass !== pass) return this.showMsg("Nesprávne údaje.");
+                this.state.session = email; localStorage.setItem('bt_session_v3', email);
                 await this.onLogin(user);
             },
 
@@ -458,32 +393,15 @@
                 document.getElementById('stat-credits').innerText = (user.credits || 0).toLocaleString();
             },
 
-            startVaultTicker() {
-                setInterval(async () => {
-                    if (this.state.session) {
-                        const user = await this.getUserByEmail(this.state.session);
-                        if (user && !document.getElementById('section-vault').classList.contains('hidden')) {
-                            this.updateVaultUI(user);
-                        }
-                    }
-                }, 1000);
-            },
-
-            async instantUnlockVault() {
+            async tickVault() {
+                if (!this.state.session || document.getElementById('section-vault').classList.contains('hidden')) return;
                 const user = await this.getUserByEmail(this.state.session);
-                if (user) { user.unlocked = true; await this.saveUserDB(user); this.showMsg("ODOMKNUTÉ!"); }
-            },
-
-            async updateVaultUI(user) {
+                if (!user) return;
                 const now = Date.now();
                 const unlockTime = (user.createdAt || now) + (24 * 60 * 60 * 1000);
                 const isUnlocked = user.unlocked || now >= unlockTime;
-
-                const lockUI = document.getElementById('vault-locked-ui');
-                const unlockUI = document.getElementById('vault-unlocked-ui');
-                if (lockUI) lockUI.classList.toggle('hidden', isUnlocked);
-                if (unlockUI) unlockUI.classList.toggle('hidden', !isUnlocked);
-
+                document.getElementById('vault-locked-ui').classList.toggle('hidden', isUnlocked);
+                document.getElementById('vault-unlocked-ui').classList.toggle('hidden', !isUnlocked);
                 if (!isUnlocked) {
                     const diff = unlockTime - now;
                     const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
@@ -492,12 +410,16 @@
                 }
             },
 
+            async instantUnlockVault() {
+                const user = await this.getUserByEmail(this.state.session);
+                if (user) { user.unlocked = true; await this.saveUserDB(user); this.showMsg("ODOMKNUTÉ!"); this.tickVault(); }
+            },
+
             async uploadPublicVideo() {
-                if (!this.state.user) return;
                 const fileInput = document.getElementById('local-video-input');
-                if (!fileInput) return;
+                if (!fileInput || !fileInput.files[0]) return;
                 const file = fileInput.files[0];
-                if (!file || file.size > 300 * 1024 * 1024) return this.showMsg("Max 300MB MP4.");
+                if (file.size > 300 * 1024 * 1024) return this.showMsg("Max 300MB.");
                 const btn = document.getElementById('upload-btn');
                 const progBar = document.getElementById('up-progress-bar');
                 document.getElementById('up-progress-cont').style.display = 'block';
@@ -506,7 +428,6 @@
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('public_cache', 'readwrite');
                 tx.objectStore('public_cache').put({ id: videoId, data: file });
-                
                 tx.oncomplete = async () => {
                     progBar.style.width = '70%';
                     try {
@@ -519,25 +440,19 @@
                             document.getElementById('up-progress-cont').style.display = 'none'; 
                             btn.disabled = false; 
                         }, 500);
-                    } catch(err) { 
-                        this.showMsg("Chyba synchronizácie."); 
-                        btn.disabled = false;
-                    }
+                    } catch(err) { this.showMsg("Sync failure."); btn.disabled = false; }
                 };
             },
 
             syncPublicVideos() {
                 if (!this.state.user) return;
-                const q = collection(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos');
-                onSnapshot(q, (snap) => {
+                onSnapshot(collection(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos'), (snap) => {
                     const grid = document.getElementById('public-videos-results');
                     if(!grid) return;
                     const videos = snap.docs.map(d => d.data());
-                    if (videos.length === 0) return grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Žiadne verejné archívy.</p>';
-                    grid.innerHTML = videos.map(v => `<div class="video-card" onclick="app.playPublicVideo('${v.id}')"><div class="local-thumb">📽️</div><div class="video-info"><b>${v.name}</b><br><small>Nahral: ${v.uploader}</small></div></div>`).join('');
-                }, (err) => {
-                    console.error("Firestore listener error:", err);
-                });
+                    if (videos.length === 0) return grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdny trezor.</p>';
+                    grid.innerHTML = videos.map(v => `<div class="video-card" onclick="app.playPublicVideo('${v.id}')"><div class="local-thumb">📽️</div><div class="video-info"><b>${v.name}</b><br><small>${v.uploader}</small></div></div>`).join('');
+                }, (err) => console.log(err));
             },
 
             async playPublicVideo(id) {
@@ -548,20 +463,19 @@
                         const url = URL.createObjectURL(req.result.data);
                         document.getElementById('player-view').classList.remove('hidden');
                         document.getElementById('video-mount').innerHTML = `<video controls autoplay style="width:100%; height:100%; border-radius:30px;"><source src="${url}" type="video/mp4"></video>`;
-                    } else { this.showMsg("Tento archív je momentálne dostupný len autorovi."); }
+                    } else { this.showMsg("Remote archive: Available only to the author."); }
                 };
             },
 
             async search() {
-                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč v profile.");
+                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
                 const queryVal = document.getElementById('query').value.trim();
                 const grid = document.getElementById('results');
                 grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5; text-align:center; padding:50px;">Skenujem...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(queryVal)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`);
                     const data = await res.json();
-                    if(!data.items) throw new Error();
-                    grid.innerHTML = data.items.map(i => `<div class="video-card"><div onclick="app.play('${i.id.videoId}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${i.snippet.title}</b></div></div></div>`).join('');
+                    grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.play('${i.id.videoId}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
                 } catch(e) { grid.innerHTML = `<p style="grid-column:1/-1; color:red; text-align:center;">API Error.</p>`; }
             },
 
@@ -570,34 +484,20 @@
                 document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen style="border-radius:20px;"></iframe>`;
             },
 
-            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
-            showAppSection(s) { 
-                const main = document.getElementById('section-main');
-                const vault = document.getElementById('section-vault');
-                if (main) main.classList.toggle('hidden', s !== 'main'); 
-                if (vault) vault.classList.toggle('hidden', s !== 'vault'); 
-            },
+            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); document.getElementById(id)?.classList.remove('hidden'); },
+            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
             async getAvatarDB(e) { return new Promise(r => { if(!this.state.localDb) return r(null); const tx = this.state.localDb.transaction('avatars','readonly'); const req = tx.objectStore('avatars').get(e); req.onsuccess = () => r(req.result?req.result.data:null); req.onerror = () => r(null); }); },
-            async saveAvatarDB(e, d) { return new Promise(r => { if(!this.state.localDb) return r(false); const tx = this.state.localDb.transaction('avatars','readwrite'); tx.objectStore('avatars').put({email: e, data: d}); tx.oncomplete = () => r(true); }); },
+            async saveAvatarDB(e, d) { return new Promise(r => { const tx = this.state.localDb.transaction('avatars','readwrite'); tx.objectStore('avatars').put({email: e, data: d}); tx.oncomplete = () => r(true); }); },
             updateAvatar() { 
-                const fileInput = document.getElementById('avatar-input');
-                if (!fileInput || !fileInput.files[0]) return;
+                const f = document.getElementById('avatar-input').files[0];
+                if (!f) return;
                 const rd = new FileReader(); 
                 rd.onload = async (e) => { await this.saveAvatarDB(this.state.session, e.target.result); document.getElementById('user-avatar').src = e.target.result; document.getElementById('modal-avatar').src = e.target.result; }; 
-                rd.readAsDataURL(fileInput.files[0]); 
+                rd.readAsDataURL(f); 
             },
             async claimCredits() { const u = await this.getUserByEmail(this.state.session); if(u){ u.credits += 500; await this.saveUserDB(u); await this.onLogin(u); } },
             toggleProfileModal() { document.getElementById('profile-modal').classList.toggle('hidden'); },
-            switchSettings(s) { 
-                if (s === 'analytics') {
-                    document.getElementById('profile-modal').classList.add('hidden');
-                    document.getElementById('analytics-modal').classList.remove('hidden');
-                    document.getElementById('api-key-input').value = this.state.apiKey;
-                } else {
-                    document.getElementById('analytics-modal').classList.add('hidden');
-                    document.getElementById('profile-modal').classList.remove('hidden');
-                }
-            },
+            switchSettings(s) { if (s === 'analytics') { document.getElementById('profile-modal').classList.add('hidden'); document.getElementById('analytics-modal').classList.remove('hidden'); document.getElementById('api-key-input').value = this.state.apiKey; } else { document.getElementById('analytics-modal').classList.add('hidden'); document.getElementById('profile-modal').classList.remove('hidden'); } },
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             logout() { localStorage.removeItem('bt_session_v3'); location.reload(); }
@@ -606,3 +506,4 @@
     </script>
 </body>
 </html>
+
