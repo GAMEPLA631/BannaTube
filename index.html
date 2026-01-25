@@ -52,7 +52,13 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.8s ease;
         }
-        .boot-spinner { width: 60px; height: 60px; border: 2px solid rgba(255,215,0,0.05); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .boot-spinner { 
+            width: 60px; height: 60px; 
+            border: 2px solid rgba(255,215,0,0.05); 
+            border-top-color: var(--primary); 
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite;
+        }
         #boot-text { margin-top: 25px; color: var(--primary); font-family: 'JetBrains Mono'; font-size: 11px; letter-spacing: 3px; animation: pulse 1.5s infinite; }
 
         .main-wrapper {
@@ -100,7 +106,7 @@
             text-align: center; animation: slideUp 0.7s ease; box-shadow: 0 40px 100px rgba(0,0,0,0.7);
         }
 
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 40px 0; }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 40px 0; }
         .video-card { background: var(--card-bg); border-radius: 30px; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: all 0.5s; overflow: hidden; position: relative; }
         .video-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
         .video-card img, .video-card .local-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
@@ -127,6 +133,9 @@
         
         .progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 15px; overflow: hidden; display: none; }
         .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: 0.3s; }
+
+        /* UNLOCK UI */
+        .unlock-timer { font-family: 'JetBrains Mono'; color: var(--primary); font-size: 20px; margin: 15px 0; text-shadow: 0 0 10px var(--primary-glow); }
     </style>
 </head>
 <body onload="app.init()">
@@ -137,12 +146,28 @@
         <p id="boot-text">INITIALIZING CORE...</p>
     </div>
 
+    <!-- BAN SCREEN -->
+    <div id="ban-screen" class="ban-overlay hidden">
+        <div class="ban-card">
+            <div style="font-size:80px; margin-bottom:20px; filter: drop-shadow(0 0 10px var(--danger));">🛡️</div>
+            <h1 style="color:var(--admin-color); font-weight:900; letter-spacing: -1px;">PRÍSTUP ZAMIEKNUTÝ</h1>
+            <p id="ban-reason-text" style="color:var(--danger); font-weight:700; margin-top:15px;"></p>
+            <div id="ban-countdown" class="ban-countdown-box">--:--:--</div>
+            <div id="identity-fix-panel" class="hidden" style="background:rgba(255,215,0,0.05); padding:25px; border-radius:30px; border:1px dashed var(--primary); margin-top:20px; text-align: left;">
+                <p style="font-size:11px; color:var(--primary); font-weight:800; margin-bottom:12px; text-transform: uppercase;">Povinná oprava identity:</p>
+                <input type="text" id="new-name-input" placeholder="Zadajte nové legálne meno...">
+                <button onclick="app.submitNameChange()" style="width:100%; margin-top:15px;">AKTUALIZOVAŤ A POŽIADAŤ O UNBAN</button>
+            </div>
+            <button onclick="app.logout()" class="danger" style="width:100%; margin-top:30px;">ZMENIŤ IDENTITU</button>
+        </div>
+    </div>
+
     <div class="main-wrapper">
         <header>
             <div class="logo" style="cursor:pointer" onclick="app.showAppSection('main')">BANNA<span style="opacity: 0.3;">TUBE</span></div>
             <div id="user-nav" class="hidden header-actions">
                 <button onclick="app.showAppSection('vault')" style="background:rgba(255,215,0,0.1); color:var(--primary); border:1px solid rgba(255,215,0,0.3); padding:8px 15px; border-radius:12px; font-weight: 800;">PUBLIC VAULT 🌍</button>
-                <div id="admin-nav-btn" style="cursor:pointer; font-size:22px; color:var(--admin-color);" onclick="app.toggleAdminModal()" title="Admin Hub">🛡️</div>
+                <div id="admin-nav-btn" style="cursor:pointer; font-size:22px; color:var(--admin-color);" onclick="app.toggleAdminModal()" title="Admin Oversight">🛡️</div>
                 <div style="background:rgba(255,215,0,0.08); padding:8px 18px; border-radius:14px; font-size:11px; color:var(--primary); font-weight: 800; border: 1px solid rgba(255,215,0,0.2);">
                     🪙 <span id="header-credits">0</span>
                 </div>
@@ -158,17 +183,17 @@
         <div id="login-view">
             <div class="auth-card">
                 <div style="font-size:45px; margin-bottom:15px;">🔒</div>
-                <h2 style="font-weight: 800; color:var(--primary); letter-spacing: -1px;">Skenovanie Identity</h2>
+                <h2 style="font-weight: 800; color:var(--primary);">Skenovanie Identity</h2>
                 <input type="email" id="login-email" placeholder="Emailová adresa" style="margin-bottom:12px;">
-                <input type="password" id="login-pass" placeholder="Vstupný kód (Heslo)">
-                <button id="login-btn" onclick="app.handleLogin()" style="width:100%; margin-top:25px; padding:18px;">VSTÚPIŤ DO SYSTÉMU</button>
+                <input type="password" id="login-pass" placeholder="Heslo">
+                <button id="login-btn" onclick="app.handleLogin()" style="width:100%; margin-top:25px; padding:18px;">VSTÚPIŤ DO CORE</button>
                 <p style="font-size:14px; color:#666; margin-top:30px;">Nová licencia? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer; font-weight:700;">Registrovať</span></p>
             </div>
         </div>
 
         <div id="register-view" class="hidden">
             <div class="auth-card">
-                <h2 style="font-weight: 800; color:var(--primary); margin-bottom:20px;">Vytvoriť Profil</h2>
+                <h2>Vytvoriť Profil</h2>
                 <div class="form-row" style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" id="reg-name" placeholder="Meno"><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
                 <input type="email" id="reg-email" placeholder="Emailová adresa" style="margin-bottom:12px;">
                 <div class="form-row" style="display:flex; gap:10px; margin-bottom:10px;"><input type="date" id="reg-birth"><select id="reg-gender"><option value="Muž">Muž</option><option value="Žena">Žena</option></select></div>
@@ -184,7 +209,7 @@
                 <div class="search-area">
                     <h1>CORE <span style="color:var(--primary); text-shadow: 0 0 20px var(--primary-glow);">SCANNER</span></h1>
                     <div class="search-bar-container">
-                        <input type="text" id="query" placeholder="Skenovať YouTube (Vyžaduje API kľúč v profile)..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; margin:0; font-size: 18px;">
+                        <input type="text" id="query" placeholder="Skenovať YouTube (Vyžaduje API kľúč)..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; margin:0; font-size: 18px;">
                         <button onclick="app.search()" style="min-width: 140px; height: 50px;">SPUSTIŤ SCAN</button>
                     </div>
                 </div>
@@ -194,17 +219,25 @@
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
                     <h1 style="color:var(--primary);">PUBLIC <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Zdieľaná sieť videí (.MP4).</p>
+                    <p style="opacity:0.5; margin-top: 10px;">Zdieľaná sieť videí (.MP4) pre certifikovaných členov.</p>
                 </div>
                 <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary); margin-top: 20px;">
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
-                    <h3>FUNKCIA ZAMKNUTÁ</h3>
-                    <div id="requirement-list" style="max-width:400px; margin:20px auto;"></div>
+                    <h3>PRÍSTUP OBMEDZENÝ</h3>
+                    <p style="opacity: 0.6; margin-bottom: 20px;">Vaša identita je v stave verifikácie (24h zámok).</p>
+                    <div id="vault-countdown" class="unlock-timer">--h --m --s</div>
+                    <div style="margin: 25px 0;">
+                        <p style="font-size: 11px; color: var(--primary); margin-bottom: 15px; letter-spacing: 1px;">CHCEŠ ODOMKNÚŤ HNEĎ?</p>
+                        <button onclick="app.instantUnlockVault()" class="success" style="padding: 20px 40px; font-size: 14px; box-shadow: 0 0 30px rgba(0,255,149,0.3);">🔓 FREE FUNKCIA</button>
+                    </div>
+                    <div id="requirement-list" style="max-width:450px; margin:20px auto; opacity: 0.5;"></div>
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
-                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
+                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+                        <div style="font-size: 40px; margin-bottom: 20px;">📤</div>
+                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">NAHRAŤ VEREJNÝ ARCHÍV (.MP4)</h4>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadPublicVideo()">
-                        <button id="upload-btn" onclick="document.getElementById('local-video-input').click()">NAHRAŤ VEREJNÉ VIDEO (.MP4)</button>
+                        <button id="upload-btn" onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
                         <div id="up-progress-cont" class="progress-container"><div id="up-progress-bar" class="progress-bar"></div></div>
                     </div>
                     <div id="public-videos-results" class="video-grid"></div>
@@ -234,17 +267,10 @@
         </div>
         <div id="profile-analytics-screen" class="hidden">
             <h3 style="color:var(--primary); margin-bottom:20px;">YouTube Core API</h3>
-            <p style="font-size: 11px; opacity: 0.5; margin-bottom: 15px;">API kľúč je potrebný iba pre YouTube vyhľadávanie.</p>
             <input type="text" id="api-key-input" placeholder="Vložte YouTube API Key" style="margin-bottom:20px; text-align:center;">
             <button onclick="app.saveApiKey()" style="width:100%; height: 50px;">ULOŽIŤ KLÚČ</button>
             <button onclick="app.switchSettings('main')" class="secondary" style="width:100%; margin-top:10px;">SPÄŤ</button>
         </div>
-    </div>
-
-    <div id="admin-modal" class="modal hidden">
-        <h3 style="color:var(--admin-color); font-size: 24px; font-weight:800;">🛡️ ADMIN CORE HUB</h3>
-        <div id="user-admin-list" style="max-height: 500px; overflow-y:auto; margin-top:30px; text-align: left;"></div>
-        <button onclick="app.toggleAdminModal()" style="width:100%; margin-top:25px;" class="secondary">ODPOJIŤ</button>
     </div>
 
     <div id="player-view" class="player-overlay hidden">
@@ -259,13 +285,12 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurácia pre externé weby (nahradiť pri reálnom nasadení)
         const myConfig = { apiKey: "DEMO_KEY", authDomain: "demo.firebaseapp.com", projectId: "demo-id", storageBucket: "demo.appspot.com", messagingSenderId: "000", appId: "000" };
         const fbConfig = (typeof __firebase_config !== 'undefined') ? JSON.parse(__firebase_config) : myConfig;
         const fbApp = initializeApp(fbConfig);
         const auth = getAuth(fbApp);
         const db = getFirestore(fbApp);
-        const currentAppId = (typeof __app_id !== 'undefined') ? __app_id : 'banna-tube-final-fixed';
+        const currentAppId = (typeof __app_id !== 'undefined') ? __app_id : 'banna-tube-final-v10';
 
         window.app = {
             state: {
@@ -291,6 +316,7 @@
                         if (this.state.session) {
                             const user = await this.getUserByEmail(this.state.session);
                             if (user) {
+                                this.repairUserData(user);
                                 await this.onLogin(user);
                             } else {
                                 this.logout();
@@ -300,6 +326,7 @@
                     });
 
                     this.syncPublicVideos();
+                    this.startVaultTicker();
                 } catch(e) { this.finishBoot(); }
             },
 
@@ -311,7 +338,7 @@
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('bt_vault', 60); 
+                    const req = indexedDB.open('bt_vault', 70); 
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if (!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -343,6 +370,12 @@
                 });
             },
 
+            repairUserData(user) {
+                if (!user.createdAt) user.createdAt = Date.now();
+                if (user.vaultUnlockedManually === undefined) user.vaultUnlockedManually = false;
+                if (!user.credits) user.credits = 10000;
+            },
+
             async handleRegister() {
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value;
@@ -352,11 +385,11 @@
                 const existing = await this.getUserByEmail(email);
                 if (existing) return alert("Email je už registrovaný.");
 
-                const newUser = { email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, birth: document.getElementById('reg-birth').value, gender: document.getElementById('reg-gender').value, credits: 10000, favorites: [], videoBlocks: {}, watchedHistory: [], searchHistory: [], copyrightStrikes: [], banExpiresAt: 0 };
+                const newUser = { email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, birth: document.getElementById('reg-birth').value, gender: document.getElementById('reg-gender').value, credits: 10000, favorites: [], videoBlocks: {}, watchedHistory: [], searchHistory: [], copyrightStrikes: [], banExpiresAt: 0, createdAt: Date.now(), vaultUnlockedManually: false };
                 
                 try {
                     await this.saveUserDB(newUser);
-                    alert("Účet vytvorený! Môžete sa prihlásiť.");
+                    alert("Účet vytvorený!");
                     this.showView('login-view');
                 } catch(e) { alert("Chyba pri ukladaní."); }
             },
@@ -367,11 +400,9 @@
                 if (!email || !pass) return alert("Zadajte prihlasovacie údaje.");
 
                 const user = await this.getUserByEmail(email);
-                if (!user) return alert("Účet s týmto emailom neexistuje.");
+                if (!user) return alert("Účet neexistuje.");
                 if (user.pass !== pass) return alert("Nesprávne heslo.");
 
-                if (user.banExpiresAt > Date.now()) return alert("Prístup zamknutý.");
-                
                 this.state.session = email;
                 localStorage.setItem('bt_session_v3', email);
                 await this.onLogin(user);
@@ -388,26 +419,49 @@
                 document.getElementById('profile-name-title').innerText = user.fullName;
             },
 
-            async search() {
-                const q = document.getElementById('query').value.trim();
-                if (!q) return;
-                if (!this.state.apiKey) return alert("Pre YouTube vyhľadávanie vložte API kľúč v nastaveniach profilu.");
-                
-                const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5; text-align:center; padding:50px;">Skenujem YT jadro...</p>';
-                try {
-                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`);
-                    const data = await res.json();
-                    if(data.error) throw new Error(data.error.message);
-                    grid.innerHTML = data.items.map(i => `<div class="video-card"><div onclick="app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${i.snippet.title}</b></div></div></div>`).join('');
-                } catch(e) { grid.innerHTML = `<p style="grid-column:1/-1; color:red; text-align:center;">API CHYBA: Kľúč je pravdepodobne neplatný.</p>`; }
+            startVaultTicker() {
+                setInterval(async () => {
+                    if (this.state.session) {
+                        const user = await this.getUserByEmail(this.state.session);
+                        if (user && !document.getElementById('section-vault').classList.contains('hidden')) {
+                            this.updateVaultUI(user);
+                        }
+                    }
+                }, 1000);
+            },
+
+            async instantUnlockVault() {
+                const user = await this.getUserByEmail(this.state.session);
+                if (user) {
+                    user.vaultUnlockedManually = true;
+                    await this.saveUserDB(user);
+                    alert("PRÍSTUP ODOMKNUTÝ! Vitajte vo verejnom trezore.");
+                    this.updateVaultUI(user);
+                }
+            },
+
+            async updateVaultUI(user) {
+                const now = Date.now();
+                const created = user.createdAt || now;
+                const unlockTime = created + (24 * 60 * 60 * 1000);
+                const isUnlocked = user.vaultUnlockedManually || now >= unlockTime;
+
+                document.getElementById('vault-locked-ui').classList.toggle('hidden', isUnlocked);
+                document.getElementById('vault-unlocked-ui').classList.toggle('hidden', !isUnlocked);
+
+                if (!isUnlocked) {
+                    const diff = unlockTime - now;
+                    const h = Math.floor(diff / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    document.getElementById('vault-countdown').innerText = `${h}h ${m}m ${s}s`;
+                }
             },
 
             async uploadPublicVideo() {
                 const file = document.getElementById('local-video-input').files[0];
                 if(!file || file.size > 300 * 1024 * 1024) return alert("Max 300MB.");
                 const btn = document.getElementById('upload-btn');
-                const progBar = document.getElementById('up-progress-bar');
                 btn.disabled = true; document.getElementById('up-progress-cont').style.display = 'block';
 
                 const reader = new FileReader();
@@ -429,6 +483,7 @@
             syncPublicVideos() {
                 onSnapshot(collection(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos'), (snap) => {
                     const grid = document.getElementById('public-videos-results');
+                    if(!grid) return;
                     const videos = snap.docs.map(d => d.data());
                     if(videos.length === 0) return grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdna sieť.</p>';
                     grid.innerHTML = videos.map(v => `<div class="video-card" onclick="app.playPublicVideo('${v.id}')"><div class="local-thumb">📽️</div><div class="video-info"><b>${v.name}</b><br><small>${v.uploader}</small></div></div>`).join('');
@@ -446,13 +501,26 @@
                 };
             },
 
+            async search() {
+                if (!this.state.apiKey) return alert("Pre YouTube vyhľadávanie vložte API kľúč v nastaveniach profilu.");
+                const q = document.getElementById('query').value.trim();
+                const grid = document.getElementById('results');
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5; text-align:center; padding:50px;">Skenujem YT jadro...</p>';
+                try {
+                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`);
+                    const data = await res.json();
+                    if(data.error) throw new Error(data.error.message);
+                    grid.innerHTML = data.items.map(i => `<div class="video-card"><div onclick="app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${i.snippet.title}</b></div></div></div>`).join('');
+                } catch(e) { grid.innerHTML = `<p style="grid-column:1/-1; color:red; text-align:center;">API CHYBA: Skontrolujte kľúč.</p>`; }
+            },
+
             play(id, title) {
                 document.getElementById('player-view').classList.remove('hidden');
                 document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen style="border-radius:20px;"></iframe>`;
             },
 
-            showView(id) { ['login-view', 'register-view', 'app-view'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
-            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); if(s === 'vault') this.updateVaultUI(); },
+            showView(id) { ['login-view', 'register-view', 'app-view'].forEach(v => document.getElementById(v)?.classList.add('hidden')); document.getElementById(id)?.classList.remove('hidden'); },
+            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
             async getAvatarDB(e) { return new Promise(r => { if(!this.state.localDb) return r(null); const tx = this.state.localDb.transaction('avatars','readonly'); const req = tx.objectStore('avatars').get(e); req.onsuccess = () => r(req.result?req.result.data:null); req.onerror = () => r(null); }); },
             async saveAvatarDB(e, d) { return new Promise(r => { const tx = this.state.localDb.transaction('avatars','readwrite'); tx.objectStore('avatars').put({email: e, data: d}); tx.oncomplete = () => r(true); }); },
             updateAvatar() { const f = document.getElementById('avatar-input').files[0]; if(!f) return; const rd = new FileReader(); rd.onload = async (e) => { await this.saveAvatarDB(this.state.session, e.target.result); document.getElementById('user-avatar').src = e.target.result; document.getElementById('modal-avatar').src = e.target.result; }; rd.readAsDataURL(f); },
@@ -467,4 +535,3 @@
     </script>
 </body>
 </html>
-
