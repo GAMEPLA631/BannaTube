@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannaTube - Futuristic Local Core (RESET)</title>
+    <title>BannaTube - Futuristic Local Core (V200)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -85,7 +85,7 @@
 
         .auth-card {
             background: var(--surface); backdrop-filter: blur(40px); border: 1px solid var(--glass-border);
-            padding: 40px; border-radius: 40px; max-width: 550px; width: 100%; margin: 60px auto;
+            padding: 40px; border-radius: 40px; max-width: 580px; width: 100%; margin: 60px auto;
             text-align: center; animation: slideUp 0.7s ease; box-shadow: 0 40px 100px rgba(0,0,0,0.7);
         }
 
@@ -164,27 +164,23 @@
         </div>
 
         <div id="register-view" class="hidden">
-            <div class="auth-card" style="max-width: 600px;">
+            <div class="auth-card">
                 <h2 style="margin-bottom: 25px;">Vytvoriť Core Profil</h2>
-                
                 <div class="reg-grid">
                     <div><label class="reg-label">Meno</label><input type="text" id="reg-name" placeholder="Meno"></div>
                     <div><label class="reg-label">Priezvisko</label><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
                     <div class="reg-full"><label class="reg-label">Email</label><input type="email" id="reg-email" placeholder="email@core.sk"></div>
                     
-                    <!-- 9 POLÍ REGISTRÁCIE -->
                     <div><label class="reg-label">1. Prezývka (Nick)</label><input type="text" id="reg-nick" placeholder="FuturisticPlayer"></div>
                     <div><label class="reg-label">2. Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
-                    
                     <div><label class="reg-label">3. Telefón</label><input type="tel" id="reg-phone" placeholder="+421 ..."></div>
                     <div><label class="reg-label">4. Citizen Level</label><select id="reg-level"><option>Citizen (Standard)</option><option>Elite (Gold)</option><option>Prime (Platinum)</option></select></div>
                     
                     <div class="reg-full"><label class="reg-label">5. Tajná otázka</label><select id="reg-question"><option>Meno prvého miláčika?</option><option>Rodné mesto?</option><option>Model prvého auta?</option></select></div>
-                    <div class="reg-full"><label class="reg-label">6. Odpoveď</label><input type="text" id="reg-answer" placeholder="Vaša odpoveď"></div>
+                    <div class="reg-full"><label class="reg-label">6. Odpoveď</label><input type="text" id="reg-answer" placeholder="Vaša tajná odpoveď"></div>
                     
                     <div><label class="reg-label">7. Referenčný kód</label><input type="text" id="reg-ref" placeholder="CODE-X"></div>
                     <div><label class="reg-label">Pohlavie</label><select id="reg-gender"><option>Muž</option><option>Žena</option></select></div>
-                    
                     <div><label class="reg-label">Narodenie</label><input type="date" id="reg-birth"></div>
                     <div><label class="reg-label">Heslo</label><input type="password" id="reg-pass" placeholder="••••••••"></div>
 
@@ -227,7 +223,7 @@
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
                     <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
-                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">ULOŽIŤ MP4 ARCHÍV</h4>
+                        <h4 style="margin-bottom: 20px;">ULOŽIŤ MP4 ARCHÍV</h4>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
                         <button onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
                     </div>
@@ -290,16 +286,15 @@
 
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <button class="close-player-btn" onclick="app.closePlayer()">✕</button>
+            <button class="close-player-btn" onClick="app.closePlayer()">✕</button>
             <div id="video-mount" style="width:100%; height:100%;"></div>
         </div>
     </div>
 
     <script>
-        // CORE GLOBAL SCRIPT
         window.app = {
             state: {
-                session: localStorage.getItem('bt_session_v_reset'),
+                session: localStorage.getItem('bannatube_v200_session'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 localDb: null,
                 profile: null,
@@ -307,7 +302,7 @@
             },
 
             async init() {
-                // RESET SYSTÉMU: Databáza sa teraz volá inak, čím sa "vymažú" staré účty
+                // Vynútený reset názvu databázy pre čistý štart
                 await this.initLocalDB();
                 
                 if (this.state.session) {
@@ -326,20 +321,25 @@
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    // Verzia databázy so systémovým resetom
-                    const req = indexedDB.open('BannaTube_Global_Reset_V1', 1);
+                    const req = indexedDB.open('BannaTube_V200_Final', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
                         if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
                     };
-                    req.onsuccess = (e) => { this.state.localDb = e.target.result; resolve(); };
-                    req.onerror = (e) => { console.error("DB Error", e); resolve(); };
+                    req.onsuccess = (e) => { 
+                        this.state.localDb = e.target.result; 
+                        resolve(); 
+                    };
+                    req.onerror = () => resolve();
                 });
             },
 
             async getUserByEmail(email) {
-                if (!email || !this.state.localDb) return null;
+                if (!email) return null;
+                // Poistka ak by DB ešte nebola pripravená
+                if (!this.state.localDb) await this.initLocalDB();
+                
                 return new Promise((resolve) => {
                     try {
                         const tx = this.state.localDb.transaction('users', 'readonly');
@@ -351,7 +351,7 @@
             },
 
             async saveUserDB(user) {
-                if (!this.state.localDb) return;
+                if (!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     tx.objectStore('users').put(user);
@@ -366,7 +366,7 @@
                     user.credits = 10000;
                     user.lastResetYear = currentYear;
                     this.saveUserDB(user);
-                    this.showMsg(`Nový rok ${currentYear}: Kredity obnovené na 10,000.`);
+                    this.showMsg(`🎉 Nový rok ${currentYear}: Kredity obnovené!`);
                 }
             },
 
@@ -404,9 +404,9 @@
                 // AUTOMATICKÉ PRIHLÁSENIE PO REGISTRÁCII
                 this.state.session = email;
                 this.state.profile = newUser;
-                localStorage.setItem('bt_session_v_reset', email);
+                localStorage.setItem('bannatube_v200_session', email);
                 this.onLogin(newUser);
-                this.showMsg("Core Licencia aktivovaná. Vitajte.");
+                this.showMsg("Vitajte v Core! Registrácia úspešná.");
             },
 
             async handleLogin() {
@@ -415,17 +415,16 @@
                 
                 if (!email || !pass) return this.showMsg("Zadajte prihlasovacie údaje.");
 
-                // Vždy kontrolujeme databázu
                 const user = await this.getUserByEmail(email);
                 
-                if (!user) return this.showMsg("Účet nebol nájdený. Znova sa registrujte.");
-                if (user.pass !== pass) return this.showMsg("Nesprávne heslo.");
+                if (!user) return this.showMsg("Účet neexistuje (vykonali sme reset). Znova sa registrujte.");
+                if (user.pass !== pass) return this.showMsg("Nesprávny bezpečnostný kód.");
 
                 this.state.session = email;
                 this.state.profile = user;
-                localStorage.setItem('bt_session_v_reset', email);
+                localStorage.setItem('bannatube_v200_session', email);
                 this.onLogin(user);
-                this.showMsg("Prístup povolený.");
+                this.showMsg("Identita overená.");
             },
 
             onLogin(user) {
@@ -443,13 +442,13 @@
                 const file = document.getElementById('local-video-input').files[0];
                 if (!file) return;
                 
-                this.showMsg("Ukladám MP4...");
+                this.showMsg("ARCHIVUJEM MP4...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
                 
                 tx.oncomplete = () => {
-                    this.showMsg("Video archivované.");
+                    this.showMsg("Video bezpečne uložené.");
                     this.syncVideosUI();
                 };
             },
@@ -466,12 +465,12 @@
                             <div class="local-thumb">📽️</div>
                             <div class="video-info"><b>${v.name}</b><br><small>Sektor: ${v.uploader}</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor je prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Váš vault je prázdny.</p>';
                 };
             },
 
             async search() {
-                if (!this.state.apiKey) return this.showMsg("Zadajte API kľúč.");
+                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
 
@@ -480,7 +479,7 @@
                 await this.saveUserDB(this.state.profile);
 
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Prehľadávam jadro...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Skenujem...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -527,7 +526,7 @@
                 if(idx > -1) this.state.profile.favorites.splice(idx, 1);
                 else this.state.profile.favorites.push({ id, title, date: Date.now() });
                 await this.saveUserDB(this.state.profile);
-                this.showMsg("Obľúbené aktualizované.");
+                this.showMsg("Zoznam aktualizovaný.");
             },
 
             async toggleAdminModal() {
@@ -584,7 +583,7 @@
                 if (tabEl) tabEl.style.opacity = '1';
                 
                 if(tab === 'history') {
-                    content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Žiadna história.";
+                    content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Prázdna história.";
                 } else if(tab === 'favs') {
                     content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne obľúbené.";
                 } else if(tab === 'strikes') {
@@ -617,9 +616,10 @@
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             showMsg(t) { const b = document.getElementById('msg-box'); if(b){ b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); } },
-            logout() { localStorage.removeItem('bt_session_v_reset'); location.reload(); }
+            logout() { localStorage.removeItem('bannatube_v200_session'); location.reload(); }
         };
     </script>
 </body>
 </html>
+
 
