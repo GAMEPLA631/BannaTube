@@ -46,21 +46,6 @@
             line-height: 1.6;
         }
 
-        /* BOOT LOADER - ZRYCHLENÝ */
-        #boot-loader {
-            position: fixed; inset: 0; background: #000; z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease;
-        }
-        .boot-spinner { 
-            width: 50px; height: 50px; 
-            border: 2px solid rgba(255,215,0,0.05); 
-            border-top-color: var(--primary); 
-            border-radius: 50%; 
-            animation: spin 0.6s linear infinite;
-        }
-        #boot-text { margin-top: 20px; color: var(--primary); font-family: 'JetBrains Mono'; font-size: 10px; letter-spacing: 4px; animation: pulse 1s infinite; text-transform: uppercase; }
-
         .main-wrapper {
             max-width: 1100px;
             margin: 0 auto;
@@ -73,7 +58,7 @@
             position: relative;
             background: linear-gradient(135deg, #FFD700, #b8860b);
             color: #000; border: none; padding: 14px 28px; font-weight: 800;
-            border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-transform: uppercase; font-size: 11px; letter-spacing: 1.5px;
             overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
         }
@@ -141,35 +126,18 @@
 
     <div id="msg-box"></div>
 
-    <!-- BOOT LOADER -->
-    <div id="boot-loader">
-        <div class="boot-spinner"></div>
-        <p id="boot-text">INITIALIZING CORE...</p>
-    </div>
-
-    <!-- BAN SCREEN -->
-    <div id="ban-screen" class="ban-overlay hidden">
-        <div class="ban-card">
-            <div style="font-size:80px; margin-bottom:20px; filter: drop-shadow(0 0 10px var(--danger));">🛡️</div>
-            <h1 style="color:var(--admin-color); font-weight:900; letter-spacing: -1px;">PRÍSTUP ZAMIEKNUTÝ</h1>
-            <p id="ban-reason-text" style="color:var(--danger); font-weight:700; margin-top:15px;"></p>
-            <div id="ban-countdown" class="ban-countdown-box">--:--:--</div>
-            <button onclick="app.logout()" class="danger" style="width:100%; margin-top:30px;">ZMENIŤ IDENTITU</button>
-        </div>
-    </div>
-
     <div class="main-wrapper">
         <header>
             <div class="logo" style="cursor:pointer" onclick="app.showAppSection('main')">BANNA<span style="opacity: 0.3;">TUBE</span></div>
             <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:20px;">
-                <button onclick="app.showAppSection('vault')" style="background:rgba(255,215,0,0.1); color:var(--primary); border:1px solid rgba(255,215,0,0.3); padding:8px 15px; border-radius:12px; font-weight: 800;">PUBLIC VAULT 🌍</button>
+                <button onclick="app.showAppSection('vault')" style="background:rgba(255,215,0,0.1); color:var(--primary); border:1px solid rgba(255,215,0,0.3); padding:8px 15px; border-radius:12px; font-weight: 800;">LOCAL VAULT 📂</button>
                 <div style="background:rgba(255,215,0,0.08); padding:8px 18px; border-radius:14px; font-size:11px; color:var(--primary); font-weight: 800; border: 1px solid rgba(255,215,0,0.2);">
                     🪙 <span id="header-credits">0</span>
                 </div>
                 <div class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:44px; height:44px; border-radius:12px; overflow:hidden; border:2px solid var(--primary); background:#111; cursor: pointer;">
                     <img id="user-avatar" src="" alt="Avatar" style="width:100%; height:100%; object-fit: cover;">
                 </div>
-                <button onclick="app.logout()" class="secondary" style="padding:8px 12px; font-size:9px; border-radius: 12px;">LOGOFF</button>
+                <button onclick="app.logout()" class="secondary" style="padding:8px 12px; font-size:9px;">LOGOFF</button>
             </div>
         </header>
 
@@ -180,7 +148,7 @@
                 <h2 style="font-weight: 800; color:var(--primary);">Skenovanie Identity</h2>
                 <input type="email" id="login-email" placeholder="Emailová adresa">
                 <input type="password" id="login-pass" placeholder="Heslo" style="margin-top:10px;">
-                <button id="login-btn" onclick="app.handleLogin()" style="width:100%; margin-top:25px; padding:18px;">VSTÚPIŤ DO CORE</button>
+                <button id="login-btn" onclick="app.handleLogin()" style="width:100%; margin-top:25px; padding:18px;">VSTÚPIŤ DO SYSTÉMU</button>
                 <p style="font-size:14px; color:#666; margin-top:30px;">Nová licencia? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer; font-weight:700;">Registrovať</span></p>
             </div>
         </div>
@@ -200,10 +168,10 @@
         <div id="app-view" class="hidden">
             <div id="section-main">
                 <div class="search-area">
-                    <h1>CORE <span style="color:var(--primary);">SCANNER</span></h1>
+                    <h1>CORE <span style="color:var(--primary); text-shadow: 0 0 20px var(--primary-glow);">SCANNER</span></h1>
                     <div class="search-bar-container">
                         <input type="text" id="query" placeholder="Skenovať YouTube (Vyžaduje API kľúč)..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; margin:0; font-size: 18px;">
-                        <button onclick="app.search()" style="min-width: 140px; height: 50px;">SCAN</button>
+                        <button onclick="app.search()" style="min-width: 140px; height: 50px;">SPUSTIŤ SCAN</button>
                     </div>
                 </div>
                 <div id="results" class="video-grid"></div>
@@ -211,20 +179,24 @@
 
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
-                    <h1 style="color:var(--primary);">PUBLIC <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Zdieľaná sieť videí (.MP4).</p>
+                    <h1 style="color:var(--primary);">LOCAL <span style="color:white;">VAULT</span></h1>
+                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny archív uložený bezpečne v prehliadači.</p>
                 </div>
-                <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary);">
+                <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary); margin-top: 20px;">
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
                     <h3>PRÍSTUP OBMEDZENÝ</h3>
+                    <p style="opacity: 0.6; margin-bottom: 20px;">Vaša identita je v stave verifikácie (24h zámok).</p>
                     <div id="vault-countdown" class="unlock-timer">--h --m --s</div>
-                    <button onclick="app.instantUnlockVault()" class="success" style="margin-top: 20px; padding: 20px 40px;">🔓 FREE ODOMKNUTIE HNEĎ</button>
+                    <div style="margin: 25px 0;">
+                        <button onclick="app.instantUnlockVault()" class="success" style="padding: 20px 40px; font-size: 14px; box-shadow: 0 0 30px rgba(0,255,149,0.3);">🔓 FREE FUNKCIA</button>
+                    </div>
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
-                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
-                        <h4 style="margin-bottom: 20px;">PUBLIKOVAŤ VEREJNÉ VIDEO (.MP4)</h4>
-                        <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadPublicVideo()">
-                        <button id="upload-btn" onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR (MAX 300MB)</button>
+                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+                        <div style="font-size: 40px; margin-bottom: 20px;">📤</div>
+                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">ULOŽIŤ MP4 ARCHÍV</h4>
+                        <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
+                        <button id="upload-btn" onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
                         <div id="up-progress-cont" class="progress-container"><div id="up-progress-bar" class="progress-bar"></div></div>
                     </div>
                     <div id="public-videos-results" class="video-grid"></div>
@@ -241,7 +213,11 @@
                 <label for="avatar-input" style="position:absolute; bottom:8px; right:8px; background:var(--primary); color:black; padding:8px; border-radius:12px; cursor:pointer; font-size:12px; font-weight:bold; z-index:10;">✎</label>
                 <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="app.updateAvatar()">
             </div>
-            <h3 id="profile-name-title" style="color:var(--primary); font-size:22px; font-weight:800;">Meno</h3>
+            <h3 id="profile-name-title" style="color:var(--primary); font-size:22px; font-weight:800; letter-spacing: -1px;">Meno</h3>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;">
+            <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">STATUS</label><span>LOCAL MODE</span></div>
+            <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">KREDITY</label><span id="stat-credits">--</span></div>
         </div>
         <button onclick="app.claimCredits()" style="width:100%; background:var(--primary); color:black; margin-bottom:15px; height: 50px;">ZÍSKAŤ +500 KREDITOV</button>
         <button onclick="app.switchSettings('analytics')" style="width:100%; margin-bottom: 12px;" class="secondary">NASTAVENIA API KĽÚČA</button>
@@ -263,95 +239,54 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const fbApp = initializeApp(firebaseConfig);
-        const auth = getAuth(fbApp);
-        const db = getFirestore(fbApp);
-        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'banna-public-v11-fast';
-
+    <script>
+        // Úplne všetko ukladáme do IndexedDB pre neobmedzený lokálny prístup
         window.app = {
-            state: { session: localStorage.getItem('bt_session_v3'), apiKey: localStorage.getItem('bt_key_v3') || '', localDb: null, isReady: false, isBooting: true, user: null },
-
-            async init() {
-                // FORCE BOOT FINISH po 1 sekunde pre okamžitý prístup
-                setTimeout(() => this.finishBoot(), 1000);
-
-                try {
-                    // Spustíme paralelne
-                    const dbPromise = this.initLocalDB();
-                    const authPromise = (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) 
-                        ? signInWithCustomToken(auth, __initial_auth_token) 
-                        : signInAnonymously(auth);
-
-                    await dbPromise;
-                    await authPromise;
-
-                    onAuthStateChanged(auth, async (u) => {
-                        this.state.user = u;
-                        this.state.isReady = !!u;
-                        if (u) {
-                            this.syncPublicVideos();
-                            if (this.state.session) {
-                                const user = await this.getUserByEmail(this.state.session);
-                                if (user) await this.onLogin(user); else this.logout();
-                            }
-                        }
-                        this.finishBoot();
-                    });
-
-                    setInterval(() => this.tickVault(), 1000);
-                } catch(e) { 
-                    console.warn("Silent start enabled.");
-                    this.finishBoot(); 
-                }
+            state: {
+                session: localStorage.getItem('bt_session_v3'),
+                apiKey: localStorage.getItem('bt_key_v3') || '',
+                localDb: null,
+                profile: null,
+                isReady: false
             },
 
-            finishBoot() {
-                if (!this.state.isBooting) return;
-                this.state.isBooting = false;
-                const loader = document.getElementById('boot-loader');
-                if (loader) { 
-                    loader.style.opacity = '0'; 
-                    setTimeout(() => {
-                        loader.classList.add('hidden');
-                        loader.style.display = 'none';
-                    }, 500); 
+            async init() {
+                await this.initLocalDB();
+                if (this.state.session) {
+                    const user = await this.getUserByEmail(this.state.session);
+                    if (user) {
+                        this.state.profile = user;
+                        this.onLogin(user);
+                    } else {
+                        this.logout();
+                    }
                 }
+                this.syncVideosUI();
+                setInterval(() => this.tickVault(), 1000);
             },
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('bt_vault', 150); 
+                    const req = indexedDB.open('BannaTube_LocalCore', 5);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
-                        if (!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
-                        if (!d.objectStoreNames.contains('avatars')) d.createObjectStore('avatars', { keyPath: 'email' });
-                        if (!d.objectStoreNames.contains('public_cache')) d.createObjectStore('public_cache', { keyPath: 'id' });
+                        if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
+                        if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
                     };
                     req.onsuccess = (e) => { this.state.localDb = e.target.result; resolve(); };
-                    req.onerror = () => resolve();
                 });
             },
 
             async getUserByEmail(email) {
-                if (!email || !this.state.localDb) return null;
                 return new Promise((resolve) => {
-                    try {
-                        const tx = this.state.localDb.transaction('users', 'readonly');
-                        const req = tx.objectStore('users').get(email.toLowerCase().trim());
-                        req.onsuccess = () => resolve(req.result);
-                        req.onerror = () => resolve(null);
-                    } catch(e) { resolve(null); }
+                    const tx = this.state.localDb.transaction('users', 'readonly');
+                    const req = tx.objectStore('users').get(email.toLowerCase().trim());
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(null);
                 });
             },
 
             async saveUserDB(user) {
-                if(!this.state.localDb) return;
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     tx.objectStore('users').put(user);
@@ -359,22 +294,23 @@
                 });
             },
 
-            showMsg(txt) {
-                const box = document.getElementById('msg-box');
-                if (!box) return;
-                box.innerText = txt; box.style.display = 'block';
-                setTimeout(() => box.style.display = 'none', 3000);
-            },
-
             async handleRegister() {
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
-                if (!email || !pass || !name) return this.showMsg("Prosím, vyplňte údaje.");
+                if (!email || !pass || !name) return this.showMsg("Doplňte všetky polia.");
 
-                const newUser = { email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, credits: 10000, createdAt: Date.now(), unlocked: false };
+                const existing = await this.getUserByEmail(email);
+                if (existing) return this.showMsg("Tento email už má licenciu.");
+
+                const newUser = { 
+                    email, pass, name, 
+                    fullName: name + " " + document.getElementById('reg-surname').value, 
+                    credits: 10000, createdAt: Date.now(), unlocked: false, avatar: null 
+                };
+
                 await this.saveUserDB(newUser);
-                this.showMsg("Úspešné. Môžete sa prihlásiť.");
+                this.showMsg("Licencia aktivovaná! Môžete sa prihlásiť.");
                 this.showView('login-view');
             },
 
@@ -382,132 +318,179 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("Nesprávne údaje.");
-                this.state.session = email; localStorage.setItem('bt_session_v3', email);
-                await this.onLogin(user);
+
+                if (!user || user.pass !== pass) return this.showMsg("Nesprávna identita.");
+
+                this.state.session = email;
+                this.state.profile = user;
+                localStorage.setItem('bt_session_v3', email);
+                this.onLogin(user);
             },
 
-            async onLogin(user) {
+            onLogin(user) {
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
-                document.getElementById('header-credits').innerText = (user.credits || 0).toLocaleString();
+                document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('profile-name-title').innerText = user.fullName;
-                const avatar = await this.getAvatarDB(user.email);
+                this.updateAvatarDisplay(user.avatar);
+            },
+
+            updateAvatarDisplay(data) {
                 const def = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
-                document.getElementById('user-avatar').src = avatar || def;
-                document.getElementById('modal-avatar').src = avatar || def;
-                document.getElementById('stat-credits').innerText = (user.credits || 0).toLocaleString();
+                document.getElementById('user-avatar').src = data || def;
+                document.getElementById('modal-avatar').src = data || def;
             },
 
             async tickVault() {
-                if (!this.state.session || document.getElementById('section-vault').classList.contains('hidden')) return;
-                const user = await this.getUserByEmail(this.state.session);
-                if (!user) return;
+                if (!this.state.profile || document.getElementById('section-vault').classList.contains('hidden')) return;
                 const now = Date.now();
-                const unlockTime = (user.createdAt || now) + (24 * 60 * 60 * 1000);
-                const isUnlocked = user.unlocked || now >= unlockTime;
+                const unlockTime = (this.state.profile.createdAt || now) + (24 * 60 * 60 * 1000);
+                const isUnlocked = this.state.profile.unlocked || now >= unlockTime;
+                
                 document.getElementById('vault-locked-ui').classList.toggle('hidden', isUnlocked);
                 document.getElementById('vault-unlocked-ui').classList.toggle('hidden', !isUnlocked);
+
                 if (!isUnlocked) {
                     const diff = unlockTime - now;
                     const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-                    const timerEl = document.getElementById('vault-countdown');
-                    if (timerEl) timerEl.innerText = `${h}h ${m}m ${s}s`;
+                    document.getElementById('vault-countdown').innerText = `${h}h ${m}m ${s}s`;
                 }
             },
 
             async instantUnlockVault() {
-                const user = await this.getUserByEmail(this.state.session);
-                if (user) { user.unlocked = true; await this.saveUserDB(user); this.showMsg("ODOMKNUTÉ!"); this.tickVault(); }
+                this.state.profile.unlocked = true;
+                await this.saveUserDB(this.state.profile);
+                this.tickVault();
+                this.showMsg("PRÍSTUP ODOMKNUTÝ!");
             },
 
-            async uploadPublicVideo() {
-                const fileInput = document.getElementById('local-video-input');
-                if (!fileInput || !fileInput.files[0]) return;
-                const file = fileInput.files[0];
+            async uploadLocalVideo() {
+                const file = document.getElementById('local-video-input').files[0];
+                if (!file || file.size > 300 * 1024 * 1024) return this.showMsg("Max 300MB.");
+                
                 const btn = document.getElementById('upload-btn');
                 const progBar = document.getElementById('up-progress-bar');
                 document.getElementById('up-progress-cont').style.display = 'block';
                 btn.disabled = true;
 
                 const videoId = crypto.randomUUID();
-                const tx = this.state.localDb.transaction('public_cache', 'readwrite');
-                tx.objectStore('public_cache').put({ id: videoId, data: file });
-                tx.oncomplete = async () => {
-                    progBar.style.width = '70%';
-                    try {
-                        await setDoc(doc(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos', videoId), {
-                            id: videoId, name: file.name, uploader: this.state.session, timestamp: Date.now()
-                        });
-                        progBar.style.width = '100%';
-                        setTimeout(() => { 
-                            this.showMsg("Video publikované!"); 
-                            document.getElementById('up-progress-cont').style.display = 'none'; 
-                            btn.disabled = false; 
-                        }, 500);
-                    } catch(err) { this.showMsg("Sync failure."); btn.disabled = false; }
+                const tx = this.state.localDb.transaction('videos', 'readwrite');
+                tx.objectStore('videos').put({ 
+                    id: videoId, 
+                    name: file.name, 
+                    data: file, 
+                    uploader: this.state.profile.name, 
+                    timestamp: Date.now() 
+                });
+                
+                tx.oncomplete = () => {
+                    progBar.style.width = '100%';
+                    this.showMsg("Video uložené do Core.");
+                    setTimeout(() => {
+                        document.getElementById('up-progress-cont').style.display = 'none';
+                        btn.disabled = false;
+                        this.syncVideosUI();
+                    }, 500);
                 };
             },
 
-            syncPublicVideos() {
-                if (!this.state.user) return;
-                onSnapshot(collection(db, 'artifacts', currentAppId, 'public', 'data', 'community_videos'), (snap) => {
-                    const grid = document.getElementById('public-videos-results');
-                    if(!grid) return;
-                    const videos = snap.docs.map(d => d.data());
-                    if (videos.length === 0) return grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdny trezor.</p>';
-                    grid.innerHTML = videos.map(v => `<div class="video-card" onclick="app.playPublicVideo('${v.id}')"><div class="local-thumb">📽️</div><div class="video-info"><b>${v.name}</b><br><small>${v.uploader}</small></div></div>`).join('');
-                }, (err) => console.log(err));
+            async syncVideosUI() {
+                const grid = document.getElementById('public-videos-results');
+                if(!grid) return;
+                
+                const tx = this.state.localDb.transaction('videos', 'readonly');
+                const req = tx.objectStore('videos').getAll();
+                
+                req.onsuccess = () => {
+                    const videos = req.result;
+                    if(videos.length === 0) {
+                        grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdny trezor.</p>';
+                        return;
+                    }
+                    grid.innerHTML = videos.map(v => `
+                        <div class="video-card" onclick="app.playVideo('${v.id}')">
+                            <div class="local-thumb">📽️</div>
+                            <div class="video-info"><b>${v.name}</b><br><small>Archivár: ${v.uploader}</small></div>
+                        </div>
+                    `).join('');
+                };
             },
 
-            async playPublicVideo(id) {
-                const tx = this.state.localDb.transaction('public_cache', 'readonly');
-                const req = tx.objectStore('public_cache').get(id);
+            async playVideo(id) {
+                const tx = this.state.localDb.transaction('videos', 'readonly');
+                const req = tx.objectStore('videos').get(id);
                 req.onsuccess = () => {
                     if (req.result) {
                         const url = URL.createObjectURL(req.result.data);
                         document.getElementById('player-view').classList.remove('hidden');
                         document.getElementById('video-mount').innerHTML = `<video controls autoplay style="width:100%; height:100%; border-radius:30px;"><source src="${url}" type="video/mp4"></video>`;
-                    } else { this.showMsg("Tento archív uvidíš v plnej kvalite len na tvojom zariadení."); }
+                    }
                 };
             },
 
             async search() {
-                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
-                const queryVal = document.getElementById('query').value.trim();
+                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč v nastaveniach.");
+                const q = document.getElementById('query').value.trim();
                 const grid = document.getElementById('results');
                 grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5; text-align:center; padding:50px;">Skenujem...</p>';
                 try {
-                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(queryVal)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`);
+                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`);
                     const data = await res.json();
-                    grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.play('${i.id.videoId}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
-                } catch(e) { grid.innerHTML = `<p style="grid-column:1/-1; color:red; text-align:center;">API Error.</p>`; }
+                    grid.innerHTML = data.items.map(i => `
+                        <div class="video-card" onclick="app.playYT('${i.id.videoId}')">
+                            <img src="${i.snippet.thumbnails.medium.url}">
+                            <div class="video-info"><b>${i.snippet.title}</b></div>
+                        </div>
+                    `).join('');
+                } catch(e) { grid.innerHTML = '<p style="grid-column:1/-1; color:red; text-align:center;">API Error.</p>'; }
             },
 
-            play(id) {
+            playYT(id) {
                 document.getElementById('player-view').classList.remove('hidden');
                 document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen style="border-radius:20px;"></iframe>`;
             },
 
-            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); document.getElementById(id)?.classList.remove('hidden'); },
-            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
-            async getAvatarDB(e) { return new Promise(r => { if(!this.state.localDb) return r(null); const tx = this.state.localDb.transaction('avatars','readonly'); const req = tx.objectStore('avatars').get(e); req.onsuccess = () => r(req.result?req.result.data:null); req.onerror = () => r(null); }); },
-            async saveAvatarDB(e, d) { return new Promise(r => { const tx = this.state.localDb.transaction('avatars','readwrite'); tx.objectStore('avatars').put({email: e, data: d}); tx.oncomplete = () => r(true); }); },
+            showView(id) { 
+                document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); 
+                document.getElementById(id).classList.remove('hidden'); 
+            },
+
+            showAppSection(s) { 
+                document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); 
+                document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); 
+            },
+
             updateAvatar() { 
                 const f = document.getElementById('avatar-input').files[0];
                 if (!f) return;
                 const rd = new FileReader(); 
-                rd.onload = async (e) => { await this.saveAvatarDB(this.state.session, e.target.result); document.getElementById('user-avatar').src = e.target.result; document.getElementById('modal-avatar').src = e.target.result; }; 
+                rd.onload = async (e) => { 
+                    this.state.profile.avatar = e.target.result;
+                    await this.saveUserDB(this.state.profile);
+                    this.updateAvatarDisplay(e.target.result);
+                }; 
                 rd.readAsDataURL(f); 
             },
-            async claimCredits() { const u = await this.getUserByEmail(this.state.session); if(u){ u.credits += 500; await this.saveUserDB(u); await this.onLogin(u); } },
+
+            async claimCredits() { 
+                this.state.profile.credits += 500; 
+                await this.saveUserDB(this.state.profile); 
+                document.getElementById('header-credits').innerText = this.state.profile.credits.toLocaleString();
+            },
+
+            showMsg(txt) { 
+                const b = document.getElementById('msg-box'); 
+                b.innerText = txt; b.style.display = 'block'; 
+                setTimeout(() => b.style.display = 'none', 3000); 
+            },
+
             toggleProfileModal() { document.getElementById('profile-modal').classList.toggle('hidden'); },
             switchSettings(s) { if (s === 'analytics') { document.getElementById('profile-modal').classList.add('hidden'); document.getElementById('analytics-modal').classList.remove('hidden'); document.getElementById('api-key-input').value = this.state.apiKey; } else { document.getElementById('analytics-modal').classList.add('hidden'); document.getElementById('profile-modal').classList.remove('hidden'); } },
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             logout() { localStorage.removeItem('bt_session_v3'); location.reload(); }
         };
-        window.app.init();
+        app.init();
     </script>
 </body>
 </html>
