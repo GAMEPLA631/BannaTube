@@ -202,7 +202,7 @@
             </div>
         </div>
 
-        <!-- APP -->
+        <!-- APP VIEW -->
         <div id="app-view" class="hidden">
             <div id="section-main">
                 <div class="search-area">
@@ -468,24 +468,55 @@
             async search() {
                 const q = document.getElementById('query').value.trim();
                 const user = this.state.users.find(u => u.email === this.state.session);
-                if (!q || !this.state.apiKey) return alert("API kľúč.");
-                const grid = document.getElementById('results'); grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5; text-align:center;">Skenujem...</p>';
+                if (!q) return;
+                if (!this.state.apiKey) return alert("Chýba API kľúč v nastaveniach profilu.");
+                
+                const grid = document.getElementById('results'); 
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5; text-align:center; padding:50px;">Skenujem databázu YouTube...</p>';
+                
                 try {
                     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&videoEmbeddable=true&key=${this.state.apiKey}`;
-                    const res = await fetch(url); const data = await res.json();
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    
+                    if (data.error) {
+                        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:20px; color:var(--danger); background:rgba(255,0,0,0.05); border-radius:15px;">
+                            <b style="font-size:16px;">YOUTUBE API CHYBA</b><br>
+                            <small>${data.error.message}</small><br>
+                            <span style="font-size:10px; opacity:0.6;">Skontrolujte platnosť kľúča a limity v Google Console.</span>
+                        </div>`;
+                        return;
+                    }
+
+                    if (!data.items || data.items.length === 0) {
+                        grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.4; text-align:center; padding:50px;">Nenašli sa žiadne výsledky pre váš sken.</p>';
+                        return;
+                    }
+
                     grid.innerHTML = data.items.map(i => {
                         const isBlocked = user.videoBlocks[i.id.videoId] || user.copyrightStrikes.includes(i.id.videoId);
                         const isFav = user.favorites.some(f => f.id === i.id.videoId);
                         return `<div class="video-card" style="${isBlocked ? 'opacity:0.3; grayscale:1;' : ''}"><span class="fav-badge" onclick="event.stopPropagation(); app.toggleFavorite('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">${isFav ? '❤️' : '🤍'}</span><div onclick="app.play('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${isBlocked ? '[BLOK] ' : ''}${i.snippet.title}</b></div></div></div>`;
                     }).join('');
-                    user.searchHistory.unshift({ query: q }); this.save();
-                } catch(e) { grid.innerHTML = "Chyba."; }
+                    
+                    user.searchHistory.unshift({ query: q }); 
+                    if (user.searchHistory.length > 20) user.searchHistory.pop();
+                    this.save();
+                } catch(e) { 
+                    grid.innerHTML = `<p style="grid-column:1/-1; color:var(--danger); text-align:center; padding:50px;">INTERNÁ CHYBA: ${e.message}</p>`; 
+                }
             },
 
             play(id, title) {
                 const user = this.state.users.find(u => u.email === this.state.session);
-                if (user.copyrightStrikes.includes(id)) return alert("Strike!");
-                user.credits -= 10; user.watchedHistory.unshift({id, title, date: Date.now()}); this.save();
+                if (user.copyrightStrikes.includes(id)) return alert("Tento obsah bol zmazaný kvôli Copyright Striku!");
+                if (user.videoBlocks[id]) return alert("Obsah je blokovaný adminom!");
+
+                user.credits -= 10; 
+                user.watchedHistory.unshift({id, title, date: Date.now()}); 
+                if (user.watchedHistory.length > 20) user.watchedHistory.pop();
+                this.save();
+                
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('player-view').classList.remove('hidden');
                 document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
