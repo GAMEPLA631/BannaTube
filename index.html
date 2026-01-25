@@ -42,7 +42,6 @@
             line-height: 1.6;
         }
 
-        /* FIX ROZŤAHOVANIA */
         .main-wrapper {
             max-width: 1200px;
             margin: 0 auto;
@@ -179,7 +178,7 @@
             </div>
         </header>
 
-        <!-- AUTH VIEWS -->
+        <!-- AUTH -->
         <div id="login-view">
             <div class="auth-card">
                 <div style="font-size:45px; margin-bottom:15px;">🔒</div>
@@ -203,9 +202,8 @@
             </div>
         </div>
 
-        <!-- APP VIEW -->
+        <!-- APP -->
         <div id="app-view" class="hidden">
-            <!-- SECTION: YT SCANNER -->
             <div id="section-main">
                 <div class="search-area">
                     <h1>CORE <span style="color:var(--primary)">SCANNER</span></h1>
@@ -217,28 +215,24 @@
                 <div id="results" class="video-grid"></div>
             </div>
 
-            <!-- SECTION: LOCAL VAULT -->
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
                     <h1 style="color:var(--primary);">LOCAL <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-bottom:20px;">Vaša privátna databáza uložená v prehliadači.</p>
+                    <p style="opacity:0.5; margin-bottom:20px;">Vaša privátna databáza MP4 uložená v prehliadači.</p>
                 </div>
-
                 <div id="vault-locked-ui" class="vault-lock-screen">
                     <div style="font-size:50px; margin-bottom:20px;">🔒</div>
                     <h3>PRÍSTUP OBMEDZENÝ</h3>
-                    <p style="opacity:0.6; margin-bottom:30px; font-size:14px;">Pre odomknutie funkcie ukladania MP4 musíte splniť požiadavky Core:</p>
+                    <p style="opacity:0.6; margin-bottom:30px; font-size:14px;">Splňte požiadavky pre odomknutie funkcie MP4:</p>
                     <div id="requirement-list" style="max-width:400px; margin:0 auto;"></div>
                     <button disabled style="margin-top:30px;">FUNKCIA ZAMKNUTÁ</button>
                 </div>
-
                 <div id="vault-unlocked-ui" class="hidden">
                     <div style="background:var(--surface); padding:30px; border-radius:30px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
                         <div style="font-size:30px; margin-bottom:15px;">📤</div>
-                        <h4>NAHRAŤ DO TREZORU</h4>
-                        <p style="font-size:12px; opacity:0.5; margin-bottom:20px;">Video bude bezpečne uložené v Indexe prehliadača.</p>
+                        <h4>NAHRAŤ NOVÝ SÚBOR</h4>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
-                        <button onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR .MP4</button>
+                        <button onclick="document.getElementById('local-video-input').click()">VYBRAŤ MP4</button>
                     </div>
                     <div id="local-videos-results" class="video-grid"></div>
                 </div>
@@ -259,7 +253,7 @@
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;">
                 <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:18px;"><label style="display:block; font-size:10px; opacity:0.5;">VEK</label><span id="stat-age">--</span></div>
-                <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:18px;"><label style="display:block; font-size:10px; opacity:0.5;">KREDITY</label><span id="stat-credits" style="color:var(--primary); font-weight:800;">--</span></div>
+                <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:18px;"><label style="display:block; font-size:10px; opacity:0.5;">KREDITY</label><span id="stat-credits">--</span></div>
             </div>
             <div style="background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.2); padding:15px; border-radius:20px; margin-bottom:15px;">
                 <p style="font-size:10px; color:var(--primary); font-weight:800; margin-bottom:10px; text-transform:uppercase;">Kreditný terminál</p>
@@ -345,12 +339,7 @@
             },
 
             isBanned(u) { return u.banExpiresAt === -1 || (u.banExpiresAt > 0 && Date.now() < u.banExpiresAt); },
-            
-            save() { 
-                try {
-                    localStorage.setItem('bt_db_v3', JSON.stringify(this.state.users)); 
-                } catch (e) { console.error("Storage error:", e); }
-            },
+            save() { localStorage.setItem('bt_db_v3', JSON.stringify(this.state.users)); },
 
             claimCredits() {
                 const user = this.state.users.find(u => u.email === this.state.session);
@@ -359,7 +348,6 @@
                     this.save();
                     document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                     document.getElementById('stat-credits').innerText = user.credits.toLocaleString();
-                    alert("Účet bol dobitý o 500 kreditov.");
                 }
             },
 
@@ -418,7 +406,7 @@
                 if(!file) return;
                 const tx = this.state.db.transaction('videos', 'readwrite');
                 tx.objectStore('videos').add({ userEmail: this.state.session, name: file.name, data: file, date: Date.now() });
-                tx.oncomplete = () => { alert("Video uložené do trezoru."); this.renderLocalVideos(); };
+                tx.oncomplete = () => { alert("Video uložené."); this.renderLocalVideos(); };
             },
 
             async renderLocalVideos() {
@@ -507,8 +495,8 @@
                 const u = this.state.users.find(x => x.email === email);
                 if (!u.identityStrikes) u.identityStrikes = [];
                 const idx = u.identityStrikes.indexOf(type);
-                if (idx > -1) { u.identityStrikes.splice(idx, 1); } 
-                else { u.identityStrikes.push(type); u.banExpiresAt = Date.now() + (24 * 60 * 60 * 1000); u.banReason = `Strike: Identity (${type})`; }
+                if (idx > -1) { u.identityStrikes.splice(idx, 1); if(u.identityStrikes.length === 0 && u.copyrightStrikes.length === 0) u.banExpiresAt = 0; } 
+                else { u.identityStrikes.push(type); u.banExpiresAt = Date.now() + (24 * 60 * 60 * 1000); u.banReason = `Strike: Identity (${type.toUpperCase()})`; }
                 this.save(); this.toggleAdminModal(); this.toggleAdminModal();
             },
 
@@ -516,7 +504,8 @@
                 const u = this.state.users.find(x => x.email === email);
                 const list = type === 'strike' ? u.copyrightStrikes : u.copyrightClaims;
                 const index = list.indexOf(vid);
-                if (index > -1) list.splice(index, 1); else { list.push(vid); if(type === 'strike'){ u.banExpiresAt = Date.now() + (48*60*60*1000); u.banReason="Copyright Strike"; } }
+                if (index > -1) { list.splice(index, 1); if(u.copyrightStrikes.length === 0 && u.identityStrikes.length === 0) u.banExpiresAt = 0; } 
+                else { list.push(vid); if(type === 'strike'){ u.banExpiresAt = Date.now() + (48*60*60*1000); u.banReason="Copyright Strike: Video Content"; } }
                 this.save(); this.toggleAdminModal(); this.toggleAdminModal();
             },
 
@@ -528,7 +517,7 @@
 
             adminUnban(email) {
                 const u = this.state.users.find(x => x.email === email);
-                u.banExpiresAt = 0; u.copyrightStrikes = []; u.identityStrikes = []; u.videoBlocks = {};
+                u.banExpiresAt = 0; u.copyrightStrikes = []; u.identityStrikes = []; u.copyrightClaims = []; u.videoBlocks = {}; u.banReason = "";
                 this.save(); this.toggleAdminModal(); this.toggleAdminModal();
             },
 
@@ -539,7 +528,7 @@
                 user.fullName = newName;
                 const idx = user.identityStrikes.indexOf('meno');
                 if (idx > -1) user.identityStrikes.splice(idx, 1);
-                if (user.identityStrikes.length === 0) { user.banExpiresAt = 0; location.reload(); }
+                if (user.identityStrikes.length === 0 && user.copyrightStrikes.length === 0) { user.banExpiresAt = 0; user.banReason = ""; location.reload(); }
                 this.save();
             },
 
@@ -553,15 +542,22 @@
                         return `<div class="user-manage-card">
                             <div style="display:flex; justify-content:space-between;">
                                 <div><b>${u.fullName}</b> <br> <span style="font-size:10px; opacity:0.5;">${u.email}</span></div>
-                                <button class="success" style="font-size:8px;" onclick="app.adminUnban('${u.email}')">RESET</button>
+                                <button class="success" style="font-size:8px;" onclick="app.adminUnban('${u.email}')">RESET / CLEAR ALL</button>
                             </div>
                             <div style="display:flex; gap:5px; margin-top:10px;">
                                 <button class="danger" style="flex:1; font-size:8px;" onclick="app.adminIdentityStrike('${u.email}', 'meno')">IDENTITY STRIKE</button>
                             </div>
                             <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:15px; margin-top:15px;">
-                                <small style="opacity:0.4; font-size:9px;">HISTÓRIA & VAULT:</small>
-                                ${u.watchedHistory.map(w => `<div class="history-action-item"><span>YT: ${w.title.substring(0,15)}</span><div><button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">STRIKE</button></div></div>`).join('')}
-                                ${userVault.map(v => `<div class="history-action-item"><span>FILE: ${v.name.substring(0,15)}</span><div><button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', 'local_${v.id}')">${u.videoBlocks["local_"+v.id] ? 'UNBLOCK' : 'BLOCK'}</button></div></div>`).join('')}
+                                <small style="opacity:0.4; font-size:9px;">YT HISTÓRIA & VAULT:</small>
+                                ${u.watchedHistory.map(w => `<div class="history-action-item"><span>YT: ${w.title.substring(0,15)}</span><div>
+                                    <button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'strike')">STRIKE</button>
+                                    <button class="warning" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', '${w.id}', 'claim')">CLAIM</button>
+                                    <button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', '${w.id}')">${u.videoBlocks[w.id] ? 'UNBLOCK' : 'BLOCK'}</button>
+                                </div></div>`).join('')}
+                                ${userVault.map(v => `<div class="history-action-item"><span>FILE: ${v.name.substring(0,15)}</span><div>
+                                    <button class="danger" style="padding:4px; font-size:7px;" onclick="app.adminCopyright('${u.email}', 'local_${v.id}', 'strike')">STRIKE</button>
+                                    <button class="secondary" style="padding:4px; font-size:7px;" onclick="app.adminBlockVideo('${u.email}', 'local_${v.id}')">${u.videoBlocks["local_"+v.id] ? 'UNBLOCK' : 'BLOCK'}</button>
+                                </div></div>`).join('')}
                             </div>
                         </div>`;
                     }).join('') || '<p style="opacity:0.3; text-align:center;">Prázdne.</p>';
@@ -603,7 +599,7 @@
                         await this.saveAvatarDB(email, avatarBase64);
                         document.getElementById('user-avatar').src = avatarBase64; 
                         document.getElementById('modal-avatar').src = avatarBase64; 
-                        alert("Profilová fotka bola natrvalo uložená!");
+                        alert("Profilová fotka bola uložená!");
                     }
                 }; 
                 rd.readAsDataURL(file); 
