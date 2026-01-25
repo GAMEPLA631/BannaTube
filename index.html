@@ -57,7 +57,7 @@
             border: 2px solid rgba(255,215,0,0.05); 
             border-top-color: var(--primary); 
             border-radius: 50%; 
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
         #boot-text { margin-top: 25px; color: var(--primary); font-family: 'JetBrains Mono'; font-size: 11px; letter-spacing: 3px; animation: pulse 1.5s infinite; }
 
@@ -358,10 +358,11 @@
             },
 
             async getUserByEmail(email) {
+                if (!email) return null;
                 return new Promise((resolve) => {
                     if(!this.state.localDb) return resolve(null);
                     const tx = this.state.localDb.transaction('users', 'readonly');
-                    const req = tx.objectStore('users').get(email.toLowerCase());
+                    const req = tx.objectStore('users').get(email.toLowerCase().trim());
                     req.onsuccess = () => resolve(req.result);
                     req.onerror = () => resolve(null);
                 });
@@ -393,10 +394,16 @@
 
             async handleRegister() {
                 if(this.state.isBooting) return;
-                const email = document.getElementById('reg-email').value.trim().toLowerCase();
-                const pass = document.getElementById('reg-pass').value;
-                const name = document.getElementById('reg-name').value.trim();
-                const surname = document.getElementById('reg-surname').value.trim();
+                const emailRaw = document.getElementById('reg-email').value;
+                const passRaw = document.getElementById('reg-pass').value;
+                const nameRaw = document.getElementById('reg-name').value;
+                const surnameRaw = document.getElementById('reg-surname').value;
+
+                const email = emailRaw ? emailRaw.trim().toLowerCase() : "";
+                const pass = passRaw ? passRaw.trim() : "";
+                const name = nameRaw ? nameRaw.trim() : "";
+                const surname = surnameRaw ? surnameRaw.trim() : "";
+
                 if (!email || !pass || !name) return this.showMsg("Prosím, vyplňte údaje.");
 
                 const allUsers = await this.getAllUsersDB();
@@ -420,10 +427,20 @@
 
             async handleLogin() {
                 if(this.state.isBooting) return;
-                const email = document.getElementById('login-email').value.trim().toLowerCase();
-                const pass = document.getElementById('login-pass').value;
+                const emailRaw = document.getElementById('login-email').value;
+                const passRaw = document.getElementById('login-pass').value;
+                
+                const email = emailRaw ? emailRaw.trim().toLowerCase() : "";
+                const pass = passRaw ? passRaw.trim() : "";
+
+                if (!email || !pass) return this.showMsg("Zadajte údaje.");
+
+                // Vynútená kontrola databázy pred prihlásením
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("Nesprávne údaje.");
+                
+                if (!user) return this.showMsg("Účet neexistuje.");
+                if (user.pass !== pass) return this.showMsg("Nesprávne heslo.");
+
                 this.state.session = email;
                 localStorage.setItem('bt_session_v3', email);
                 await this.onLogin(user);
@@ -462,8 +479,10 @@
                 const unlockTime = (user.createdAt || now) + (24 * 60 * 60 * 1000);
                 const isUnlocked = user.unlocked || now >= unlockTime;
 
-                document.getElementById('vault-locked-ui').classList.toggle('hidden', isUnlocked);
-                document.getElementById('vault-unlocked-ui').classList.toggle('hidden', !isUnlocked);
+                const lockUI = document.getElementById('vault-locked-ui');
+                const unlockUI = document.getElementById('vault-unlocked-ui');
+                if (lockUI) lockUI.classList.toggle('hidden', isUnlocked);
+                if (unlockUI) unlockUI.classList.toggle('hidden', !isUnlocked);
 
                 if (!isUnlocked) {
                     const diff = unlockTime - now;
@@ -552,7 +571,12 @@
             },
 
             showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
-            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
+            showAppSection(s) { 
+                const main = document.getElementById('section-main');
+                const vault = document.getElementById('section-vault');
+                if (main) main.classList.toggle('hidden', s !== 'main'); 
+                if (vault) vault.classList.toggle('hidden', s !== 'vault'); 
+            },
             async getAvatarDB(e) { return new Promise(r => { if(!this.state.localDb) return r(null); const tx = this.state.localDb.transaction('avatars','readonly'); const req = tx.objectStore('avatars').get(e); req.onsuccess = () => r(req.result?req.result.data:null); req.onerror = () => r(null); }); },
             async saveAvatarDB(e, d) { return new Promise(r => { if(!this.state.localDb) return r(false); const tx = this.state.localDb.transaction('avatars','readwrite'); tx.objectStore('avatars').put({email: e, data: d}); tx.oncomplete = () => r(true); }); },
             updateAvatar() { 
@@ -582,4 +606,3 @@
     </script>
 </body>
 </html>
-
