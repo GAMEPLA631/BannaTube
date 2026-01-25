@@ -85,7 +85,7 @@
 
         .auth-card {
             background: var(--surface); backdrop-filter: blur(40px); border: 1px solid var(--glass-border);
-            padding: 40px; border-radius: 40px; max-width: 500px; width: 100%; margin: 60px auto;
+            padding: 40px; border-radius: 40px; max-width: 550px; width: 100%; margin: 60px auto;
             text-align: center; animation: slideUp 0.7s ease; box-shadow: 0 40px 100px rgba(0,0,0,0.7);
         }
 
@@ -164,7 +164,7 @@
         </div>
 
         <div id="register-view" class="hidden">
-            <div class="auth-card" style="max-width: 600px;">
+            <div class="auth-card">
                 <h2 style="margin-bottom: 25px;">Vytvoriť Core Profil</h2>
                 
                 <div class="reg-grid">
@@ -172,27 +172,27 @@
                     <div><label class="reg-label">Priezvisko</label><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
                     <div class="reg-full"><label class="reg-label">Email</label><input type="email" id="reg-email" placeholder="email@core.sk"></div>
                     
-                    <!-- 9 NOVÝCH FUNKCIÍ REGISTRÁCIE -->
+                    <!-- 9 POLÍ REGISTRÁCIE -->
                     <div><label class="reg-label">1. Prezývka (Nick)</label><input type="text" id="reg-nick" placeholder="FuturisticPlayer"></div>
                     <div><label class="reg-label">2. Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
                     
                     <div><label class="reg-label">3. Telefón</label><input type="tel" id="reg-phone" placeholder="+421 ..."></div>
                     <div><label class="reg-label">4. Citizen Level</label><select id="reg-level"><option>Citizen (Standard)</option><option>Elite (Gold)</option><option>Prime (Platinum)</option></select></div>
                     
-                    <div class="reg-full"><label class="reg-label">5. Tajná bezpečnostná otázka</label><select id="reg-question"><option>Meno prvého domáceho zvieraťa?</option><option>Mesto kde ste sa narodili?</option><option>Obľúbená farba kódu?</option></select></div>
-                    <div class="reg-full"><label class="reg-label">6. Odpoveď na otázku</label><input type="text" id="reg-answer" placeholder="Vaša tajná odpoveď"></div>
+                    <div class="reg-full"><label class="reg-label">5. Tajná otázka</label><select id="reg-question"><option>Meno prvého miláčika?</option><option>Rodné mesto?</option><option>Model prvého auta?</option></select></div>
+                    <div class="reg-full"><label class="reg-label">6. Odpoveď</label><input type="text" id="reg-answer" placeholder="Vaša odpoveď"></div>
                     
-                    <div><label class="reg-label">7. Referenčný kód</label><input type="text" id="reg-ref" placeholder="CODE-2026"></div>
+                    <div><label class="reg-label">7. Referenčný kód</label><input type="text" id="reg-ref" placeholder="CODE-X"></div>
                     <div><label class="reg-label">Pohlavie</label><select id="reg-gender"><option>Muž</option><option>Žena</option></select></div>
                     
-                    <div><label class="reg-label">Dátum narodenia</label><input type="date" id="reg-birth"></div>
+                    <div><label class="reg-label">Narodenie</label><input type="date" id="reg-birth"></div>
                     <div><label class="reg-label">Heslo</label><input type="password" id="reg-pass" placeholder="••••••••"></div>
 
-                    <div class="reg-full" style="display:flex; gap:10px; align-items:center; font-size:11px; opacity:0.7; margin-top:10px;">
-                        <input type="checkbox" id="reg-terms" style="width:20px; height:20px;"> 8. Súhlasím s Core protokolmi a TOS.
+                    <div class="reg-full" style="display:flex; gap:10px; align-items:center; font-size:11px; opacity:0.7;">
+                        <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> 8. Súhlasím s Core protokolmi.
                     </div>
                     <div class="reg-full" style="display:flex; gap:10px; align-items:center; font-size:11px; opacity:0.7;">
-                        <input type="checkbox" id="reg-news" style="width:20px; height:20px;"> 9. Odoberať Core Update Newsletter.
+                        <input type="checkbox" id="reg-news" style="width:18px; height:18px;"> 9. Odoberať Core Update Newsletter.
                     </div>
                 </div>
 
@@ -217,7 +217,7 @@
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
                     <h1 style="color:var(--primary);">LOCAL <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny šifrovaný archív.</p>
+                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny archív uložený v zariadení.</p>
                 </div>
                 <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary); margin-top: 20px;">
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
@@ -227,7 +227,7 @@
                 </div>
                 <div id="vault-unlocked-ui" class="hidden">
                     <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
-                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">OKAMŽITÝ MP4 UPLOAD</h4>
+                        <h4 style="margin-bottom: 20px; letter-spacing: 1px;">ULOŽIŤ MP4 ARCHÍV</h4>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
                         <button onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR DO 300MB</button>
                     </div>
@@ -259,7 +259,7 @@
             <div style="background:rgba(255,255,255,0.03); padding:18px; border-radius:22px;"><label style="display:block; font-size:10px; opacity:0.5;">KREDITY</label><span id="stat-credits">--</span></div>
         </div>
         <button onclick="app.claimCredits()" style="width:100%; background:var(--primary); color:black; margin-bottom:15px; height: 50px;">ZÍSKAŤ +500 KREDITOV</button>
-        <button onclick="app.switchSettings('analytics')" style="width:100%; margin-bottom: 12px;" class="secondary">KONFIGURÁCIA API</button>
+        <button onclick="app.switchSettings('analytics')" style="width:100%; margin-bottom: 12px;" class="secondary">NASTAVENIA API</button>
         <button onclick="app.toggleProfileModal()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
     </div>
 
@@ -298,7 +298,7 @@
     <script>
         window.app = {
             state: {
-                session: localStorage.getItem('bt_session_v5'),
+                session: localStorage.getItem('bt_session_v4'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 localDb: null,
                 profile: null,
@@ -323,7 +323,7 @@
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('BannaTube_Ultimate_Local_Final', 1);
+                    const req = indexedDB.open('BannaTube_Final_Core', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -333,21 +333,9 @@
                 });
             },
 
-            checkAnnualReset(user) {
-                const now = new Date();
-                if (now.getMonth() === 0 && now.getDate() === 1) {
-                    if (!user.lastResetYear || user.lastResetYear < now.getFullYear()) {
-                        user.credits = 10000;
-                        user.lastResetYear = now.getFullYear();
-                        this.saveUserDB(user);
-                        this.showMsg("Šťastný nový rok! Kredity obnovené.");
-                    }
-                }
-            },
-
             async getUserByEmail(email) {
+                if (!email || !this.state.localDb) return null;
                 return new Promise((resolve) => {
-                    if(!this.state.localDb) return resolve(null);
                     const tx = this.state.localDb.transaction('users', 'readonly');
                     const req = tx.objectStore('users').get(email.toLowerCase().trim());
                     req.onsuccess = () => resolve(req.result);
@@ -356,11 +344,23 @@
             },
 
             async saveUserDB(user) {
+                if (!this.state.localDb) return;
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     tx.objectStore('users').put(user);
                     tx.oncomplete = () => resolve();
                 });
+            },
+
+            checkAnnualReset(user) {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                if (!user.lastResetYear || user.lastResetYear < currentYear) {
+                    user.credits = 10000;
+                    user.lastResetYear = currentYear;
+                    this.saveUserDB(user);
+                    this.showMsg(`🎉 Nový rok ${currentYear}: Kredity obnovené!`);
+                }
             },
 
             async handleRegister() {
@@ -369,53 +369,63 @@
                 const name = document.getElementById('reg-name').value.trim();
                 const surname = document.getElementById('reg-surname').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
-                const country = document.getElementById('reg-country').value;
-                const phone = document.getElementById('reg-phone').value.trim();
-                const level = document.getElementById('reg-level').value;
-                const question = document.getElementById('reg-question').value;
-                const answer = document.getElementById('reg-answer').value.trim();
-                const ref = document.getElementById('reg-ref').value.trim();
                 const terms = document.getElementById('reg-terms').checked;
-                const news = document.getElementById('reg-news').checked;
 
                 if (!email || !pass || !name || !nick || !terms) {
-                    return this.showMsg("Prosím, vyplňte všetky údaje a súhlaste s TOS.");
+                    return this.showMsg("Doplňte povinné údaje a súhlaste s TOS.");
                 }
 
                 const existing = await this.getUserByEmail(email);
-                if (existing) return this.showMsg("Email už je registrovaný.");
+                if (existing) return this.showMsg("Tento email je už v systéme.");
 
                 const newUser = { 
-                    email, pass, name, fullName: name + " " + surname, nick, country, phone, level, question, answer, ref, news,
+                    email, pass, name, fullName: name + " " + surname, nick, 
+                    country: document.getElementById('reg-country').value,
+                    phone: document.getElementById('reg-phone').value.trim(),
+                    level: document.getElementById('reg-level').value,
+                    question: document.getElementById('reg-question').value,
+                    answer: document.getElementById('reg-answer').value.trim(),
+                    ref: document.getElementById('reg-ref').value.trim(),
+                    news: document.getElementById('reg-news').checked,
                     credits: 10000, createdAt: Date.now(), unlocked: false, avatar: null,
-                    history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear()
+                    history: [], favorites: [], strikes: [], searchHistory: [], 
+                    lastResetYear: new Date().getFullYear()
                 };
 
                 await this.saveUserDB(newUser);
-                this.showMsg("Core Licencia aktivovaná. Teraz sa môžete prihlásiť.");
-                this.showView('login-view');
+                
+                // AUTOMATICKÉ PRIHLÁSENIE PO REGISTRÁCII
+                this.state.session = email;
+                this.state.profile = newUser;
+                localStorage.setItem('bt_session_v4', email);
+                this.onLogin(newUser);
+                this.showMsg("Licencia aktivovaná. Vitajte v Core!");
             },
 
             async handleLogin() {
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
+                
+                // Vždy načítame najnovšie dáta z DB pred overením
                 const user = await this.getUserByEmail(email);
                 
-                if (!user || user.pass !== pass) return this.showMsg("Chybné meno alebo heslo.");
+                if (!user) return this.showMsg("Subjekt nebol nájdený.");
+                if (user.pass !== pass) return this.showMsg("Nesprávny bezpečnostný kód.");
 
                 this.state.session = email;
                 this.state.profile = user;
-                localStorage.setItem('bt_session_v5', email);
+                localStorage.setItem('bt_session_v4', email);
                 this.onLogin(user);
+                this.showMsg("Identita overená.");
             },
 
             onLogin(user) {
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('action-center').classList.remove('hidden');
-                document.getElementById('header-credits').innerText = user.credits.toLocaleString();
+                document.getElementById('header-credits').innerText = (user.credits || 0).toLocaleString();
                 document.getElementById('profile-name-title').innerText = user.fullName;
-                document.getElementById('profile-nick-tag').innerText = "@" + (user.nick || "Anonymous");
+                document.getElementById('profile-nick-tag').innerText = "@" + (user.nick || "Unknown");
                 document.getElementById('stat-level').innerText = user.level || "Standard";
                 this.updateAvatarDisplay(user.avatar);
             },
@@ -424,12 +434,13 @@
                 const file = document.getElementById('local-video-input').files[0];
                 if (!file) return;
                 
+                this.showMsg("BLESKOVÉ UKLADANIE...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
                 
                 tx.oncomplete = () => {
-                    this.showMsg("MP4 uložené okamžite.");
+                    this.showMsg("MP4 je v bezpečí trezoru.");
                     this.syncVideosUI();
                 };
             },
@@ -444,9 +455,9 @@
                     grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="local-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><br><small>Uploader: ${v.uploader}</small></div>
+                            <div class="video-info"><b>${v.name}</b><br><small>Identita: ${v.uploader}</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Váš vault je prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor je prázdny.</p>';
                 };
             },
 
@@ -460,7 +471,7 @@
                 await this.saveUserDB(this.state.profile);
 
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Vyhľadávam...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Skenovanie...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -470,10 +481,10 @@
                                 <img src="${i.snippet.thumbnails.medium.url}">
                                 <div class="video-info"><b>${i.snippet.title}</b></div>
                             </div>
-                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ OBLOŽIŤ DO OBĽÚBENÝCH</button>
+                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ PRIDAŤ DO OBĽÚBENÝCH</button>
                         </div>
                     `).join('');
-                } catch(e) { grid.innerHTML = 'API Error.'; }
+                } catch(e) { grid.innerHTML = 'Chyba API.'; }
             },
 
             async playYT(id, title) {
@@ -507,7 +518,7 @@
                 if(idx > -1) this.state.profile.favorites.splice(idx, 1);
                 else this.state.profile.favorites.push({ id, title, date: Date.now() });
                 await this.saveUserDB(this.state.profile);
-                this.showMsg("Aktualizované.");
+                this.showMsg("Log obľúbených aktualizovaný.");
             },
 
             async toggleAdminModal() {
@@ -520,7 +531,7 @@
                         const users = req.result;
                         document.getElementById('admin-user-list').innerHTML = users.map(u => `
                             <div class="log-item">
-                                <div><b>${u.fullName}</b> (@${u.nick || '---'})<br><small>${u.email} | ${u.credits}🪙</small></div>
+                                <div><b>${u.fullName}</b> (@${u.nick || 'null'})<br><small>${u.email} | ${u.credits}🪙</small></div>
                                 <div>
                                     <button class="danger" style="padding:5px 10px; font-size:9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
                                     <button class="secondary" style="padding:5px 10px; font-size:9px;" onclick="app.adminDeleteUser('${u.email}')">DELETE</button>
@@ -537,13 +548,13 @@
                     if(!u.strikes) u.strikes = [];
                     u.strikes.push({ reason: "Manuálny Admin Strike", date: Date.now() });
                     await this.saveUserDB(u);
-                    this.showMsg("Strike priradený subjektu " + email);
+                    this.showMsg("Strike udelený subjektu: " + email);
                     this.toggleAdminModal(); this.toggleAdminModal();
                 }
             },
 
             async adminDeleteUser(email) {
-                if(!confirm("TRVALO ODSTRÁNIŤ SUBJEKT?")) return;
+                if(!confirm("TRVALO ODSTRÁNIŤ ÚČET?")) return;
                 const tx = this.state.localDb.transaction('users', 'readwrite');
                 tx.objectStore('users').delete(email);
                 tx.oncomplete = () => { this.showMsg("Účet zmazaný."); this.toggleAdminModal(); this.toggleAdminModal(); };
@@ -565,11 +576,11 @@
                 if(tab === 'history') {
                     content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Čistá história.";
                 } else if(tab === 'favs') {
-                    content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne obľúbené.";
+                    content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne Elite položky.";
                 } else if(tab === 'strikes') {
                     content.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.reason}</span><span class="log-tag danger">STRIKE</span></div>`).join('') || "Bez priestupkov.";
                 } else {
-                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Hľadané</span></div>`).join('') || "Žiadne hľadania.";
+                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Core Search</span></div>`).join('') || "Žiadne hľadania.";
                 }
             },
 
@@ -596,10 +607,11 @@
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             showMsg(t) { const b = document.getElementById('msg-box'); b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); },
-            logout() { localStorage.removeItem('bt_session_v5'); location.reload(); }
+            logout() { localStorage.removeItem('bt_session_v4'); location.reload(); }
         };
     </script>
 </body>
 </html>
+
 
 
