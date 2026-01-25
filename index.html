@@ -323,7 +323,7 @@
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('BannaTube_Elite_Local', 20);
+                    const req = indexedDB.open('BannaTube_Ultimate_Local_Final', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -340,7 +340,7 @@
                         user.credits = 10000;
                         user.lastResetYear = now.getFullYear();
                         this.saveUserDB(user);
-                        this.showMsg("Kredity na rok " + now.getFullYear() + " boli obnovené!");
+                        this.showMsg("Šťastný nový rok! Kredity obnovené.");
                     }
                 }
             },
@@ -364,7 +364,6 @@
             },
 
             async handleRegister() {
-                // ZBER ÚDAJOV VRÁTANE 9 NOVÝCH FUNKCIÍ
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
@@ -380,11 +379,11 @@
                 const news = document.getElementById('reg-news').checked;
 
                 if (!email || !pass || !name || !nick || !terms) {
-                    return this.showMsg("Musíte vyplniť povinné údaje a súhlasiť s TOS.");
+                    return this.showMsg("Prosím, vyplňte všetky údaje a súhlaste s TOS.");
                 }
 
                 const existing = await this.getUserByEmail(email);
-                if (existing) return this.showMsg("Email už v jadre existuje.");
+                if (existing) return this.showMsg("Email už je registrovaný.");
 
                 const newUser = { 
                     email, pass, name, fullName: name + " " + surname, nick, country, phone, level, question, answer, ref, news,
@@ -393,7 +392,7 @@
                 };
 
                 await this.saveUserDB(newUser);
-                this.showMsg("Core Licencia aktivovaná.");
+                this.showMsg("Core Licencia aktivovaná. Teraz sa môžete prihlásiť.");
                 this.showView('login-view');
             },
 
@@ -401,7 +400,8 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("Identita nebola overená.");
+                
+                if (!user || user.pass !== pass) return this.showMsg("Chybné meno alebo heslo.");
 
                 this.state.session = email;
                 this.state.profile = user;
@@ -415,7 +415,7 @@
                 document.getElementById('action-center').classList.remove('hidden');
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('profile-name-title').innerText = user.fullName;
-                document.getElementById('profile-nick-tag').innerText = "@" + (user.nick || "Unknown");
+                document.getElementById('profile-nick-tag').innerText = "@" + (user.nick || "Anonymous");
                 document.getElementById('stat-level').innerText = user.level || "Standard";
                 this.updateAvatarDisplay(user.avatar);
             },
@@ -424,7 +424,6 @@
                 const file = document.getElementById('local-video-input').files[0];
                 if (!file) return;
                 
-                this.showMsg("BLESKOVÝ ZÁPIS NA DISK...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
@@ -447,7 +446,7 @@
                             <div class="local-thumb">📽️</div>
                             <div class="video-info"><b>${v.name}</b><br><small>Uploader: ${v.uploader}</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Disk je prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Váš vault je prázdny.</p>';
                 };
             },
 
@@ -461,7 +460,7 @@
                 await this.saveUserDB(this.state.profile);
 
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Prehľadávam Google Servery...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Vyhľadávam...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -471,10 +470,10 @@
                                 <img src="${i.snippet.thumbnails.medium.url}">
                                 <div class="video-info"><b>${i.snippet.title}</b></div>
                             </div>
-                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ ADD TO ELITE FAVS</button>
+                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ OBLOŽIŤ DO OBĽÚBENÝCH</button>
                         </div>
                     `).join('');
-                } catch(e) { grid.innerHTML = 'Chyba API.'; }
+                } catch(e) { grid.innerHTML = 'API Error.'; }
             },
 
             async playYT(id, title) {
@@ -508,7 +507,7 @@
                 if(idx > -1) this.state.profile.favorites.splice(idx, 1);
                 else this.state.profile.favorites.push({ id, title, date: Date.now() });
                 await this.saveUserDB(this.state.profile);
-                this.showMsg("Log obľúbených aktualizovaný.");
+                this.showMsg("Aktualizované.");
             },
 
             async toggleAdminModal() {
@@ -521,7 +520,7 @@
                         const users = req.result;
                         document.getElementById('admin-user-list').innerHTML = users.map(u => `
                             <div class="log-item">
-                                <div><b>${u.fullName}</b> (@${u.nick || 'null'})<br><small>${u.email} | ${u.credits}🪙</small></div>
+                                <div><b>${u.fullName}</b> (@${u.nick || '---'})<br><small>${u.email} | ${u.credits}🪙</small></div>
                                 <div>
                                     <button class="danger" style="padding:5px 10px; font-size:9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
                                     <button class="secondary" style="padding:5px 10px; font-size:9px;" onclick="app.adminDeleteUser('${u.email}')">DELETE</button>
@@ -566,11 +565,11 @@
                 if(tab === 'history') {
                     content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "Čistá história.";
                 } else if(tab === 'favs') {
-                    content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne Elite položky.";
+                    content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne obľúbené.";
                 } else if(tab === 'strikes') {
                     content.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.reason}</span><span class="log-tag danger">STRIKE</span></div>`).join('') || "Bez priestupkov.";
                 } else {
-                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Core Search</span></div>`).join('') || "Žiadne hľadania.";
+                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Hľadané</span></div>`).join('') || "Žiadne hľadania.";
                 }
             },
 
@@ -588,7 +587,7 @@
                     if (el) el.innerText = `${h}h ${m}m ${s}s`;
                 }
             },
-            async instantUnlockVault() { this.state.profile.unlocked = true; await this.saveUserDB(this.state.profile); this.showMsg("Local Vault odomknutý!"); this.tickVault(); },
+            async instantUnlockVault() { this.state.profile.unlocked = true; await this.saveUserDB(this.state.profile); this.showMsg("Vault odomknutý!"); this.tickVault(); },
             updateAvatarDisplay(d) { const def = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"; document.getElementById('user-avatar').src = d || def; document.getElementById('modal-avatar').src = d || def; },
             updateAvatar() { const f = document.getElementById('avatar-input').files[0]; if(!f) return; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.updateAvatarDisplay(e.target.result); }; rd.readAsDataURL(f); },
             async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.onLogin(this.state.profile); },
