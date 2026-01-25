@@ -296,7 +296,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- KONFIGURÁCIA ---
         const myConfig = {
             apiKey: "TU_VLOZ_SVOJ_KLUC", 
             authDomain: "TU_VLOZ_DOMENU",
@@ -323,10 +322,13 @@
             },
 
             async init() {
-                setTimeout(() => { if (this.state.isBooting) this.finishBoot(); }, 3000);
+                // Skús otvoriť DB hneď na začiatku
+                await this.initLocalDB();
+
+                // Safety timeout pre boot loader
+                setTimeout(() => { if (this.state.isBooting) this.finishBoot(); }, 4000);
 
                 try {
-                    await this.initLocalDB();
                     this.state.users = await this.getAllUsersDB();
                     
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -336,6 +338,13 @@
                     }
 
                     onAuthStateChanged(auth, async (u) => {
+                        // Čakaj na DB pred tým, než systém vyhlásiš za READY
+                        let retry = 0;
+                        while(!this.state.localDb && retry < 10) {
+                            await new Promise(r => setTimeout(r, 200));
+                            retry++;
+                        }
+
                         this.state.isReady = true;
                         this.state.users = await this.getAllUsersDB();
 
@@ -355,7 +364,7 @@
                     this.startBanTick();
                     this.syncPublicVideos();
                 } catch(e) { 
-                    console.warn("Chyba inicializácie:", e);
+                    console.warn("Inicializácia prebieha s obmedzeniami:", e);
                     this.finishBoot();
                 }
             },
@@ -371,15 +380,22 @@
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('bt_vault', 45); 
+                    const req = indexedDB.open('bt_vault', 50); // Zvýšená verzia pre vynútenie čistého stavu
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if (!d.objectStoreNames.contains('avatars')) d.createObjectStore('avatars', { keyPath: 'email' });
                         if (!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
                         if (!d.objectStoreNames.contains('public_cache')) d.createObjectStore('public_cache', { keyPath: 'id' });
                     };
-                    req.onsuccess = (e) => { this.state.localDb = e.target.result; resolve(); };
-                    req.onerror = () => resolve();
+                    req.onsuccess = (e) => { 
+                        this.state.localDb = e.target.result; 
+                        console.log("Local DB Ready.");
+                        resolve(); 
+                    };
+                    req.onerror = () => {
+                        console.error("Local DB Failed to open.");
+                        resolve(); 
+                    };
                 });
             },
 
@@ -394,8 +410,12 @@
             },
 
             async saveUserDB(user) {
+                if(!this.state.localDb) {
+                    // Skús znova otvoriť DB ak nie je pripravená
+                    await this.initLocalDB();
+                    if(!this.state.localDb) throw new Error("Databáza nie je pripravená.");
+                }
                 return new Promise((resolve, reject) => {
-                    if(!this.state.localDb) return reject("Databáza nie je pripravená.");
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     const store = tx.objectStore('users');
                     const req = store.put(user);
@@ -420,8 +440,10 @@
                 if (this.state.session) { 
                     const u = this.state.users.find(x => x.email === this.state.session); 
                     if(u) {
-                        await this.saveUserDB(u);
-                        this.state.users = await this.getAllUsersDB();
+                        try {
+                            await this.saveUserDB(u);
+                            this.state.users = await this.getAllUsersDB();
+                        } catch(e) { console.error("Save failure:", e); }
                     }
                 } 
             },
@@ -493,7 +515,7 @@
                 const progCont = document.getElementById('up-progress-cont');
                 const progBar = document.getElementById('up-progress-bar');
                 
-                btn.disabled = true; btn.innerText = "PRIPRAVUJEM...";
+                btn.disabled = true; btn.innerText = "PROCESSING...";
                 progCont.style.display = 'block';
 
                 const reader = new FileReader();
@@ -566,7 +588,7 @@
                              document.getElementById('player-view').classList.remove('hidden');
                              document.getElementById('video-mount').innerHTML = `<video controls autoplay class="local-player" style="width:100%; height:100%; border-radius:30px;"><source src="${snap.data().data}" type="video/mp4"></video>`;
                         } else {
-                             alert("Súbor je príliš veľký. Prehrávanie je dostupné len autorovi.");
+                             alert("Cloud Buffer Limit: Prehrávanie je dostupné len autorovi.");
                         }
                     }
                 };
@@ -586,8 +608,11 @@
                 
                 if (!email || !name || !pass) return alert("Prosím, vyplňte údaje.");
                 
-                const allUsers = await this.getAllUsersDB();
-                if (allUsers.find(u => u.email === email)) return alert("Účet s týmto emailom už existuje.");
+                // Vynútené čakanie a otvorenie DB ak nie je
+                if(!this.state.localDb) await this.initLocalDB();
+                
+                this.state.users = await this.getAllUsersDB();
+                if (this.state.users.find(u => u.email === email)) return alert("Účet s týmto emailom už existuje.");
                 
                 const newUser = { 
                     email, name, fullName: name + " " + surname, pass, 
@@ -603,7 +628,7 @@
                     this.state.users = await this.getAllUsersDB(); 
                     alert("Registrácia úspešná! Teraz sa môžete prihlásiť."); 
                     this.showView('login-view');
-                } catch(e) { alert("Chyba databázy: " + e); }
+                } catch(e) { alert("Chyba pri zápise identity: " + e); }
             },
 
             async handleLogin() {
@@ -613,16 +638,19 @@
                 
                 if (!email || !pass) return alert("Zadajte údaje.");
 
+                // Vynútené čakanie a otvorenie DB ak nie je
+                if(!this.state.localDb) await this.initLocalDB();
+
                 const allUsers = await this.getAllUsersDB();
                 this.state.users = allUsers;
                 const user = allUsers.find(u => u.email === email);
                 
                 if (!user) {
-                    return alert("Účet s týmto emailom nebol nájdený. Skúste sa registrovať.");
+                    return alert("Účet neexistuje. Skúste sa registrovať.");
                 }
                 
                 if (user.pass !== pass) {
-                    return alert("Nesprávne heslo. Skúste to znova.");
+                    return alert("Nesprávne heslo.");
                 }
                 
                 this.repairUserData(user);
@@ -710,7 +738,7 @@
 
             async submitNameChange() {
                 const val = document.getElementById('new-name-input').value.trim(), user = this.state.users.find(u => u.email === this.state.session);
-                if (val.length < 3) return alert("Meno je príliš krátke.");
+                if (val.length < 3) return alert("Krátke meno.");
                 user.fullName = val; const idx = user.identityStrikes.indexOf('meno');
                 if (idx > -1) user.identityStrikes.splice(idx, 1);
                 if (!user.identityStrikes.length) { user.banExpiresAt = 0; location.reload(); }
