@@ -65,7 +65,7 @@
         button:active { transform: scale(0.96); }
         button.secondary { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--glass-border); }
         button.danger { background: linear-gradient(135deg, #ff2a2a, #900); color: #fff; }
-        button.pro-btn { background: linear-gradient(135deg, #00ff95, #008855); color: #000; font-size: 9px; padding: 10px 15px; }
+        button.pro-btn { background: linear-gradient(135deg, #00ff95, #008855); color: #000; font-size: 9px; padding: 10px 15px; border-radius: 12px; }
 
         input, select, textarea {
             background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
@@ -103,7 +103,7 @@
         }
         #motion-bar-fill { height: 100%; width: 0%; background: var(--success); transition: width 0.05s linear; }
 
-        /* GRID */
+        /* GRID & CARDS */
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 40px 0; }
         .video-card { 
             background: var(--card-bg); border-radius: 24px; overflow: hidden; cursor: pointer;
@@ -131,7 +131,7 @@
         .status-badge { font-size: 9px; font-weight: 800; background: var(--primary); color: #000; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
 
         .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
-        .reg-full { grid-column: span 1; }
+        .reg-full-wide { grid-column: span 1; }
         @media (min-width: 641px) { .reg-full-wide { grid-column: span 2; } }
         .reg-label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 5px; display: block; }
         
@@ -154,10 +154,8 @@
         <header>
             <div class="logo" onclick="app.showAppSection('main')" style="cursor:pointer">BANNA<span style="opacity:0.4">TUBE</span></div>
             <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:15px;">
-                <!-- NOVÉ TLAČIDLO V LIŠTE PRE PRO POUŽÍVATEĽOV -->
-                <button id="header-upload-btn" onclick="document.getElementById('local-video-input').click()" class="pro-btn hidden">
-                    NAHRAŤ MP4 📤
-                </button>
+                <!-- TLAČIDLO PRE PRECHOD DO TREZORU (VAULT) -->
+                <button onclick="app.showAppSection('vault')" class="secondary" style="font-size: 10px;">MOJE ARCHÍVY 📂</button>
                 
                 <div style="background:rgba(255,215,0,0.1); padding:10px 20px; border-radius:14px; font-weight:800; color:var(--primary); font-size: 14px; border:1px solid var(--glass-border);">
                     🪙 <span id="header-credits">0</span>
@@ -242,12 +240,13 @@
             </div>
         </div>
 
+        <!-- APP VIEWS -->
         <div id="app-view" class="hidden">
             <div id="section-main">
                 <div class="search-area" style="text-align:center; padding:50px 0;">
                     <h1 style="font-size:clamp(35px, 9vw, 65px); font-weight:900; letter-spacing:-3px;">BANNA<span style="color:var(--primary)">TUBE</span></h1>
                     <div class="search-bar-container glass-card" style="max-width:850px; margin:40px auto; padding:10px 25px; display:flex; gap:12px; align-items:center;">
-                        <input type="text" id="query" placeholder="Skenovať YouTube databázu..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; padding:10px; font-size:18px;">
+                        <input type="text" id="query" placeholder="Skenovať YouTube databázu..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; padding:10px; font-size:16px;">
                         <button onclick="app.search()" style="min-width:120px;">SCAN</button>
                     </div>
                 </div>
@@ -265,20 +264,21 @@
                         <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
                         <h2 style="margin-bottom:10px; font-size: 24px; font-weight: 900; color: var(--danger);">FUNKCIA PRO ZAMKNUTÁ</h2>
                         <p style="opacity: 0.7; margin-bottom: 25px;">Nahrávanie MP4 videí je dostupné len pre úrovne <b>Pro Access</b> alebo <b>Admin</b>.</p>
-                        <button onclick="app.showMsg('Zmeňte licenciu v profile (v príprave)')" class="secondary">UPGRADOVAŤ NA PRO</button>
+                        <button onclick="app.showMsg('Zmeňte licenciu pri registrácii.')" class="secondary">UPGRADE POTREBNÝ</button>
                     </div>
                     
                     <div id="pro-granted-ui">
                         <h2 style="margin-bottom:20px; font-size: 24px; font-weight: 900;">📤 ARCHIVOVAŤ NOVÉ VIDEO</h2>
                         <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
                         <button onclick="document.getElementById('local-video-input').click()" style="height:65px; padding:0 50px; font-size: 14px;">
-                            PRIDÁVAŤ MP4 SÚBOR
+                            VYBRAŤ MP4 SÚBOR
                         </button>
                         <p style="font-size: 11px; opacity: 0.5; margin-top: 20px; font-family: 'JetBrains Mono';">STAV: LICENCIA PRO AKTÍVNA | LIMIT: UNLIMITED</p>
                     </div>
                 </div>
 
-                <div id="local-videos-results" class="video-grid"></div>
+                <h3 style="font-weight: 800; font-size: 20px; margin-bottom: 10px; text-transform: uppercase; color: var(--primary);">Môj filmový archív 📼</h3>
+                <div id="local-videos-results" class="video-grid" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;"></div>
             </div>
         </div>
     </div>
@@ -409,10 +409,7 @@
                     this.state.stream = stream;
                     const video = document.getElementById('face-video');
                     video.srcObject = stream;
-                    video.onloadedmetadata = () => {
-                        video.play();
-                        this.runDetection();
-                    };
+                    video.onloadedmetadata = () => { video.play(); this.runDetection(); };
                 } catch (e) { 
                     this.showMsg("BannaTube: Biometria blokovaná."); 
                     this.finalizeLogin();
@@ -437,7 +434,7 @@
                         bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    if (progress < 100) { this.showMsg("BannaTube: Overenie zamietnuté."); return this.cancelVerification(); }
+                    if (progress < 100) { this.showMsg("BannaTube: Zlyhanie."); return this.cancelVerification(); }
                     dots[i].style.background = "var(--success)";
                     bar.style.width = "0%";
                     await new Promise(r => setTimeout(r, 300));
@@ -467,8 +464,7 @@
                             }
                         }
                     }
-                    this.state.lastFrame = current; 
-                    return score/1.5;
+                    this.state.lastFrame = current; return score/1.5;
                 } catch(e) { return 0; }
             },
 
@@ -489,7 +485,7 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Prístup zamietnutý.");
                 this.startBiometricVerification(user);
             },
 
@@ -499,7 +495,7 @@
                 const name = document.getElementById('reg-name').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
                 const level = document.getElementById('reg-level').value;
-                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Vyplňte polia.");
+                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("Doplňte údaje.");
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
@@ -518,13 +514,10 @@
             },
 
             updateUI(user) {
-                const creditsEl = document.getElementById('header-credits');
-                const nameEl = document.getElementById('profile-name-title');
-                const statCreditsEl = document.getElementById('stat-credits');
-                if (creditsEl) creditsEl.innerText = (user.credits || 0).toLocaleString();
-                if (nameEl) nameEl.innerText = user.fullName;
-                if (statCreditsEl) statCreditsEl.innerText = (user.credits || 0).toLocaleString();
+                document.getElementById('header-credits').innerText = (user.credits || 0).toLocaleString();
+                document.getElementById('profile-name-title').innerText = user.fullName;
                 document.getElementById('stat-level-display').innerText = user.level || "Standard";
+                document.getElementById('stat-credits').innerText = (user.credits || 0).toLocaleString();
                 document.getElementById('last-reset-display').innerText = user.lastResetYear || "2026";
                 const avatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.nick;
                 document.getElementById('user-avatar').src = user.avatar || avatarUrl;
@@ -533,24 +526,18 @@
                 const isPro = (user.level === 'Pro' || user.level === 'Admin');
                 document.getElementById('pro-granted-ui').classList.toggle('hidden', !isPro);
                 document.getElementById('pro-required-ui').classList.toggle('hidden', isPro);
-                
-                // ZOBRAZENIE TLAČIDLA V HEADER LIŠTE PRE PRO POUŽÍVATEĽOV
-                const headerUpload = document.getElementById('header-upload-btn');
-                if(headerUpload) headerUpload.classList.toggle('hidden', !isPro);
             },
 
             async uploadLocalVideo() {
-                if (this.state.profile.level === 'Standard') {
-                    return this.showMsg("BannaTube: Pre nahrávanie vyžadujete PRO licenciu.");
-                }
+                if (this.state.profile.level === 'Standard') return this.showMsg("BannaTube: Vyžadujete PRO licenciu.");
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("UKLADÁM DO PRO JADRA...");
+                this.showMsg("BannaTube: Zápis do jadra...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
-                tx.oncomplete = () => { this.showMsg("BannaTube: Video archivované."); this.syncVideosUI(); fileInput.value = ""; };
+                tx.oncomplete = () => { this.showMsg("Video uložené!"); this.syncVideosUI(); fileInput.value = ""; };
             },
 
             async syncVideosUI() {
@@ -563,9 +550,9 @@
                     if(grid) grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="video-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><small>BannaTube Vault</small></div>
+                            <div class="video-info"><b>${v.name}</b><small>Identita: ${v.uploader}</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Trezor prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdny archív.</p>';
                 };
             },
 
@@ -615,7 +602,7 @@
                 req.onsuccess = () => {
                     document.getElementById('admin-user-list').innerHTML = req.result.map(u => `
                         <div class="log-item">
-                            <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}]</small></div>
+                            <div><b>${u.fullName}</b><br><small>${u.email}</small></div>
                             <button class="danger" style="padding:6px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
                         </div>
                     `).join('');
