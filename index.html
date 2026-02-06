@@ -84,9 +84,9 @@
 
         .logo { font-size: 24px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
 
-        .auth-card { padding: 40px; max-width: 550px; margin: 40px auto; text-align: center; position: relative; z-index: 100; }
+        .auth-card { padding: 40px; max-width: 550px; margin: 60px auto; text-align: center; position: relative; z-index: 100; }
 
-        /* FACE DETECTOR - FIXED SENSITIVITY */
+        /* FACE DETECTOR */
         .face-scanner-wrap {
             position: relative; width: 280px; height: 280px; margin: 20px auto;
             border-radius: 50%; padding: 8px; border: 2px dashed rgba(255, 215, 0, 0.3);
@@ -176,7 +176,6 @@
             </div>
         </div>
 
-        <!-- FACE ID VIEW (FIXED) -->
         <div id="face-auth-view" class="hidden">
             <div class="auth-card glass-card">
                 <h2 style="color:var(--primary); font-weight:800; font-size: 24px;">VERIFIKÁCIA ŽIVOTA</h2>
@@ -215,9 +214,20 @@
                     <div class="reg-full-wide"><label class="reg-label">Email</label><input type="email" id="reg-email" placeholder="Email"></div>
                     <div><label class="reg-label">Prezývka</label><input type="text" id="reg-nick" placeholder="GamerX"></div>
                     <div><label class="reg-label">Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
-                    <div class="reg-full-wide"><label class="reg-label">Citizen Level</label><select id="reg-level"><option>Standard Citizen</option><option>Elite Access</option><option>Prime Admin</option></select></div>
+                    
+                    <!-- CITIZEN LEVEL VÝBER -->
+                    <div class="reg-full-wide">
+                        <label class="reg-label">Citizen Level</label>
+                        <select id="reg-level">
+                            <option value="Standard">Standard Citizen (Basic)</option>
+                            <option value="Pro">Pro Access (Unlimited MP4 Upload)</option>
+                            <option value="Admin">Prime Administrator</option>
+                        </select>
+                    </div>
+                    
                     <div class="reg-full-wide"><label class="reg-label">Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Obľúbená farba?</option></select></div>
                     <div class="reg-full-wide"><label class="reg-label">Odpoveď</label><input type="text" id="reg-answer" placeholder="Tvoja tajná odpoveď"></div>
+                    
                     <div class="reg-full-wide" style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:0.8;">
                         <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> 8. Súhlas s BannaTube TOS (Lokal Storage).
                     </div>
@@ -241,17 +251,29 @@
 
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding:50px 0;">
-                    <h1 style="font-size:35px; font-weight:800;">NEOBMEDZENÝ <span style="color:var(--primary)">TREZOR</span></h1>
+                    <h1 style="font-size:35px; font-weight:800;">LOKÁLNY <span style="color:var(--primary)">TREZOR</span></h1>
                     <p style="opacity:0.6;">Dáta sú uložené lokálne bez limitu veľkosti.</p>
                 </div>
-                <div class="glass-card" style="padding:50px; text-align:center; margin-bottom:40px; border: 2px dashed var(--primary);">
-                    <h2 style="margin-bottom:20px; font-size: 24px; font-weight: 900;">📤 ARCHIVOVAŤ NOVÉ VIDEO</h2>
-                    <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
-                    <button onclick="document.getElementById('local-video-input').click()" style="height:65px; padding:0 50px; font-size: 14px;">
-                        PRIDÁVAŤ MP4 SÚBOR
-                    </button>
-                    <p style="font-size: 11px; opacity: 0.5; margin-top: 20px; font-family: 'JetBrains Mono';">PROTOKOL: LOCAL_INDEXED_DB_SAVE | LIMIT: UNLIMITED</p>
+
+                <!-- NAHRÁVANIE MP4 (OBLAST S OCHRANOU LEVELU) -->
+                <div id="vault-upload-block" class="glass-card" style="padding:50px; text-align:center; margin-bottom:40px; border: 2px dashed var(--primary);">
+                    <div id="pro-required-ui" class="hidden">
+                        <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
+                        <h2 style="margin-bottom:10px; font-size: 24px; font-weight: 900; color: var(--danger);">FUNKCIA PRO ZAMKNUTÁ</h2>
+                        <p style="opacity: 0.7; margin-bottom: 25px;">Nahrávanie MP4 videí je dostupné len pre úrovne <b>Pro Access</b> alebo <b>Admin</b>.</p>
+                        <button onclick="app.showMsg('Zmeňte licenciu v profile (v príprave)')" class="secondary">UPGRADOVAŤ NA PRO</button>
+                    </div>
+                    
+                    <div id="pro-granted-ui">
+                        <h2 style="margin-bottom:20px; font-size: 24px; font-weight: 900;">📤 ARCHIVOVAŤ NOVÉ VIDEO</h2>
+                        <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
+                        <button onclick="document.getElementById('local-video-input').click()" style="height:65px; padding:0 50px; font-size: 14px;">
+                            PRIDÁVAŤ MP4 SÚBOR
+                        </button>
+                        <p style="font-size: 11px; opacity: 0.5; margin-top: 20px; font-family: 'JetBrains Mono';">STAV: LICENCIA PRO AKTÍVNA | LIMIT: UNLIMITED</p>
+                    </div>
                 </div>
+
                 <div id="local-videos-results" class="video-grid"></div>
             </div>
         </div>
@@ -269,7 +291,7 @@
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
                 <div style="position:relative; width:120px; height:120px; border-radius:28px; border:4px solid var(--primary); overflow:hidden;">
                     <img id="modal-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
-                    <label for="avatar-input" style="position:absolute; bottom:6px; right:6px; background:var(--primary); color:#000; padding:8px; border-radius:12px; cursor:pointer; font-size: 12px;">✎</label>
+                    <label for="avatar-input" style="position:absolute; bottom:6px; right:6px; background:var(--primary); color:#000; padding:8px; border-radius:12px; cursor:pointer; font-size: 11px;">✎</label>
                     <input type="file" id="avatar-input" class="hidden" onchange="app.updateAvatar()">
                 </div>
                 <h2 id="profile-name-title" style="font-size: 24px; font-weight: 800;">Identita</h2>
@@ -378,19 +400,17 @@
                 this.state.tempUser = user;
                 this.showView('face-auth-view');
                 try {
-                    // Reset detekcie
                     this.state.lastFrame = null;
                     const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: 'user' } });
                     this.state.stream = stream;
                     const video = document.getElementById('face-video');
                     video.srcObject = stream;
-                    // Poistka: Čakať kým sa video reálne spustí
                     video.onloadedmetadata = () => {
                         video.play();
                         this.runDetection();
                     };
                 } catch (e) { 
-                    this.showMsg("BannaTube: Biometria blokovaná, vstupujem..."); 
+                    this.showMsg("BannaTube: Biometria nie je dostupná."); 
                     this.finalizeLogin();
                 }
             },
@@ -400,33 +420,21 @@
                 const dots = document.querySelectorAll('.step-dot');
                 const bar = document.getElementById('motion-bar-fill');
                 const instr = document.getElementById('face-instruction');
-                
                 for (let i = 0; i < steps.length; i++) {
                     instr.innerText = steps[i].m;
-                    instr.style.color = "var(--primary)";
                     let progress = 0; let timeout = 5.0;
-                    
                     while (progress < 100 && timeout > 0) {
                         timeout -= 0.1;
-                        const timerEl = document.getElementById('scan-timer');
-                        if (timerEl) timerEl.innerText = `TIMEOUT: ${timeout.toFixed(1)}s`;
-                        
-                        // Zvýšená citlivosť detekcie (25 namiesto 22)
+                        const t = document.getElementById('scan-timer');
+                        if (t) t.innerText = `TIMEOUT: ${timeout.toFixed(1)}s`;
                         const motion = await this.detectMotion(steps[i].d);
-                        if (motion > 10) progress += 20; else progress -= 3;
+                        if (motion > 10) progress += 25; else progress -= 3;
                         if (progress < 0) progress = 0;
-                        
                         bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    
-                    if (progress < 100) { 
-                        this.showMsg("BannaTube: Identita nepotvrdená."); 
-                        return this.cancelVerification(); 
-                    }
-                    
+                    if (progress < 100) { this.showMsg("BannaTube: Overenie zamietnuté."); return this.cancelVerification(); }
                     dots[i].style.background = "var(--success)";
-                    dots[i].style.boxShadow = "0 0 15px var(--success)";
                     bar.style.width = "0%";
                     await new Promise(r => setTimeout(r, 300));
                 }
@@ -437,17 +445,14 @@
                 const video = document.getElementById('face-video');
                 const canvas = document.getElementById('face-canvas');
                 if (!video || !canvas) return 0;
-                
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 canvas.width = 64; canvas.height = 64;
                 ctx.drawImage(video, 0, 0, 64, 64);
-                
                 try {
                     const current = ctx.getImageData(0, 0, 64, 64).data;
                     let score = 0;
                     if (this.state.lastFrame) {
                         for (let i = 0; i < current.length; i += 4) {
-                            // Vyššia citlivosť na zmenu pixelov (40 namiesto 45)
                             if (Math.abs(current[i] - this.state.lastFrame[i]) > 35) {
                                 const x = (i/4)%64; const y = Math.floor((i/4)/64);
                                 if (dir === "right" && x > 40) score++;
@@ -459,7 +464,7 @@
                         }
                     }
                     this.state.lastFrame = current; 
-                    return score/1.5; // Upravený koeficient pre ľahšie odomknutie
+                    return score/1.5;
                 } catch(e) { return 0; }
             },
 
@@ -480,7 +485,7 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné údaje.");
                 this.startBiometricVerification(user);
             },
 
@@ -489,11 +494,12 @@
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
+                const level = document.getElementById('reg-level').value;
                 if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Vyplňte polia.");
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
-                    country: document.getElementById('reg-country').value, level: document.getElementById('reg-level').value,
+                    country: document.getElementById('reg-country').value, level: level,
                     history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear()
                 };
                 await this.saveUserDB(newUser);
@@ -519,13 +525,23 @@
                 const avatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.nick;
                 document.getElementById('user-avatar').src = user.avatar || avatarUrl;
                 document.getElementById('modal-avatar').src = user.avatar || avatarUrl;
+
+                // AKTUALIZÁCIA PRÍSTUPU K VAULT UPLOADU
+                const isPro = (user.level === 'Pro' || user.level === 'Admin');
+                document.getElementById('pro-granted-ui').classList.toggle('hidden', !isPro);
+                document.getElementById('pro-required-ui').classList.toggle('hidden', isPro);
             },
 
             async uploadLocalVideo() {
+                // Posledná poistka pre úroveň
+                if (this.state.profile.level === 'Standard') {
+                    return this.showMsg("BannaTube: Pre nahrávanie vyžadujete PRO licenciu.");
+                }
+
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("UKLADÁM DO LOKÁLNEHO JADRA...");
+                this.showMsg("UKLADÁM DO PRO JADRA...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
@@ -544,7 +560,7 @@
                             <div class="video-thumb">📽️</div>
                             <div class="video-info"><b>${v.name}</b><small>BannaTube Vault</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Trezor prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Trezor prázdny.</p>';
                 };
             },
 
@@ -594,7 +610,7 @@
                 req.onsuccess = () => {
                     document.getElementById('admin-user-list').innerHTML = req.result.map(u => `
                         <div class="log-item">
-                            <div><b>${u.fullName}</b><br><small>${u.email}</small></div>
+                            <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}]</small></div>
                             <button class="danger" style="padding:6px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
                         </div>
                     `).join('');
@@ -603,7 +619,7 @@
 
             async adminStrike(email) {
                 const u = await this.getUserByEmail(email);
-                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); }
+                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("BannaTube: Strike udelený."); this.toggleAdminModal(); }
             },
 
             async toggleHistoryModal() { document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('history-modal').classList.remove('hidden'); this.switchTab('h'); },
