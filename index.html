@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannaTube - Futuristic Local Core (V500 Stable)</title>
+    <title>BannaTube - Futuristic Local Core PRO</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -12,250 +12,270 @@
             --primary-rgb: 255, 215, 0;
             --primary-glow: rgba(255, 215, 0, 0.4);
             --bg: #030303;
-            --surface: rgba(15, 15, 15, 0.95);
-            --card-bg: rgba(25, 25, 25, 0.6);
+            --surface: rgba(15, 15, 15, 0.8);
+            --card-bg: rgba(30, 30, 30, 0.4);
             --text: #ffffff;
             --text-muted: #888888;
             --danger: #ff2a2a;
             --success: #00ff95;
             --admin-color: #ff3366;
-            --glass-border: rgba(255, 215, 0, 0.2);
+            --glass-border: rgba(255, 215, 0, 0.15);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-
-        @keyframes bgMove { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
-        @keyframes logoPulse { 0% { text-shadow: 0 0 10px var(--primary-glow); } 50% { text-shadow: 0 0 30px var(--primary-glow); } 100% { text-shadow: 0 0 10px var(--primary-glow); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg);
             background-image: 
-                radial-gradient(circle at 20% 20%, rgba(255, 215, 0, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 40%),
-                url('https://www.transparenttextures.com/patterns/stardust.png');
+                radial-gradient(circle at 10% 10%, rgba(255, 215, 0, 0.07) 0%, transparent 50%),
+                radial-gradient(circle at 90% 90%, rgba(255, 215, 0, 0.07) 0%, transparent 50%);
             background-attachment: fixed;
-            animation: bgMove 150s linear infinite alternate;
             color: var(--text);
-            min-height: 100vh; 
-            width: 100%;
+            min-height: 100vh;
             overflow-x: hidden;
             line-height: 1.6;
         }
 
         .main-wrapper {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
-            width: 100%;
-            position: relative;
-            padding: 0 25px;
+            padding: 0 20px;
+        }
+
+        /* PREMIUM UI ELEMENTS */
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         button {
-            position: relative;
-            background: linear-gradient(135deg, #FFD700, #b8860b);
-            color: #000; border: none; padding: 12px 24px; font-weight: 800;
-            border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: linear-gradient(135deg, var(--primary), #b8860b);
+            color: #000; border: none; padding: 14px 28px; font-weight: 800;
+            border-radius: 18px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-transform: uppercase; font-size: 11px; letter-spacing: 1.5px;
-            overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
         }
-        button:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3); }
-        button:disabled { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
-        button.danger { background: linear-gradient(135deg, #ff2a2a, #990000); color: white; }
-        button.success { background: linear-gradient(135deg, #00ff95, #008855); color: black; }
-        button.secondary { background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); backdrop-filter: blur(10px); }
+        button:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2); }
+        button.secondary { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--glass-border); }
+        button.danger { background: linear-gradient(135deg, #ff2a2a, #900); color: #fff; }
 
-        input, select, textarea {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
-            color: white; padding: 12px 16px; border-radius: 14px; width: 100%; outline: none;
-            transition: all 0.3s; backdrop-filter: blur(15px); font-size: 13px;
+        input, select {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border);
+            color: white; padding: 14px 18px; border-radius: 16px; width: 100%; outline: none;
+            transition: 0.3s; font-size: 14px;
         }
-        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.07); }
+        input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.06); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
 
         .hidden { display: none !important; }
 
         header {
-            padding: 30px 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(25px);
-            border-bottom: 1px solid rgba(255,255,255,0.05); display: flex;
-            justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;
+            padding: 25px 0; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .logo { font-size: 26px; font-weight: 900; color: var(--primary); letter-spacing: -1.5px; animation: logoPulse 4s infinite ease-in-out; }
+        .logo { font-size: 28px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
 
-        .auth-card {
-            background: var(--surface); backdrop-filter: blur(40px); border: 1px solid var(--glass-border);
-            padding: 40px; border-radius: 40px; max-width: 580px; width: 100%; margin: 60px auto;
-            text-align: center; animation: slideUp 0.7s ease; box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+        /* AUTH & SCANNER */
+        .auth-card { padding: 50px; max-width: 500px; margin: 80px auto; text-align: center; }
+
+        /* FACE DETECTOR DESIGN */
+        .face-scanner-wrap {
+            position: relative; width: 320px; height: 320px; margin: 30px auto;
+            border-radius: 50%; padding: 10px; border: 2px dashed rgba(255, 215, 0, 0.3);
         }
-
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 40px 0; }
-        .video-card { background: var(--card-bg); border-radius: 30px; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: all 0.5s; overflow: hidden; position: relative; }
-        .video-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 15px 30px rgba(255, 215, 0, 0.5); }
-        .video-card img, .video-card .local-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        .local-thumb { background: linear-gradient(135deg, #111, #222); display: flex; align-items: center; justify-content: center; font-size: 40px; }
-        .video-info { padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); }
-        .video-info b { font-size: 14px; color: #fff; display: block; height: 40px; overflow: hidden; font-weight: 700; }
-
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.98); padding: 40px; border-radius: 40px; border: 1px solid var(--glass-border); z-index: 3000; width: 95%; max-width: 600px; text-align: center; backdrop-filter: blur(45px); max-height: 85vh; overflow-y: auto; box-shadow: 0 0 100px rgba(0,0,0,0.8); }
-
-        /* FACE VERIFICATION UI */
-        .face-scan-container {
-            width: 300px; height: 300px; border-radius: 50%; margin: 20px auto;
-            border: 4px solid var(--primary); position: relative; overflow: hidden;
-            background: #000; box-shadow: 0 0 30px var(--primary-glow);
+        .face-video-container {
+            width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+            background: #000; border: 4px solid var(--primary); position: relative;
         }
         #face-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .scan-overlay {
-            position: absolute; inset: 0; border: 2px solid rgba(255, 215, 0, 0.2); border-radius: 50%;
-            pointer-events: none;
+        .scan-overlay-svg {
+            position: absolute; inset: 0; pointer-events: none; z-index: 5;
         }
-        .scan-line {
-            position: absolute; left: 0; width: 100%; height: 2px;
-            background: var(--primary); box-shadow: 0 0 15px var(--primary);
-            animation: scanLine 2s linear infinite;
+        .motion-bar-container {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px;
+            margin-top: 20px; overflow: hidden; position: relative;
         }
-        .motion-meter {
-            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-            width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px;
+        #motion-bar-fill { height: 100%; width: 0%; background: var(--success); transition: width 0.1s linear; box-shadow: 0 0 10px var(--success); }
+
+        /* GRID & CARDS */
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 40px 0; }
+        .video-card { 
+            background: var(--card-bg); border-radius: 24px; overflow: hidden; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.03); transition: 0.4s;
         }
-        #motion-fill { width: 0%; height: 100%; background: var(--success); transition: width 0.1s; border-radius: 10px; }
+        .video-card:hover { transform: translateY(-8px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .video-thumb { width: 100%; aspect-ratio: 16/9; background: #111; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .video-info { padding: 20px; }
+        .video-info b { font-size: 15px; display: block; margin-bottom: 5px; color: #eee; }
 
-        .action-center { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 2000; }
-        .action-fab { width: 56px; height: 56px; border-radius: 20px; background: var(--surface); border: 1px solid var(--glass-border); color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
-        .action-fab:hover { transform: scale(1.1); border-color: var(--primary); background: rgba(255,215,0,0.1); }
+        /* ACTION CENTER */
+        .action-center { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; }
+        .action-fab {
+            width: 60px; height: 60px; border-radius: 20px; background: var(--surface);
+            border: 1px solid var(--glass-border); color: var(--primary); display: flex;
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(20px);
+        }
+        .action-fab:hover { transform: scale(1.1) rotate(5deg); border-color: var(--primary); }
 
-        .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
-        .log-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--primary); color: black; }
-        
-        .unlock-timer { font-family: 'JetBrains Mono'; color: var(--primary); font-size: 20px; margin: 15px 0; text-shadow: 0 0 10px var(--primary-glow); }
+        .status-badge { font-size: 9px; font-weight: 800; background: var(--primary); color: #000; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
 
-        .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
-        .reg-full { grid-column: span 2; }
-        .reg-label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 5px; display: block; }
+        #msg-box {
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+            padding: 16px 32px; border-radius: 20px; background: #111;
+            border: 1px solid var(--primary); color: #fff; z-index: 10000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6); display: none; font-weight: 700;
+        }
     </style>
 </head>
 <body onload="app.init()">
 
-    <div id="msg-box" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 15px; background: var(--surface); border: 1px solid var(--primary); color: white; z-index: 11000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; font-weight: bold;"></div>
+    <div id="msg-box"></div>
 
     <div class="main-wrapper">
         <header>
-            <div class="logo" style="cursor:pointer" onclick="app.showAppSection('main')">BANNA<span style="opacity: 0.3;">TUBE</span></div>
+            <div class="logo" onclick="app.showAppSection('main')" style="cursor:pointer">BANNA<span style="opacity:0.4">CORE</span></div>
             <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:20px;">
-                <button onclick="app.showAppSection('vault')" style="background:rgba(255,215,0,0.1); color:var(--primary); border:1px solid rgba(255,215,0,0.3); padding:8px 15px; border-radius:12px; font-weight: 800;">VAULT 📂</button>
-                <div style="background:rgba(255,215,0,0.08); padding:8px 18px; border-radius:14px; font-size:11px; color:var(--primary); font-weight: 800; border: 1px solid rgba(255,215,0,0.2);">
+                <button onclick="app.showAppSection('vault')" class="secondary" style="font-size:10px;">MOJE ARCHÍVY 📂</button>
+                <div style="background:rgba(255,215,0,0.1); padding:10px 20px; border-radius:14px; font-weight:800; color:var(--primary); border:1px solid var(--glass-border);">
                     🪙 <span id="header-credits">0</span>
                 </div>
-                <div class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:44px; height:44px; border-radius:12px; overflow:hidden; border:2px solid var(--primary); background:#111; cursor:pointer;">
-                    <img id="user-avatar" src="" style="width:100%; height:100%; object-fit: cover;">
+                <div class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:48px; height:48px; border-radius:15px; border:2px solid var(--primary); overflow:hidden; cursor:pointer;">
+                    <img id="user-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
                 </div>
-                <button onclick="app.logout()" class="secondary" style="padding:8px 12px; font-size:9px;">LOGOFF</button>
+                <button onclick="app.logout()" class="secondary" style="padding:10px; width:40px; height:40px;">✕</button>
             </div>
         </header>
 
-        <!-- AUTH VIEWS -->
-        <div id="login-view">
-            <div class="auth-card">
-                <div style="font-size:45px; margin-bottom:15px;">🔒</div>
-                <h2 style="font-weight: 800; color:var(--primary);">Skenovanie Identity</h2>
-                <input type="email" id="login-email" placeholder="Emailová adresa" style="margin-top: 20px;">
-                <input type="password" id="login-pass" placeholder="Heslo" style="margin-top:15px;">
-                <button id="login-submit-btn" onclick="app.handleLogin()" style="width:100%; margin-top:25px; padding:18px;">VSTÚPIŤ DO SYSTÉMU</button>
-                <p style="font-size:14px; color:#666; margin-top:30px;">Nová licencia? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer; font-weight:700;">Registrovať</span></p>
+        <!-- VIEWS -->
+        <div id="login-view" class="view-container">
+            <div class="auth-card glass-card">
+                <div style="font-size:50px; margin-bottom:20px;">🔒</div>
+                <h2 style="font-size:28px; font-weight:800; margin-bottom:10px;">CORE VSTUP</h2>
+                <p style="opacity:0.5; margin-bottom:30px;">Zadajte svoje biometrické poverenia.</p>
+                <input type="email" id="login-email" placeholder="Sektorový Email" style="margin-bottom:15px;">
+                <input type="password" id="login-pass" placeholder="Prístupový kód">
+                <button onclick="app.handleLogin()" style="width:100%; margin-top:30px; height:60px;">AUTORIZOVAŤ IDENTITU</button>
+                <p style="margin-top:25px; font-size:14px;">Chýba licencia? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer; font-weight:700;">Vytvoriť profil</span></p>
             </div>
         </div>
 
-        <!-- FACE VERIFICATION VIEW -->
         <div id="face-auth-view" class="hidden">
-            <div class="auth-card">
-                <h2 style="color:var(--primary); margin-bottom: 10px;">DETEKTOR IDENTITY</h2>
-                <p id="face-instruction" style="font-size: 14px; color: var(--success); font-weight: 800; height: 30px; margin-bottom: 20px;">INICIALIZÁCIA SCANNERU...</p>
+            <div class="auth-card glass-card">
+                <h2 style="color:var(--primary); font-weight:800;">DETEKCIA ŽIVOTA</h2>
+                <p id="face-instruction" style="font-size:16px; font-weight:700; color:var(--success); margin:15px 0;">INICIALIZÁCIA...</p>
                 
-                <div class="face-scan-container">
-                    <video id="face-video" autoplay playsinline muted></video>
-                    <div class="scan-overlay">
-                        <div class="scan-line"></div>
-                        <div class="motion-meter"><div id="motion-fill"></div></div>
+                <div class="face-scanner-wrap">
+                    <div class="face-video-container">
+                        <video id="face-video" autoplay playsinline muted></video>
+                        <canvas id="face-canvas" style="display:none;"></canvas>
+                        <div class="scan-overlay-svg">
+                            <div style="position:absolute; top:20%; left:50%; transform:translateX(-50%); width:70%; height:60%; border:2px dashed var(--primary); border-radius:50%;"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div id="verify-steps" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
-                    <div class="step-dot" style="width: 12px; height: 12px; border-radius: 50%; background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5);"></div>
-                    <div class="step-dot" style="width: 12px; height: 12px; border-radius: 50%; background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5);"></div>
-                    <div class="step-dot" style="width: 12px; height: 12px; border-radius: 50%; background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5);"></div>
-                    <div class="step-dot" style="width: 12px; height: 12px; border-radius: 50%; background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5);"></div>
-                    <div class="step-dot" style="width: 12px; height: 12px; border-radius: 50%; background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5);"></div>
+                <div class="motion-bar-container">
+                    <div id="motion-bar-fill"></div>
                 </div>
 
-                <p id="scan-timer" style="font-size: 10px; color: var(--danger); font-family: 'JetBrains Mono'; margin-top: 15px; font-weight: bold;">--</p>
-                <button onclick="app.cancelVerification()" class="secondary" style="margin-top: 20px; width: 100%;">ODPOJIŤ SENZORY</button>
+                <div id="verify-steps" style="display:flex; justify-content:center; gap:12px; margin-top:30px;">
+                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                </div>
+                
+                <p id="scan-timer" style="font-family:'JetBrains Mono'; margin-top:20px; font-size:12px; color:var(--danger);">TIMEOUT: 5.0s</p>
+                <button onclick="app.cancelVerification()" class="secondary" style="margin-top:20px; width:100%;">ZRUŠIŤ SKEN</button>
             </div>
         </div>
 
         <div id="register-view" class="hidden">
-            <div class="auth-card">
-                <h2 style="margin-bottom: 25px;">Vytvoriť Core Profil</h2>
+            <div class="auth-card glass-card" style="max-width:650px;">
+                <h2 style="font-weight:800; margin-bottom:30px;">AKTIVÁCIA LICENCIE</h2>
                 <div class="reg-grid">
-                    <div><label class="reg-label">Meno</label><input type="text" id="reg-name" placeholder="Meno"></div>
-                    <div><label class="reg-label">Priezvisko</label><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
-                    <div class="reg-full"><label class="reg-label">Email</label><input type="email" id="reg-email" placeholder="email@core.sk"></div>
-                    <div><label class="reg-label">Prezývka</label><input type="text" id="reg-nick" placeholder="FuturisticPlayer"></div>
-                    <div><label class="reg-label">Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
-                    <div><label class="reg-label">Telefón</label><input type="tel" id="reg-phone" placeholder="+421 ..."></div>
-                    <div><label class="reg-label">Citizen Level</label><select id="reg-level"><option>Citizen</option><option>Elite</option><option>Prime</option></select></div>
-                    <div class="reg-full"><label class="reg-label">Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Rodné mesto?</option></select></div>
-                    <div class="reg-full"><label class="reg-label">Odpoveď</label><input type="text" id="reg-answer" placeholder="Vaša odpoveď"></div>
-                    <div><label class="reg-label">Ref. Kód</label><input type="text" id="reg-ref" placeholder="CODE-X"></div>
-                    <div><label class="reg-label">Pohlavie</label><select id="reg-gender"><option>Muž</option><option>Žena</option></select></div>
-                    <div class="reg-full" style="display:flex; gap:10px; align-items:center; font-size:11px; opacity:0.7;">
-                        <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> Súhlas s Core protokolmi.
+                    <div class="reg-full"><label class="reg-label">Základné údaje</label></div>
+                    <input type="text" id="reg-name" placeholder="Meno">
+                    <input type="text" id="reg-surname" placeholder="Priezvisko">
+                    <input type="email" id="reg-email" placeholder="Email" class="reg-full">
+                    
+                    <div class="reg-full"><label class="reg-label">Sektorové nastavenia</label></div>
+                    <input type="text" id="reg-nick" placeholder="Futuristický Nick">
+                    <select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Európa</option></select>
+                    <select id="reg-level" class="reg-full"><option>Citizen Level</option><option>Elite Access</option><option>Prime Administrator</option></select>
+                    
+                    <div class="reg-full"><label class="reg-label">Zabezpečenie</label></div>
+                    <input type="password" id="reg-pass" placeholder="Heslo" class="reg-full">
+                    <div class="reg-full" style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:0.7;">
+                        <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> Súhlasím s pravidlami Core Jadrá.
                     </div>
-                    <input type="password" id="reg-pass" class="reg-full" placeholder="Zabezpečenie hesla">
                 </div>
-                <button onclick="app.handleRegister()" style="width:100%; margin-top:25px; padding:18px;">AKTIVOVAŤ LICENCIU</button>
-                <p style="font-size:14px; color:#666; margin-top:25px;" onclick="app.showView('login-view')">Späť na <span style="color:var(--primary); cursor:pointer;">Prihlásenie</span></p>
+                <button onclick="app.handleRegister()" style="width:100%; margin-top:30px; height:60px;">REGISTROVAŤ A VSTÚPIŤ</button>
+                <p style="margin-top:20px; font-size:14px; opacity:0.6;" onclick="app.showView('login-view')">Späť na prihlásenie</p>
             </div>
         </div>
 
         <div id="app-view" class="hidden">
             <div id="section-main">
-                <div class="search-area">
-                    <h1>CORE <span style="color:var(--primary);">SCANNER</span></h1>
-                    <div class="search-bar-container">
-                        <input type="text" id="query" placeholder="Skenovať YouTube databázu..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; margin:0; font-size: 18px;">
-                        <button onclick="app.search()" style="min-width: 140px; height: 50px;">SCAN</button>
+                <div class="search-area" style="text-align:center; padding:80px 0;">
+                    <h1 style="font-size:60px; font-weight:900; letter-spacing:-3px;">CORE <span style="color:var(--primary)">SCANNER</span></h1>
+                    <div class="search-bar-container glass-card" style="max-width:800px; margin:40px auto; padding:10px 20px; display:flex; gap:15px; align-items:center;">
+                        <input type="text" id="query" placeholder="Skenovať YouTube databázu..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; padding:10px; font-size:18px;">
+                        <button onclick="app.search()" style="min-width:150px;">VYHĽADAŤ</button>
                     </div>
                 </div>
                 <div id="results" class="video-grid"></div>
             </div>
 
             <div id="section-vault" class="hidden">
-                <div class="search-area" style="padding-top:40px;">
-                    <h1 style="color:var(--primary);">LOCAL <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Privátny lokálny archív.</p>
+                <div class="search-area" style="padding:60px 0;">
+                    <h1 style="font-size:40px; font-weight:800;">LOKÁLNY <span style="color:var(--primary)">VAULT</span></h1>
+                    <p style="opacity:0.5;">Váš súkromný offline archív videí.</p>
                 </div>
-                <div id="vault-unlocked-ui" class="space-y-6">
-                    <div style="background:var(--surface); padding:40px; border-radius:40px; border:1px solid var(--glass-border); text-align:center; margin-bottom:30px;">
-                        <h4 style="margin-bottom: 20px;">ULOŽIŤ MP4 ARCHÍV</h4>
-                        <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
-                        <button onclick="document.getElementById('local-video-input').click()">VYBRAŤ SÚBOR</button>
-                    </div>
-                    <div id="local-videos-results" class="video-grid"></div>
+                <div class="glass-card" style="padding:60px; text-align:center; margin-bottom:40px;">
+                    <h2 style="margin-bottom:20px;">PRIDAŤ MP4 DO TREZORU</h2>
+                    <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
+                    <button onclick="document.getElementById('local-video-input').click()" style="height:60px; padding:0 50px;">VYBRAŤ SÚBOR (MAX 300MB)</button>
                 </div>
+                <div id="local-videos-results" class="video-grid"></div>
             </div>
         </div>
     </div>
 
+    <!-- ACTION CENTER -->
     <div id="action-center" class="action-center hidden">
-        <div class="action-fab" onclick="app.toggleAdminModal()">🛡️</div>
-        <div class="action-fab" onclick="app.toggleHistoryModal()">📊</div>
+        <div class="action-fab" onclick="app.toggleAdminModal()" title="Admin Oversight">🛡️</div>
+        <div class="action-fab" onclick="app.toggleHistoryModal()" title="Centrum Aktivít">📊</div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="profile-modal" class="modal hidden">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+            <div style="position:relative; width:130px; height:130px; border-radius:35px; border:4px solid var(--primary); overflow:hidden;">
+                <img id="modal-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
+                <label for="avatar-input" style="position:absolute; bottom:5px; right:5px; background:var(--primary); color:#000; padding:8px; border-radius:12px; cursor:pointer;">✎</label>
+                <input type="file" id="avatar-input" class="hidden" onchange="app.updateAvatar()">
+            </div>
+            <h2 id="profile-name-title">Meno</h2>
+            <span class="status-badge" id="stat-level">Citizen</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:30px 0;">
+            <div class="glass-card" style="padding:20px;"><label style="font-size:10px; opacity:0.5; display:block;">KREDITY</label><b id="stat-credits" style="color:var(--primary); font-size:20px;">0</b></div>
+            <div class="glass-card" style="padding:20px;"><label style="font-size:10px; opacity:0.5; display:block;">RESET</label><b>01.01</b></div>
+        </div>
+        <button onclick="app.claimCredits()" style="width:100%; margin-bottom:15px;">ZÍSKAŤ +500 KREDITOV</button>
+        <button onclick="app.toggleProfileModal()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
     </div>
 
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <button class="close-player-btn" onClick="app.closePlayer()">✕</button>
+            <button class="close-player-btn" onclick="app.closePlayer()">✕</button>
             <div id="video-mount" style="width:100%; height:100%;"></div>
         </div>
     </div>
@@ -263,14 +283,15 @@
     <script>
         window.app = {
             state: {
-                session: localStorage.getItem('bannatube_stable_v500'),
+                session: localStorage.getItem('bannatube_pro_v500'),
                 localDb: null,
                 profile: null,
                 stream: null,
-                detectorActive: false,
-                currentStep: 0,
-                moveDetected: false,
-                tempUser: null
+                activeStep: 0,
+                tempUser: null,
+                detectorLoop: null,
+                lastFrame: null,
+                motionHistory: []
             },
 
             async init() {
@@ -300,7 +321,6 @@
                     const tx = this.state.localDb.transaction('users', 'readonly');
                     const req = tx.objectStore('users').get(email.toLowerCase().trim());
                     req.onsuccess = () => resolve(req.result || null);
-                    req.onerror = () => resolve(null);
                 });
             },
 
@@ -312,82 +332,110 @@
                 });
             },
 
-            // --- DETECTOR LOGIC (DETEKCIA POHYBU TVÁRE) ---
+            // --- REAL DETECTOR LOGIC ---
             async startBiometricVerification(user) {
                 this.state.tempUser = user;
                 this.showView('face-auth-view');
-                
                 try {
-                    this.state.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 300, height: 300 } });
+                    this.state.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: 'user' } });
                     const video = document.getElementById('face-video');
                     video.srcObject = this.state.stream;
-                    this.state.detectorActive = true;
-                    this.state.currentStep = 0;
-                    this.runMotionDetection();
+                    this.state.activeStep = 0;
+                    this.runDetectionSequence();
                 } catch (e) {
-                    this.showMsg("DETEKTOR ZAMKNUTÝ: Kamera sa nenašla.");
+                    this.showMsg("KAMERA NENÁJDENÁ.");
                     this.cancelVerification();
                 }
             },
 
-            async runMotionDetection() {
+            async runDetectionSequence() {
                 const steps = [
-                    { msg: "Otočte hlavou DOPRAVA ⮕", zone: "right" },
-                    { msg: "Otočte hlavou DOĽAVA ⬅", zone: "left" },
-                    { msg: "Pozrite sa HORE ⬆", zone: "up" },
-                    { msg: "Pozrite sa DOLE ⬇", zone: "down" },
-                    { msg: "Urobte POHYB V KRUHU 🔄", zone: "circle" }
+                    { msg: "Otočte hlavou DOPRAVA ⮕", dir: "right" },
+                    { msg: "Otočte hlavou DOĽAVA ⬅", dir: "left" },
+                    { msg: "Pozrite sa HORE ⬆", dir: "up" },
+                    { msg: "Pozrite sa DOLE ⬇", dir: "down" },
+                    { msg: "Urobte RÝCHLY POHYB 🔄", dir: "any" }
                 ];
 
                 const instruction = document.getElementById('face-instruction');
                 const dots = document.querySelectorAll('.step-dot');
+                const barFill = document.getElementById('motion-bar-fill');
                 const timerEl = document.getElementById('scan-timer');
 
                 for (let i = 0; i < steps.length; i++) {
+                    this.state.activeStep = i;
                     instruction.innerText = steps[i].msg;
                     instruction.style.color = "var(--primary)";
                     
-                    let timeLeft = 50; // 5 sekúnd (50x100ms)
-                    let success = false;
+                    let progress = 0;
+                    let timeLeft = 5.0;
 
-                    while (timeLeft > 0) {
-                        timerEl.innerText = `TIMEOUT: ${(timeLeft/10).toFixed(1)}s`;
-                        
-                        // Simulácia detektora pohybu v zónach (v reálnom JS by tu bola analýza pixelov cez canvas)
-                        // Aby to bolo interaktívne, sledujeme intenzitu "falošného" pohybu, ktorý user musí potvrdiť aspoň náhodným pohybom
-                        const motionStrength = Math.random() * 100;
-                        document.getElementById('motion-fill').style.width = motionStrength + "%";
-                        
-                        if (motionStrength > 85) { // User musí aspoň trochu pohnúť hlavou/rukou
-                            success = true;
-                            break;
-                        }
+                    while (progress < 100 && timeLeft > 0) {
+                        timeLeft -= 0.1;
+                        timerEl.innerText = `TIMEOUT: ${timeLeft.toFixed(1)}s`;
+
+                        // Reálna analýza pohybu cez canvas
+                        const currentMotion = await this.detectMotionIntensity(steps[i].dir);
+                        if (currentMotion > 15) progress += 8; // Rýchlosť napĺňania pri detekcii
+                        else progress -= 1; // Pomalý pokles pri nečinnosti
+
+                        if (progress < 0) progress = 0;
+                        barFill.style.width = progress + "%";
 
                         await new Promise(r => setTimeout(r, 100));
-                        timeLeft--;
                     }
 
-                    if (!success) {
-                        this.showMsg("VERIFIKÁCIA ZAMIETNUTÁ: Nie ste človek.");
-                        this.cancelVerification();
-                        return;
+                    if (progress < 100) {
+                        this.showMsg("ZAMIETNUTÉ: Nedostatočný pohyb.");
+                        return this.cancelVerification();
                     }
 
                     dots[i].style.background = "var(--success)";
-                    dots[i].style.boxShadow = "0 0 10px var(--success)";
-                    await new Promise(r => setTimeout(r, 800));
+                    dots[i].style.boxShadow = "0 0 15px var(--success)";
+                    barFill.style.width = "0%";
+                    await new Promise(r => setTimeout(r, 500));
                 }
 
-                instruction.innerText = "IDENTITA OVERENÁ. VSTUP POVOLENÝ.";
+                instruction.innerText = "BIOMETRIA OK. VSTUPUJEM...";
                 await new Promise(r => setTimeout(r, 1000));
                 this.finalizeLogin();
+            },
+
+            async detectMotionIntensity(direction) {
+                const video = document.getElementById('face-video');
+                const canvas = document.getElementById('face-canvas');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                
+                canvas.width = 64; canvas.height = 64; // Nízke rozlíšenie pre výkon
+                ctx.drawImage(video, 0, 0, 64, 64);
+                const currentFrame = ctx.getImageData(0, 0, 64, 64).data;
+
+                let score = 0;
+                if (this.state.lastFrame) {
+                    for (let i = 0; i < currentFrame.length; i += 4) {
+                        const diff = Math.abs(currentFrame[i] - this.state.lastFrame[i]);
+                        if (diff > 40) {
+                            const x = (i / 4) % 64;
+                            const y = Math.floor((i / 4) / 64);
+                            
+                            // Logika smeru (kvadranty)
+                            if (direction === "right" && x > 40) score++;
+                            else if (direction === "left" && x < 24) score++;
+                            else if (direction === "up" && y < 24) score++;
+                            else if (direction === "down" && y > 40) score++;
+                            else if (direction === "any") score++;
+                        }
+                    }
+                }
+                this.state.lastFrame = currentFrame;
+                return score / 5; // Normalizované skóre
             },
 
             finalizeLogin() {
                 const user = this.state.tempUser;
                 this.state.session = user.email;
                 this.state.profile = user;
-                localStorage.setItem('bannatube_stable_v500', user.email);
+                localStorage.setItem('bannatube_pro_v500', user.email);
                 if (this.state.stream) this.state.stream.getTracks().forEach(t => t.stop());
                 this.onLogin(user);
                 this.showMsg("Core prístup odomknutý.");
@@ -411,10 +459,9 @@
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
-                const nick = document.getElementById('reg-nick').value.trim();
-                if (!email || !pass || !name || !nick) return this.showMsg("Doplňte údaje.");
+                if (!email || !pass || !name || !document.getElementById('reg-terms').checked) return this.showMsg("Doplňte údaje.");
 
-                const newUser = { email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick, credits: 10000, createdAt: Date.now(), unlocked: false, history: [], favorites: [], strikes: [] };
+                const newUser = { email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, credits: 10000, createdAt: Date.now(), unlocked: false, level: document.getElementById('reg-level').value, history: [], favorites: [], strikes: [] };
                 await this.saveUserDB(newUser);
                 this.startBiometricVerification(newUser);
             },
@@ -425,18 +472,9 @@
                 document.getElementById('action-center').classList.remove('hidden');
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('profile-name-title').innerText = user.fullName;
-                document.getElementById('user-avatar').src = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.nick;
-            },
-
-            async search() {
-                const q = document.getElementById('query').value.trim();
-                const grid = document.getElementById('results');
-                grid.innerHTML = '<p>Skenujem...</p>';
-                try {
-                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${q}&type=video&key=${localStorage.getItem('bt_key_v3')}`);
-                    const data = await res.json();
-                    grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.playYT('${i.id.videoId}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
-                } catch(e) { this.showMsg("Chýba API kľúč."); }
+                document.getElementById('stat-level').innerText = user.level || "Citizen";
+                document.getElementById('user-avatar').src = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (user.nick || "Core");
+                document.getElementById('modal-avatar').src = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (user.nick || "Core");
             },
 
             async uploadLocalVideo() {
@@ -445,7 +483,7 @@
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
-                tx.oncomplete = () => { this.showMsg("Bleskovo uložené!"); this.syncVideosUI(); };
+                tx.oncomplete = () => { this.showMsg("Archivované!"); this.syncVideosUI(); };
             },
 
             async syncVideosUI() {
@@ -454,14 +492,20 @@
                 const req = tx.objectStore('videos').getAll();
                 req.onsuccess = () => {
                     const videos = req.result;
-                    document.getElementById('local-videos-results').innerHTML = videos.map(v => `<div class="video-card" onclick="app.playVideo('${v.id}')"><div class="local-thumb">📽️</div><div class="video-info"><b>${v.name}</b></div></div>`).join('');
+                    document.getElementById('local-videos-results').innerHTML = videos.map(v => `
+                        <div class="video-card" onclick="app.playVideo('${v.id}')">
+                            <div class="video-thumb">📽️</div>
+                            <div class="video-info"><b>${v.name}</b><small>${v.uploader}</small></div>
+                        </div>
+                    `).join('');
                 };
             },
 
-            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view, #face-auth-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
+            showView(id) { document.querySelectorAll('.view-container, #register-view, #app-view, #face-auth-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
             showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
             showMsg(t) { const b = document.getElementById('msg-box'); b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); },
-            logout() { localStorage.removeItem('bannatube_stable_v500'); location.reload(); }
+            logout() { localStorage.removeItem('bannatube_pro_v500'); location.reload(); },
+            closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); }
         };
     </script>
 </body>
