@@ -2,8 +2,8 @@
 <html lang="sk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannaTube - Futuristic Local Core PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=1.0, user-scalable=no">
+    <title>BannaTube - Unlimited Local Core PRO</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -12,14 +12,14 @@
             --primary-rgb: 255, 215, 0;
             --primary-glow: rgba(255, 215, 0, 0.4);
             --bg: #030303;
-            --surface: rgba(15, 15, 15, 0.8);
-            --card-bg: rgba(30, 30, 30, 0.4);
+            --surface: rgba(15, 15, 15, 0.92);
+            --card-bg: rgba(30, 30, 30, 0.5);
             --text: #ffffff;
             --text-muted: #888888;
             --danger: #ff2a2a;
             --success: #00ff95;
             --admin-color: #ff3366;
-            --glass-border: rgba(255, 215, 0, 0.15);
+            --glass-border: rgba(255, 215, 0, 0.2);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -28,62 +28,67 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg);
             background-image: 
-                radial-gradient(circle at 10% 10%, rgba(255, 215, 0, 0.07) 0%, transparent 50%),
-                radial-gradient(circle at 90% 90%, rgba(255, 215, 0, 0.07) 0%, transparent 50%);
+                radial-gradient(circle at 10% 10%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 90%, rgba(255, 215, 0, 0.08) 0%, transparent 50%);
             background-attachment: fixed;
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
-            line-height: 1.6;
+            line-height: 1.5;
+            font-size: 14px;
         }
 
         .main-wrapper {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            width: 100%;
         }
 
         .glass-card {
             background: var(--surface);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
             border-radius: 32px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
         }
 
         button {
             background: linear-gradient(135deg, var(--primary), #b8860b);
             color: #000; border: none; padding: 14px 28px; font-weight: 800;
-            border-radius: 18px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-transform: uppercase; font-size: 11px; letter-spacing: 1.5px;
+            border-radius: 18px; cursor: pointer; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase; font-size: 11px; letter-spacing: 1px;
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            position: relative;
+            pointer-events: auto !important;
         }
-        button:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2); }
+        button:active { transform: scale(0.96); }
         button.secondary { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--glass-border); }
         button.danger { background: linear-gradient(135deg, #ff2a2a, #900); color: #fff; }
 
         input, select, textarea {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
             color: white; padding: 14px 18px; border-radius: 16px; width: 100%; outline: none;
-            transition: 0.3s; font-size: 14px;
+            transition: 0.3s; font-size: 15px;
         }
-        input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.06); }
+        input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); }
 
         .hidden { display: none !important; }
 
         header {
             padding: 25px 0; display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative; z-index: 9000; /* Zabezpečenie klikateľnosti hlavičky */
+            position: sticky; top: 0; background: rgba(3,3,3,0.8); backdrop-filter: blur(15px);
+            z-index: 10000;
         }
 
-        .logo { font-size: 28px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
 
-        .auth-card { padding: 40px; max-width: 580px; margin: 60px auto; text-align: center; }
+        .auth-card { padding: 40px; max-width: 550px; margin: 60px auto; text-align: center; position: relative; z-index: 100; }
 
-        /* FACE DETECTOR */
+        /* FACE DETECTOR - MOBILE READY */
         .face-scanner-wrap {
-            position: relative; width: 300px; height: 300px; margin: 20px auto;
+            position: relative; width: 280px; height: 280px; margin: 20px auto;
             border-radius: 50%; padding: 8px; border: 2px dashed rgba(255, 215, 0, 0.3);
         }
         .face-video-container {
@@ -92,65 +97,70 @@
         }
         #face-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         .motion-bar-container {
-            width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px;
+            width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px;
             margin-top: 20px; overflow: hidden;
         }
         #motion-bar-fill { height: 100%; width: 0%; background: var(--success); transition: width 0.1s linear; }
 
-        /* GRID & CARDS */
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 40px 0; }
+        /* GRID */
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 40px 0; }
         .video-card { 
             background: var(--card-bg); border-radius: 24px; overflow: hidden; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.03); transition: 0.4s;
+            border: 1px solid rgba(255,255,255,0.03); transition: 0.3s;
         }
-        .video-card:hover { transform: translateY(-8px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .video-card:hover { transform: translateY(-8px); border-color: var(--primary); }
         .video-thumb { width: 100%; aspect-ratio: 16/9; background: #111; display: flex; align-items: center; justify-content: center; font-size: 40px; }
         .video-info { padding: 20px; }
 
-        /* ACTION CENTER */
+        /* ACTION CENTER - Z-INDEX FIX */
         .action-center { 
             position: fixed; bottom: 30px; right: 30px; 
             display: flex; flex-direction: column; gap: 15px; 
-            z-index: 9999; /* Musí byť nad všetkým */
+            z-index: 110000;
         }
         .action-fab {
-            width: 60px; height: 60px; border-radius: 20px; background: var(--surface);
+            width: 60px; height: 60px; border-radius: 22px; background: var(--surface);
             border: 1px solid var(--glass-border); color: var(--primary); display: flex;
             align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(20px);
-            pointer-events: auto; /* Zaručenie klikov */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6); backdrop-filter: blur(20px);
+            pointer-events: auto !important;
         }
-        .action-fab:hover { transform: scale(1.1); border-color: var(--primary); }
+        .action-fab:hover { transform: scale(1.15) rotate(5deg); border-color: var(--primary); box-shadow: 0 0 25px var(--primary-glow); }
 
-        .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
-        .log-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--primary); color: black; }
-        .log-tag.danger { background: var(--danger); color: white; }
+        .status-badge { font-size: 9px; font-weight: 800; background: var(--primary); color: #000; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
 
         .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
-        .reg-full { grid-column: span 2; }
+        .reg-full { grid-column: span 1; }
+        @media (min-width: 641px) { .reg-full-wide { grid-column: span 2; } }
         .reg-label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 5px; display: block; }
         
-        .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); z-index: 4000; display: flex; align-items: center; justify-content: center; }
-        .player-wrapper { width: 92%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 40px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.2); }
-        .close-player-btn { position: absolute; top: 25px; right: 25px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: #000; border: none; font-size: 24px; cursor: pointer; z-index: 5000; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); z-index: 120000; display: flex; align-items: center; justify-content: center; }
+        .player-wrapper { width: 95%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 32px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.3); }
+
+        /* MODAL FIX */
+        .modal-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 130000;
+        }
     </style>
 </head>
 <body onload="app.init()">
 
-    <div id="msg-box" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 15px; background: var(--surface); border: 1px solid var(--primary); color: white; z-index: 11000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; font-weight: bold;"></div>
+    <div id="msg-box" style="position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 16px 32px; border-radius: 20px; background: #111; border: 1px solid var(--primary); color: white; z-index: 200000; box-shadow: 0 20px 40px rgba(0,0,0,0.6); display: none; font-weight: bold; text-align: center; width: 90%; max-width: 450px;"></div>
 
     <div class="main-wrapper">
         <header>
-            <div class="logo" onclick="app.showAppSection('main')" style="cursor:pointer">BANNA<span style="opacity:0.4">CORE</span></div>
-            <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:20px;">
-                <button onclick="app.showAppSection('vault')" class="secondary" style="font-size:10px;">MOJE ARCHÍVY 📂</button>
-                <div style="background:rgba(255,215,0,0.1); padding:10px 20px; border-radius:14px; font-weight:800; color:var(--primary); border:1px solid var(--glass-border);">
+            <div class="logo" onclick="app.showAppSection('main')" style="cursor:pointer">BANNA<span style="opacity:0.4">TUBE</span></div>
+            <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:15px;">
+                <div style="background:rgba(255,215,0,0.1); padding:10px 20px; border-radius:14px; font-weight:800; color:var(--primary); font-size: 14px; border:1px solid var(--glass-border);">
                     🪙 <span id="header-credits">0</span>
                 </div>
-                <div id="profile-trigger" class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:48px; height:48px; border-radius:15px; border:2px solid var(--primary); overflow:hidden; cursor:pointer; position: relative; z-index: 9500;">
+                <div id="profile-trigger" class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:46px; height:46px; border-radius:14px; border:2px solid var(--primary); overflow:hidden; cursor:pointer; position: relative; z-index: 10500; pointer-events: auto !important;">
                     <img id="user-avatar" src="" style="width:100%; height:100%; object-fit:cover; pointer-events: none;">
                 </div>
-                <button onclick="app.logout()" class="secondary" style="padding:10px; width:40px; height:40px;">✕</button>
+                <button onclick="app.logout()" class="secondary" style="padding:10px; width:40px; height:40px; border-radius: 14px;">✕</button>
             </div>
         </header>
 
@@ -158,19 +168,19 @@
         <div id="login-view" class="view-container">
             <div class="auth-card glass-card">
                 <div style="font-size:50px; margin-bottom:20px;">🔒</div>
-                <h2 style="font-size:28px; font-weight:800; margin-bottom:10px;">CORE VSTUP</h2>
-                <p style="opacity:0.5; margin-bottom:30px;">Zadajte svoje poverenia.</p>
-                <input type="email" id="login-email" placeholder="Email" style="margin-bottom:15px;">
-                <input type="password" id="login-pass" placeholder="Heslo">
-                <button onclick="app.handleLogin()" style="width:100%; margin-top:30px; height:60px;">AUTORIZOVAŤ IDENTITU</button>
+                <h2 style="font-size:30px; font-weight:800; margin-bottom:10px;">BANNATUBE LOGIN</h2>
+                <p style="opacity:0.5; margin-bottom:35px;">Prístup k neobmedzenému lokálnemu jadru.</p>
+                <input type="email" id="login-email" placeholder="Emailová adresa" style="margin-bottom:15px;">
+                <input type="password" id="login-pass" placeholder="Prístupový kód">
+                <button onclick="app.handleLogin()" style="width:100%; margin-top:35px; height:65px;">AUTORIZOVAŤ</button>
                 <p style="margin-top:25px; font-size:14px;">Nová licencia? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer; font-weight:700;">Registrovať</span></p>
             </div>
         </div>
 
         <div id="face-auth-view" class="hidden">
             <div class="auth-card glass-card">
-                <h2 style="color:var(--primary); font-weight:800;">DETEKCIA ŽIVOTA</h2>
-                <p id="face-instruction" style="font-size:16px; font-weight:700; color:var(--success); margin:15px 0;">INICIALIZÁCIA...</p>
+                <h2 style="color:var(--primary); font-weight:800; font-size: 24px;">VERIFIKÁCIA ŽIVOTA</h2>
+                <p id="face-instruction" style="font-size:16px; font-weight:700; color:var(--success); margin:15px 0;">INICIALIZÁCIA BIOMETRIE...</p>
                 
                 <div class="face-scanner-wrap">
                     <div class="face-video-container">
@@ -183,45 +193,39 @@
                     <div id="motion-bar-fill"></div>
                 </div>
 
-                <div id="verify-steps" style="display:flex; justify-content:center; gap:12px; margin-top:30px;">
-                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
-                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
-                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
-                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
-                    <div class="step-dot" style="width:12px; height:12px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                <div id="verify-steps" style="display:flex; justify-content:center; gap:12px; margin-top:25px;">
+                    <div class="step-dot" style="width:14px; height:14px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:14px; height:14px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:14px; height:14px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:14px; height:14px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
+                    <div class="step-dot" style="width:14px; height:14px; border-radius:50%; background:rgba(255,215,0,0.1); border:1px solid var(--primary);"></div>
                 </div>
                 
-                <p id="scan-timer" style="font-family:'JetBrains Mono'; margin-top:20px; font-size:12px; color:var(--danger);">TIMEOUT: 5.0s</p>
-                <button onclick="app.cancelVerification()" class="secondary" style="margin-top:20px; width:100%;">ZRUŠIŤ</button>
+                <p id="scan-timer" style="font-family:'JetBrains Mono'; margin-top:20px; font-size:13px; color:var(--danger); font-weight: 800;">TIMEOUT: 5.0s</p>
+                <button onclick="app.cancelVerification()" class="secondary" style="margin-top:25px; width:100%;">ZRUŠIŤ SKEN</button>
             </div>
         </div>
 
         <div id="register-view" class="hidden">
-            <div class="auth-card glass-card" style="max-width:650px;">
-                <h2 style="font-weight:800; margin-bottom:30px;">AKTIVÁCIA CORE LICENCIE</h2>
+            <div class="auth-card glass-card" style="max-width:680px;">
+                <h2 style="font-weight:800; margin-bottom:25px; font-size: 26px;">BANNATUBE LICENCIA</h2>
                 <div class="reg-grid">
-                    <div class="reg-full"><label class="reg-label">Základné údaje</label></div>
-                    <input type="text" id="reg-name" placeholder="Meno">
-                    <input type="text" id="reg-surname" placeholder="Priezvisko">
-                    <input type="email" id="reg-email" placeholder="Email" class="reg-full">
+                    <div><label class="reg-label">Meno</label><input type="text" id="reg-name" placeholder="Meno"></div>
+                    <div><label class="reg-label">Priezvisko</label><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
+                    <div class="reg-full-wide"><label class="reg-label">Email</label><input type="email" id="reg-email" placeholder="Email"></div>
                     
-                    <div class="reg-full"><label class="reg-label">9 NOVÝCH FUNKCIÍ REGISTRÁCIE</label></div>
                     <div><label class="reg-label">1. Prezývka</label><input type="text" id="reg-nick" placeholder="GamerX"></div>
-                    <div><label class="reg-label">2. Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
+                    <div><label class="reg-label">2. Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iná</option></select></div>
                     <div><label class="reg-label">3. Telefón</label><input type="tel" id="reg-phone" placeholder="+421"></div>
-                    <div><label class="reg-label">4. Citizen Level</label><select id="reg-level"><option>Standard</option><option>Elite</option><option>Prime</option></select></div>
-                    <div class="reg-full"><label class="reg-label">5. Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Mesto narodenia?</option></select></div>
-                    <div class="reg-full"><label class="reg-label">6. Odpoveď</label><input type="text" id="reg-answer" placeholder="Vaša odpoveď"></div>
-                    <div><label class="reg-label">7. Ref. Kód</label><input type="text" id="reg-ref" placeholder="CODE-2026"></div>
-                    <div><label class="reg-label">Pohlavie</label><select id="reg-gender"><option>Muž</option><option>Žena</option></select></div>
+                    <div><label class="reg-label">4. Citizen Level</label><select id="reg-level"><option>Standard Citizen</option><option>Elite Access</option><option>Prime Admin</option></select></div>
                     
-                    <div class="reg-full" style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:0.7;">
-                        <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> 8. Súhlasím s TOS.
+                    <div class="reg-full-wide"><label class="reg-label">5. Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Obľúbená farba?</option></select></div>
+                    <div class="reg-full-wide"><label class="reg-label">6. Odpoveď</label><input type="text" id="reg-answer" placeholder="Tvoja tajná odpoveď"></div>
+                    
+                    <div class="reg-full-wide" style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:0.8;">
+                        <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> 8. Súhlas s BannaTube TOS (Lokal Storage).
                     </div>
-                    <div class="reg-full" style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:0.7;">
-                        <input type="checkbox" id="reg-news" style="width:18px; height:18px;"> 9. Odoberať Newsletter.
-                    </div>
-                    <input type="password" id="reg-pass" placeholder="Heslo" class="reg-full">
+                    <input type="password" id="reg-pass" placeholder="Prístupový kód" class="reg-full-wide">
                 </div>
                 <button onclick="app.handleRegister()" style="width:100%; margin-top:30px; height:60px;">AKTIVOVAŤ LICENCIU</button>
             </div>
@@ -229,24 +233,25 @@
 
         <div id="app-view" class="hidden">
             <div id="section-main">
-                <div class="search-area" style="text-align:center; padding:80px 0;">
-                    <h1 style="font-size:60px; font-weight:900; letter-spacing:-3px;">CORE <span style="color:var(--primary)">SCANNER</span></h1>
-                    <div class="search-bar-container glass-card" style="max-width:800px; margin:40px auto; padding:10px 20px; display:flex; gap:15px; align-items:center;">
-                        <input type="text" id="query" placeholder="YouTube vyhľadávanie..." onkeypress="if(event.key==='Enter')app.search()">
-                        <button onclick="app.search()" style="min-width:150px;">SCAN</button>
+                <div class="search-area" style="text-align:center; padding:50px 0;">
+                    <h1 style="font-size:clamp(35px, 9vw, 65px); font-weight:900; letter-spacing:-3px;">BANNA<span style="color:var(--primary)">TUBE</span></h1>
+                    <div class="search-bar-container glass-card" style="max-width:850px; margin:40px auto; padding:10px 25px; display:flex; gap:12px; align-items:center;">
+                        <input type="text" id="query" placeholder="Skenovať YouTube databázu..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; padding:10px; font-size:18px;">
+                        <button onclick="app.search()" style="min-width:120px;">SCAN</button>
                     </div>
                 </div>
                 <div id="results" class="video-grid"></div>
             </div>
 
             <div id="section-vault" class="hidden">
-                <div class="search-area" style="padding:60px 0;">
-                    <h1 style="font-size:40px; font-weight:800;">OFFLINE <span style="color:var(--primary)">VAULT</span></h1>
+                <div class="search-area" style="padding:50px 0;">
+                    <h1 style="font-size:35px; font-weight:800;">NEOBMEDZENÝ <span style="color:var(--primary)">TREZOR</span></h1>
+                    <p style="opacity:0.6;">Dáta sú uložené lokálne bez limitu veľkosti.</p>
                 </div>
-                <div class="glass-card" style="padding:60px; text-align:center; margin-bottom:40px;">
-                    <h2 style="margin-bottom:20px;">PRIDAŤ MP4 DO SYSTÉMU</h2>
+                <div class="glass-card" style="padding:40px; text-align:center; margin-bottom:40px;">
+                    <h2 style="margin-bottom:20px; font-size: 20px;">PRIDAŤ MP4 DO ARCHÍVU</h2>
                     <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
-                    <button onclick="document.getElementById('local-video-input').click()" style="height:60px;">VYBRAŤ SÚBOR (300MB LIMIT)</button>
+                    <button onclick="document.getElementById('local-video-input').click()" style="height:55px; padding:0 40px;">VYBRAŤ SÚBOR</button>
                 </div>
                 <div id="local-videos-results" class="video-grid"></div>
             </div>
@@ -259,46 +264,51 @@
         <div class="action-fab" onclick="app.toggleHistoryModal()" title="Centrum Aktivít">📊</div>
     </div>
 
-    <!-- MODALS -->
-    <div id="profile-modal" class="modal hidden">
-        <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
-            <div style="position:relative; width:120px; height:120px; border-radius:30px; border:3px solid var(--primary); overflow:hidden;">
-                <img id="modal-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
-                <label for="avatar-input" style="position:absolute; bottom:5px; right:5px; background:var(--primary); color:#000; padding:8px; border-radius:12px; cursor:pointer;">✎</label>
-                <input type="file" id="avatar-input" class="hidden" onchange="app.updateAvatar()">
+    <!-- MODALS (WRAPPED FOR CLICKABILITY) -->
+    <div id="modal-overlay" class="modal-container hidden">
+        <!-- Profile Modal -->
+        <div id="profile-modal" class="modal hidden" style="width:95%; max-width:400px; padding:35px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px; text-align:center;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+                <div style="position:relative; width:120px; height:120px; border-radius:28px; border:4px solid var(--primary); overflow:hidden;">
+                    <img id="modal-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
+                    <label for="avatar-input" style="position:absolute; bottom:6px; right:6px; background:var(--primary); color:#000; padding:8px; border-radius:12px; cursor:pointer; font-size: 12px;">✎</label>
+                    <input type="file" id="avatar-input" class="hidden" onchange="app.updateAvatar()">
+                </div>
+                <h2 id="profile-name-title" style="font-size: 24px; font-weight: 800;">Identita</h2>
+                <span class="status-badge" id="stat-level-display">Standard</span>
             </div>
-            <h2 id="profile-name-title">Identita</h2>
-            <span class="status-badge" id="stat-level-display">Standard</span>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:25px 0;">
+                <div class="glass-card" style="padding:18px; border-radius: 20px;"><label style="font-size:10px; opacity:0.5; display:block;">KREDITY</label><b id="stat-credits" style="color:var(--primary); font-size:18px;">0</b></div>
+                <div class="glass-card" style="padding:18px; border-radius: 20px;"><label style="font-size:10px; opacity:0.5; display:block;">RESET ROK</label><b id="last-reset-display" style="font-size: 18px;">2026</b></div>
+            </div>
+            <button onclick="app.claimCredits()" style="width:100%; margin-bottom:15px;">ZÍSKAŤ +500 KREDITOV</button>
+            <button onclick="app.closeAllModals()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:30px 0;">
-            <div class="glass-card" style="padding:20px;"><label style="font-size:10px; opacity:0.5;">KREDITY</label><b id="stat-credits" style="color:var(--primary); font-size:18px;">0</b></div>
-            <div class="glass-card" style="padding:20px;"><label style="font-size:10px; opacity:0.5;">RESET</label><b id="last-reset-display">01.01</b></div>
-        </div>
-        <button onclick="app.claimCredits()" style="width:100%; margin-bottom:15px;">+500 KREDITOV</button>
-        <button onclick="app.toggleProfileModal()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
-    </div>
 
-    <div id="admin-modal" class="modal hidden">
-        <h3 style="color:var(--admin-color); font-weight:800; margin-bottom:20px;">🛡️ ADMIN LOKÁLNY HUB</h3>
-        <div id="admin-user-list" style="max-height:400px; overflow-y:auto;"></div>
-        <button onclick="app.toggleAdminModal()" class="secondary" style="width:100%; margin-top:20px;">ODPOJIŤ</button>
-    </div>
-
-    <div id="history-modal" class="modal hidden">
-        <h3 style="color:var(--primary); font-weight:800; margin-bottom:20px;">📊 LOGY AKTIVITY</h3>
-        <div style="display:flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom:15px;">
-            <div onclick="app.switchTab('h')" id="t-h" style="padding:10px; cursor:pointer; color:var(--primary);">História</div>
-            <div onclick="app.switchTab('f')" id="t-f" style="padding:10px; cursor:pointer; opacity:0.5;">Obľúbené</div>
-            <div onclick="app.switchTab('s')" id="t-s" style="padding:10px; cursor:pointer; opacity:0.5;">Striky</div>
-            <div onclick="app.switchTab('q')" id="t-q" style="padding:10px; cursor:pointer; opacity:0.5;">Hľadania</div>
+        <!-- Admin Modal -->
+        <div id="admin-modal" class="modal hidden" style="width:95%; max-width:550px; padding:30px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px;">
+            <h3 style="color:var(--admin-color); font-weight:800; margin-bottom:20px; text-align:center;">🛡️ BANNATUBE ADMIN JADRO</h3>
+            <div id="admin-user-list" style="max-height:350px; overflow-y:auto; padding-right: 5px;"></div>
+            <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ODPOJIŤ</button>
         </div>
-        <div id="history-content" style="max-height:400px; overflow-y:auto; text-align:left;"></div>
-        <button onclick="app.toggleHistoryModal()" class="secondary" style="width:100%; margin-top:20px;">ZAVRIEŤ</button>
+
+        <!-- History Modal -->
+        <div id="history-modal" class="modal hidden" style="width:95%; max-width:550px; padding:30px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px;">
+            <h3 style="color:var(--primary); font-weight:800; margin-bottom:20px; text-align:center;">📊 LOGY AKTIVITY</h3>
+            <div style="display:flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom:15px; overflow-x: auto; padding-bottom: 5px; gap: 5px;">
+                <div onclick="app.switchTab('h')" id="t-h" style="padding:10px; cursor:pointer; color:var(--primary); font-size: 11px; font-weight: 800;">HISTÓRIA</div>
+                <div onclick="app.switchTab('f')" id="t-f" style="padding:10px; cursor:pointer; opacity:0.5; font-size: 11px; font-weight: 800;">OBĽÚBENÉ</div>
+                <div onclick="app.switchTab('s')" id="t-s" style="padding:10px; cursor:pointer; opacity:0.5; font-size: 11px; font-weight: 800;">STRIKY</div>
+                <div onclick="app.switchTab('q')" id="t-q" style="padding:10px; cursor:pointer; opacity:0.5; font-size: 11px; font-weight: 800;">SCAN LOG</div>
+            </div>
+            <div id="history-content" style="max-height:350px; overflow-y:auto;"></div>
+            <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ZAVRIEŤ</button>
+        </div>
     </div>
 
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <button class="close-player-btn" onclick="app.closePlayer()">✕</button>
+            <button class="close-player-btn" onclick="app.closePlayer()" style="position: absolute; top: 15px; right: 15px; z-index: 120000; background: var(--primary); color: #000; width: 40px; height: 40px; border-radius: 50%; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
             <div id="video-mount" style="width:100%; height:100%;"></div>
         </div>
     </div>
@@ -306,27 +316,36 @@
     <script>
         window.app = {
             state: {
-                session: localStorage.getItem('bannatube_ultimate_v600'),
-                localDb: null, profile: null, stream: null, activeStep: 0,
-                tempUser: null, lastFrame: null, currentTab: 'h'
+                session: localStorage.getItem('bannatube_unlimited_session_v1'),
+                localDb: null, profile: null, stream: null, lastFrame: null, currentTab: 'h'
             },
 
             async init() {
-                await this.initLocalDB();
-                if (this.state.session) {
-                    const user = await this.getUserByEmail(this.state.session);
-                    if (user) { 
-                        this.state.profile = user; 
-                        this.checkAnnualReset(user);
-                        this.onLogin(user); 
+                try {
+                    await this.initLocalDB();
+                    // Požiadame o perzistentné úložisko (bez limitu)
+                    if (navigator.storage && navigator.storage.persist) {
+                        await navigator.storage.persist();
                     }
-                }
-                this.syncVideosUI();
+                    
+                    if (this.state.session) {
+                        const user = await this.getUserByEmail(this.state.session);
+                        if (user) { 
+                            this.state.profile = user; 
+                            this.checkAnnualReset(user);
+                            this.onLogin(user); 
+                            this.showMsg("BannaTube: Relácia obnovená.");
+                        } else {
+                            this.logout();
+                        }
+                    }
+                    this.syncVideosUI();
+                } catch(e) { console.error("DB Init Error", e); }
             },
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('BannaTube_Elite_Local_V600', 1);
+                    const req = indexedDB.open('BannaTube_Unlimited_V800', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -346,6 +365,7 @@
             },
 
             async saveUserDB(user) {
+                if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     tx.objectStore('users').put(user);
@@ -356,16 +376,13 @@
             checkAnnualReset(user) {
                 const now = new Date();
                 const currentYear = now.getFullYear();
-                // Automatizácia: Ak rok posledného resetu chýba alebo je starší ako aktuálny, resetuj
                 if (!user.lastResetYear || user.lastResetYear < currentYear) {
                     user.credits = 10000;
                     user.lastResetYear = currentYear;
                     this.saveUserDB(user);
-                    this.showMsg("Ročný systémový reset: Kredity obnovené na 10 000!");
                 }
             },
 
-            // --- DETECTOR LOGIC ---
             async startBiometricVerification(user) {
                 this.state.tempUser = user;
                 this.showView('face-auth-view');
@@ -373,41 +390,33 @@
                     this.state.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: 'user' } });
                     document.getElementById('face-video').srcObject = this.state.stream;
                     this.runDetection();
-                } catch (e) { this.showMsg("KAMERA NENÁJDENÁ."); this.cancelVerification(); }
+                } catch (e) { 
+                    this.showMsg("BannaTube: Biometrický senzor blokovaný."); 
+                    this.finalizeLogin(); // Fallback
+                }
             },
 
             async runDetection() {
-                const steps = [
-                    { msg: "Otočte DOPRAVA ⮕", dir: "right" },
-                    { msg: "Otočte DOĽAVA ⬅", dir: "left" },
-                    { msg: "Pozrite HORE ⬆", dir: "up" },
-                    { msg: "Pozrite DOLE ⬇", dir: "down" },
-                    { msg: "POHYB 🔄", dir: "any" }
-                ];
-
+                const steps = [{m:"DOPRAVA ⮕", d:"right"}, {m:"DOĽAVA ⬅", d:"left"}, {m:"HORE ⬆", d:"up"}, {m:"DOLE ⬇", d:"down"}, {m:"POHYB 🔄", d:"any"}];
                 const dots = document.querySelectorAll('.step-dot');
                 const bar = document.getElementById('motion-bar-fill');
                 const instr = document.getElementById('face-instruction');
-
                 for (let i = 0; i < steps.length; i++) {
-                    instr.innerText = steps[i].msg;
+                    instr.innerText = steps[i].m;
                     let progress = 0; let timeout = 5.0;
-
                     while (progress < 100 && timeout > 0) {
                         timeout -= 0.1;
                         document.getElementById('scan-timer').innerText = `TIMEOUT: ${timeout.toFixed(1)}s`;
-                        
-                        const motion = await this.detectMotion(steps[i].dir);
-                        if (motion > 15) progress += 10; else progress -= 1;
+                        const motion = await this.detectMotion(steps[i].d);
+                        if (motion > 15) progress += 22; else progress -= 3;
                         if (progress < 0) progress = 0;
-                        bar.style.width = progress + "%";
+                        bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-
-                    if (progress < 100) { this.showMsg("ZAMIETNUTÉ."); return this.cancelVerification(); }
+                    if (progress < 100) { this.showMsg("BannaTube: Overenie zamietnuté."); return this.cancelVerification(); }
                     dots[i].style.background = "var(--success)";
                     bar.style.width = "0%";
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 300));
                 }
                 this.finalizeLogin();
             },
@@ -422,7 +431,7 @@
                 let score = 0;
                 if (this.state.lastFrame) {
                     for (let i = 0; i < current.length; i += 4) {
-                        if (Math.abs(current[i] - this.state.lastFrame[i]) > 40) {
+                        if (Math.abs(current[i] - this.state.lastFrame[i]) > 45) {
                             const x = (i/4)%64; const y = Math.floor((i/4)/64);
                             if (dir === "right" && x > 40) score++;
                             else if (dir === "left" && x < 24) score++;
@@ -432,15 +441,16 @@
                         }
                     }
                 }
-                this.state.lastFrame = current; return score/5;
+                this.state.lastFrame = current; return score/2.0;
             },
 
             finalizeLogin() {
                 const u = this.state.tempUser;
                 this.state.session = u.email; this.state.profile = u;
-                localStorage.setItem('bannatube_ultimate_v600', u.email);
+                localStorage.setItem('bannatube_unlimited_session_v1', u.email);
                 if (this.state.stream) this.state.stream.getTracks().forEach(t => t.stop());
                 this.onLogin(u);
+                this.showMsg("BannaTube: Identita overená.");
             },
 
             cancelVerification() {
@@ -452,7 +462,7 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("Nesprávne údaje.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Prístup odopretý.");
                 this.startBiometricVerification(user);
             },
 
@@ -461,8 +471,8 @@
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
-                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("Doplňte údaje.");
-
+                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Vyplňte všetky polia.");
+                
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
@@ -477,18 +487,15 @@
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('action-center').classList.remove('hidden');
-                
-                // Aktualizácia všetkých UI prvkov s kreditmi a dátami
                 this.updateUI(user);
             },
 
             updateUI(user) {
-                document.getElementById('header-credits').innerText = user.credits.toLocaleString();
+                document.getElementById('header-credits').innerText = (user.credits || 0).toLocaleString();
                 document.getElementById('profile-name-title').innerText = user.fullName;
                 document.getElementById('stat-level-display').innerText = user.level || "Standard";
-                document.getElementById('stat-credits').innerText = user.credits.toLocaleString();
-                document.getElementById('last-reset-display').innerText = user.lastResetYear || "01.01";
-                
+                document.getElementById('stat-credits').innerText = (user.credits || 0).toLocaleString();
+                document.getElementById('last-reset-display').innerText = user.lastResetYear || "2026";
                 const avatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.nick;
                 document.getElementById('user-avatar').src = user.avatar || avatarUrl;
                 document.getElementById('modal-avatar').src = user.avatar || avatarUrl;
@@ -497,10 +504,11 @@
             async uploadLocalVideo() {
                 const file = document.getElementById('local-video-input').files[0];
                 if (!file) return;
+                this.showMsg("UKLADÁM DO NEOBMEDZENÉHO JADRA...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
-                tx.oncomplete = () => { this.showMsg("Bleskovo uložené!"); this.syncVideosUI(); };
+                tx.oncomplete = () => { this.showMsg("BannaTube: Video archivované."); this.syncVideosUI(); };
             },
 
             async syncVideosUI() {
@@ -512,9 +520,9 @@
                     document.getElementById('local-videos-results').innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="video-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><small>Identita: ${v.uploader}</small></div>
+                            <div class="video-info"><b>${v.name}</b><small>BannaTube Vault</small></div>
                         </div>
-                    `).join('');
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Váš trezor je prázdny.</p>';
                 };
             },
 
@@ -525,12 +533,12 @@
                 this.state.profile.searchHistory.unshift({ q, d: Date.now() });
                 await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p>Skenujem jadro...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">BannaTube Skenovanie...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${q}&type=video&key=${localStorage.getItem('bt_key_v3')}`);
                     const data = await res.json();
-                    grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
-                } catch(e) { this.showMsg("API Key?"); }
+                    grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}" style="width:100%"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
+                } catch(e) { this.showMsg("BannaTube: Chyba API Key."); }
             },
 
             async playYT(id, title) {
@@ -551,57 +559,74 @@
                         this.state.profile.history.unshift({ t: req.result.name, type: 'MP4', d: Date.now() });
                         this.saveUserDB(this.state.profile);
                         document.getElementById('player-view').classList.remove('hidden');
-                        document.getElementById('video-mount').innerHTML = `<video controls autoplay style="width:100%; height:100%; border-radius:30px;"><source src="${url}" type="video/mp4"></video>`;
+                        document.getElementById('video-mount').innerHTML = `<video controls autoplay style="width:100%; height:100%; border-radius:24px;"><source src="${url}" type="video/mp4"></video>`;
                     }
                 };
             },
 
             async toggleAdminModal() {
-                const m = document.getElementById('admin-modal'); m.classList.toggle('hidden');
-                if(!m.classList.contains('hidden')) {
-                    const tx = this.state.localDb.transaction('users', 'readonly');
-                    const req = tx.objectStore('users').getAll();
-                    req.onsuccess = () => {
-                        const users = req.result;
-                        document.getElementById('admin-user-list').innerHTML = users.map(u => `
-                            <div class="log-item">
-                                <div><b>${u.fullName}</b><br><small>${u.email}</small></div>
-                                <button class="danger" style="padding:5px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
-                            </div>
-                        `).join('');
-                    };
-                }
+                const overlay = document.getElementById('modal-overlay');
+                const modal = document.getElementById('admin-modal');
+                overlay.classList.remove('hidden');
+                modal.classList.remove('hidden');
+                const tx = this.state.localDb.transaction('users', 'readonly');
+                const req = tx.objectStore('users').getAll();
+                req.onsuccess = () => {
+                    const users = req.result;
+                    document.getElementById('admin-user-list').innerHTML = users.map(u => `
+                        <div class="log-item">
+                            <div><b>${u.fullName}</b><br><small>${u.email}</small></div>
+                            <button class="danger" style="padding:6px; font-size: 10px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
+                        </div>
+                    `).join('');
+                };
             },
 
             async adminStrike(email) {
                 const u = await this.getUserByEmail(email);
-                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin strike", d: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); }
+                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin Strike", d: Date.now() }); await this.saveUserDB(u); this.showMsg("BannaTube: Strike udelený."); this.toggleAdminModal(); }
             },
 
-            async toggleHistoryModal() { document.getElementById('history-modal').classList.toggle('hidden'); this.switchTab('h'); },
+            async toggleHistoryModal() {
+                const overlay = document.getElementById('modal-overlay');
+                const modal = document.getElementById('history-modal');
+                overlay.classList.remove('hidden');
+                modal.classList.remove('hidden');
+                this.switchTab('h');
+            },
+
+            toggleProfileModal() {
+                this.updateUI(this.state.profile);
+                const overlay = document.getElementById('modal-overlay');
+                const modal = document.getElementById('profile-modal');
+                overlay.classList.remove('hidden');
+                modal.classList.remove('hidden');
+            },
+
+            closeAllModals() {
+                document.getElementById('modal-overlay').classList.add('hidden');
+                document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+            },
+
             switchTab(tab) {
                 this.state.currentTab = tab;
                 ['h','f','s','q'].forEach(t => document.getElementById('t-'+t).style.opacity = '0.5');
                 document.getElementById('t-'+tab).style.opacity = '1';
                 const list = document.getElementById('history-content');
                 const p = this.state.profile;
-                if(tab==='h') list.innerHTML = p.history.map(h => `<div class="log-item"><span>${h.t}</span><span class="log-tag">${h.type}</span></div>`).join('');
-                else if(tab==='f') list.innerHTML = p.favorites.map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('');
-                else if(tab==='s') list.innerHTML = p.strikes.map(s => `<div class="log-item"><span>${s.r}</span><span class="log-tag danger">STRIKE</span></div>`).join('');
-                else list.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.q}</span><span class="log-tag">Hľadané</span></div>`).join('');
+                if(tab==='h') list.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.t}</span><span class="log-tag">${h.type}</span></div>`).join('');
+                else if(tab==='f') list.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('');
+                else if(tab==='s') list.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.r}</span><span class="log-tag danger">STRIKE</span></div>`).join('');
+                else list.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.q}</span><span class="log-tag">Scan</span></div>`).join('');
             },
 
             showView(id) { document.querySelectorAll('.view-container, #register-view, #app-view, #face-auth-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
             showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
             showMsg(t) { const b = document.getElementById('msg-box'); b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); },
-            logout() { localStorage.removeItem('bannatube_ultimate_v600'); location.reload(); },
+            logout() { localStorage.removeItem('bannatube_unlimited_session_v1'); location.reload(); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             updateAvatar() { const f = document.getElementById('avatar-input').files[0]; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }; rd.readAsDataURL(f); },
-            async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); },
-            toggleProfileModal() { 
-                this.updateUI(this.state.profile);
-                document.getElementById('profile-modal').classList.toggle('hidden'); 
-            }
+            async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }
         };
     </script>
 </body>
