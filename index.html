@@ -27,6 +27,8 @@
         @keyframes bgMove { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
         @keyframes logoPulse { 0% { text-shadow: 0 0 10px var(--primary-glow); } 50% { text-shadow: 0 0 30px var(--primary-glow); } 100% { text-shadow: 0 0 10px var(--primary-glow); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
+        @keyframes pulseBorder { 0% { border-color: var(--primary); } 50% { border-color: var(--success); } 100% { border-color: var(--primary); } }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -99,6 +101,23 @@
 
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.98); padding: 40px; border-radius: 40px; border: 1px solid var(--glass-border); z-index: 3000; width: 95%; max-width: 600px; text-align: center; backdrop-filter: blur(45px); max-height: 85vh; overflow-y: auto; box-shadow: 0 0 100px rgba(0,0,0,0.8); }
 
+        /* FACE VERIFICATION UI */
+        .face-scan-container {
+            width: 280px; height: 280px; border-radius: 50%; margin: 20px auto;
+            border: 4px solid var(--primary); position: relative; overflow: hidden;
+            background: #000; animation: pulseBorder 2s infinite;
+        }
+        #face-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .scan-overlay {
+            position: absolute; inset: 0; border: 2px solid var(--primary); border-radius: 50%;
+            pointer-events: none;
+        }
+        .scan-line {
+            position: absolute; left: 0; width: 100%; height: 2px;
+            background: var(--primary); box-shadow: 0 0 15px var(--primary);
+            animation: scanLine 2s linear infinite;
+        }
+
         .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); z-index: 4000; display: flex; align-items: center; justify-content: center; }
         .player-wrapper { width: 92%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 40px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.2); }
         .close-player-btn { position: absolute; top: 25px; right: 25px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: #000; border: none; font-size: 24px; cursor: pointer; z-index: 5000; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
@@ -156,6 +175,32 @@
             </div>
         </div>
 
+        <!-- FACE VERIFICATION VIEW (NEW) -->
+        <div id="face-auth-view" class="hidden">
+            <div class="auth-card">
+                <h2 style="color:var(--primary); margin-bottom: 10px;">ANTIBOT OVERENIE</h2>
+                <p id="face-instruction" style="font-size: 14px; color: var(--success); font-weight: 800; height: 30px; margin-bottom: 20px;">INICIALIZÁCIA BIOMETRIE...</p>
+                
+                <div class="face-scan-container">
+                    <video id="face-video" autoplay playsinline muted></video>
+                    <div class="scan-overlay">
+                        <div class="scan-line"></div>
+                    </div>
+                </div>
+
+                <div id="verify-steps" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                    <div class="step-dot" style="width: 10px; height: 10px; border-radius: 50%; background: rgba(255,215,0,0.2);"></div>
+                    <div class="step-dot" style="width: 10px; height: 10px; border-radius: 50%; background: rgba(255,215,0,0.2);"></div>
+                    <div class="step-dot" style="width: 10px; height: 10px; border-radius: 50%; background: rgba(255,215,0,0.2);"></div>
+                    <div class="step-dot" style="width: 10px; height: 10px; border-radius: 50%; background: rgba(255,215,0,0.2);"></div>
+                    <div class="step-dot" style="width: 10px; height: 10px; border-radius: 50%; background: rgba(255,215,0,0.2);"></div>
+                </div>
+
+                <p style="font-size: 10px; opacity: 0.5; margin-top: 20px;">Súkromný prenos šifrovaný lokálnym kľúčom.</p>
+                <button onclick="app.cancelVerification()" class="secondary" style="margin-top: 20px; width: 100%;">ZRUŠIŤ</button>
+            </div>
+        </div>
+
         <div id="register-view" class="hidden">
             <div class="auth-card">
                 <h2 style="margin-bottom: 25px;">Vytvoriť Core Profil</h2>
@@ -174,7 +219,6 @@
                     
                     <div><label class="reg-label">7. Referenčný kód</label><input type="text" id="reg-ref" placeholder="CODE-X"></div>
                     <div><label class="reg-label">Pohlavie</label><select id="reg-gender"><option>Muž</option><option>Žena</option></select></div>
-                    
                     <div><label class="reg-label">Narodenie</label><input type="date" id="reg-birth"></div>
                     <div><label class="reg-label">Heslo</label><input type="password" id="reg-pass" placeholder="••••••••"></div>
 
@@ -206,7 +250,7 @@
             <div id="section-vault" class="hidden">
                 <div class="search-area" style="padding-top:40px;">
                     <h1 style="color:var(--primary);">LOCAL <span style="color:white;">VAULT</span></h1>
-                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny šifrovaný archív.</p>
+                    <p style="opacity:0.5; margin-top: 10px;">Váš privátny šifrovaný archív uložený v zariadení.</p>
                 </div>
                 <div id="vault-locked-ui" style="text-align:center; padding:50px; background:rgba(255,215,0,0.03); border-radius:40px; border:1px dashed var(--primary); margin-top: 20px;">
                     <div style="font-size:50px; margin-bottom:20px; opacity: 0.3;">🔒</div>
@@ -283,22 +327,23 @@
     </div>
 
     <script>
-        // BANNATUBE CHROME OPTIMIZED CORE V500
+        // BANNATUBE STABLE CORE V500
         window.app = {
             state: {
-                session: localStorage.getItem('bannatube_chrome_v500'),
+                session: localStorage.getItem('bannatube_stable_v500'),
                 apiKey: localStorage.getItem('bt_key_v3') || '',
                 localDb: null,
                 profile: null,
                 historyTab: 'history',
-                isReady: false
+                isReady: false,
+                stream: null,
+                tempLoginUser: null
             },
 
             async init() {
                 try {
                     await this.initLocalDB();
                     this.state.isReady = true;
-                    console.log("Core Database V500 Online.");
                     
                     if (this.state.session) {
                         const user = await this.getUserByEmail(this.state.session);
@@ -313,8 +358,7 @@
                     this.syncVideosUI();
                     setInterval(() => this.tickVault(), 1000);
                 } catch (e) {
-                    console.error("Critical Failure:", e);
-                    this.showMsg("Chyba inicializácie úložiska.");
+                    this.showMsg("Chyba databázy.");
                 }
             },
 
@@ -326,29 +370,14 @@
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
                         if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
                     };
-                    req.onsuccess = (e) => { 
-                        this.state.localDb = e.target.result; 
-                        resolve(); 
-                    };
-                    req.onerror = (e) => {
-                        console.error("Database Error:", e.target.error);
-                        reject(e.target.error);
-                    };
-                    req.onblocked = () => {
-                        alert("Databáza je blokovaná inou kartou. Zavrite ostatné okná BannaTube.");
-                    };
+                    req.onsuccess = (e) => { this.state.localDb = e.target.result; resolve(); };
+                    req.onerror = () => reject();
                 });
-            },
-
-            // Pomocná funkcia na zaručenie pripojenia
-            async ensureDb() {
-                if (!this.state.localDb) await this.initLocalDB();
-                return this.state.localDb;
             },
 
             async getUserByEmail(email) {
                 if (!email) return null;
-                const db = await this.ensureDb();
+                const db = this.state.localDb;
                 return new Promise((resolve) => {
                     try {
                         const tx = db.transaction('users', 'readonly');
@@ -361,100 +390,123 @@
             },
 
             async saveUserDB(user) {
-                const db = await this.ensureDb();
-                return new Promise((resolve, reject) => {
-                    try {
-                        const tx = db.transaction('users', 'readwrite');
-                        const store = tx.objectStore('users');
-                        store.put(user);
-                        tx.oncomplete = () => resolve();
-                        tx.onerror = (e) => reject(e);
-                    } catch(e) { reject(e); }
+                return new Promise((resolve) => {
+                    const tx = this.state.localDb.transaction('users', 'readwrite');
+                    const store = tx.objectStore('users');
+                    store.put(user);
+                    tx.oncomplete = () => resolve();
                 });
             },
 
             checkAnnualReset(user) {
                 const now = new Date();
-                const currentYear = now.getFullYear();
-                if (!user.lastResetYear || user.lastResetYear < currentYear) {
-                    user.credits = 10000;
-                    user.lastResetYear = currentYear;
-                    this.saveUserDB(user);
-                    this.showMsg(`Nový rok ${currentYear}: Kredity obnovené!`);
+                if (now.getMonth() === 0 && now.getDate() === 1) {
+                    if (!user.lastResetYear || user.lastResetYear < now.getFullYear()) {
+                        user.credits = 10000;
+                        user.lastResetYear = now.getFullYear();
+                        this.saveUserDB(user);
+                    }
                 }
+            },
+
+            // --- ANTIBOT FACE VERIFICATION LOGIC ---
+            async startFaceVerification(user) {
+                this.state.tempLoginUser = user;
+                this.showView('face-auth-view');
+                
+                try {
+                    this.state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                    document.getElementById('face-video').srcObject = this.state.stream;
+                    this.runVerificationSequence();
+                } catch (e) {
+                    this.showMsg("Kamera nie je dostupná.");
+                    this.cancelVerification();
+                }
+            },
+
+            async runVerificationSequence() {
+                const steps = [
+                    { msg: "Otočte hlavou DOPRAVA", time: 2000 },
+                    { msg: "Otočte hlavou DOĽAVA", time: 2000 },
+                    { msg: "Pozrite sa HORE", time: 2000 },
+                    { msg: "Pozrite sa DOLE", time: 2000 },
+                    { msg: "Urobte pohyb V KRUHU", time: 2500 }
+                ];
+
+                const dots = document.querySelectorAll('.step-dot');
+                const instruction = document.getElementById('face-instruction');
+
+                for (let i = 0; i < steps.length; i++) {
+                    instruction.innerText = steps[i].msg;
+                    instruction.style.color = "var(--primary)";
+                    await new Promise(r => setTimeout(r, steps[i].time));
+                    dots[i].style.background = "var(--success)";
+                    dots[i].style.boxShadow = "0 0 10px var(--success)";
+                }
+
+                instruction.innerText = "IDENTITA OVERENÁ. NIE STE ROBOT.";
+                instruction.style.color = "var(--success)";
+                await new Promise(r => setTimeout(r, 1000));
+                this.completeLogin();
+            },
+
+            completeLogin() {
+                const user = this.state.tempLoginUser;
+                this.state.session = user.email;
+                this.state.profile = user;
+                localStorage.setItem('bannatube_stable_v500', user.email);
+                
+                if (this.state.stream) {
+                    this.state.stream.getTracks().forEach(track => track.stop());
+                }
+                
+                this.onLogin(user);
+                this.showMsg("Prístup odomknutý.");
+            },
+
+            cancelVerification() {
+                if (this.state.stream) {
+                    this.state.stream.getTracks().forEach(track => track.stop());
+                }
+                this.showView('login-view');
+            },
+
+            // --- AUTH HANDLERS ---
+            async handleLogin() {
+                const email = document.getElementById('login-email').value.trim().toLowerCase();
+                const pass = document.getElementById('login-pass').value.trim();
+                
+                if (!email || !pass) return this.showMsg("Zadajte údaje.");
+                const user = await this.getUserByEmail(email);
+                
+                if (!user) return this.showMsg("Účet nenájdený.");
+                if (user.pass !== pass) return this.showMsg("Nesprávne heslo.");
+
+                // Start mandatory face verification instead of direct login
+                this.startFaceVerification(user);
             },
 
             async handleRegister() {
-                const emailInput = document.getElementById('reg-email');
-                const passInput = document.getElementById('reg-pass');
-                const nameInput = document.getElementById('reg-name');
-                const surnameInput = document.getElementById('reg-surname');
-                const nickInput = document.getElementById('reg-nick');
-                const termsInput = document.getElementById('reg-terms');
+                const email = document.getElementById('reg-email').value.trim().toLowerCase();
+                const pass = document.getElementById('reg-pass').value.trim();
+                const name = document.getElementById('reg-name').value.trim();
+                const nick = document.getElementById('reg-nick').value.trim();
+                const terms = document.getElementById('reg-terms').checked;
 
-                const email = emailInput.value.trim().toLowerCase();
-                const pass = passInput.value.trim();
-                const name = nameInput.value.trim();
-                const nick = nickInput.value.trim();
+                if (!email || !pass || !name || !nick || !terms) return this.showMsg("Doplňte povinné polia.");
 
-                if (!email || !pass || !name || !nick || !termsInput.checked) {
-                    return this.showMsg("Vyplňte polia a súhlaste s podmienkami.");
-                }
+                const newUser = { 
+                    email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value.trim(), nick, 
+                    country: document.getElementById('reg-country').value,
+                    credits: 10000, createdAt: Date.now(), unlocked: false,
+                    history: [], favorites: [], strikes: [], searchHistory: [], 
+                    lastResetYear: new Date().getFullYear(),
+                    level: document.getElementById('reg-level').value
+                };
 
-                try {
-                    const existing = await this.getUserByEmail(email);
-                    if (existing) return this.showMsg("Tento subjekt už existuje.");
-
-                    const newUser = { 
-                        email, pass, name, fullName: name + " " + surnameInput.value.trim(), nick, 
-                        country: document.getElementById('reg-country').value,
-                        phone: document.getElementById('reg-phone').value.trim(),
-                        level: document.getElementById('reg-level').value,
-                        question: document.getElementById('reg-question').value,
-                        answer: document.getElementById('reg-answer').value.trim(),
-                        ref: document.getElementById('reg-ref').value.trim(),
-                        news: document.getElementById('reg-news').checked,
-                        credits: 10000, createdAt: Date.now(), unlocked: false, avatar: null,
-                        history: [], favorites: [], strikes: [], searchHistory: [], 
-                        lastResetYear: new Date().getFullYear()
-                    };
-
-                    await this.saveUserDB(newUser);
-                    
-                    // AUTO-LOGIN PO REGISTRÁCII
-                    this.state.session = email;
-                    this.state.profile = newUser;
-                    localStorage.setItem('bannatube_chrome_v500', email);
-                    this.onLogin(newUser);
-                    this.showMsg("Licencia aktivovaná. Vitajte v Core.");
-                } catch(e) { 
-                    console.error(e);
-                    this.showMsg("Chyba pri registrácii."); 
-                }
-            },
-
-            async handleLogin() {
-                const emailInput = document.getElementById('login-email');
-                const passInput = document.getElementById('login-pass');
-                const email = emailInput.value.trim().toLowerCase();
-                const pass = passInput.value.trim();
-                
-                if (!email || !pass) return this.showMsg("Zadajte prihlasovacie údaje.");
-
-                try {
-                    const user = await this.getUserByEmail(email);
-                    
-                    if (!user) return this.showMsg("Subjekt nenájdený v jadre.");
-                    if (user.pass !== pass) return this.showMsg("Nesprávna autorizácia.");
-
-                    this.state.session = email;
-                    this.state.profile = user;
-                    localStorage.setItem('bannatube_chrome_v500', email);
-                    this.onLogin(user);
-                    this.showMsg("Prístup odomknutý.");
-                } catch(e) {
-                    this.showMsg("Chyba pri prihlasovaní.");
-                }
+                await this.saveUserDB(newUser);
+                // Pri registrácii tiež vyžadujeme Face ID pre prvý vstup
+                this.startFaceVerification(newUser);
             },
 
             onLogin(user) {
@@ -471,55 +523,47 @@
             async uploadLocalVideo() {
                 const file = document.getElementById('local-video-input').files[0];
                 if (!file) return;
-                this.showMsg("SYNCHRONIZÁCIA MP4...");
+                this.showMsg("BLESKOVÝ ZÁPIS...");
                 const videoId = crypto.randomUUID();
-                const db = await this.ensureDb();
-                const tx = db.transaction('videos', 'readwrite');
+                const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
-                tx.oncomplete = () => { this.showMsg("Dáta bezpečne zapísané."); this.syncVideosUI(); };
+                tx.oncomplete = () => { this.showMsg("Uložené."); this.syncVideosUI(); };
             },
 
             async syncVideosUI() {
-                const db = await this.ensureDb();
                 const grid = document.getElementById('local-videos-results');
-                if(!grid) return;
-                const tx = db.transaction('videos', 'readonly');
+                if(!grid || !this.state.localDb) return;
+                const tx = this.state.localDb.transaction('videos', 'readonly');
                 const req = tx.objectStore('videos').getAll();
                 req.onsuccess = () => {
                     const videos = req.result;
                     grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="local-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><br><small>Identita: ${v.uploader}</small></div>
+                            <div class="video-info"><b>${v.name}</b><br><small>${v.uploader}</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor je prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3;">Trezor prázdny.</p>';
                 };
             },
 
             async search() {
-                if (!this.state.apiKey) return this.showMsg("Chýba API kľúč.");
+                if (!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
-
-                if(!this.state.profile.searchHistory) this.state.profile.searchHistory = [];
                 this.state.profile.searchHistory.unshift({ query: q, date: Date.now() });
                 await this.saveUserDB(this.state.profile);
-
                 const grid = document.getElementById('results');
                 grid.innerHTML = '<p style="grid-column:1/-1; opacity:0.5;">Skenujem...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
                     grid.innerHTML = data.items.map(i => `
-                        <div class="video-card">
-                            <div onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">
-                                <img src="${i.snippet.thumbnails.medium.url}">
-                                <div class="video-info"><b>${i.snippet.title}</b></div>
-                            </div>
-                            <button onclick="app.toggleFav('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')" style="width:100%; border-radius:0; padding:8px; font-size:9px;">❤️ OBLOŽIŤ DO LOGU</button>
+                        <div class="video-card" onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')">
+                            <img src="${i.snippet.thumbnails.medium.url}">
+                            <div class="video-info"><b>${i.snippet.title}</b></div>
                         </div>
                     `).join('');
-                } catch(e) { grid.innerHTML = 'Chyba API spojenia.'; }
+                } catch(e) { grid.innerHTML = 'API Error.'; }
             },
 
             async playYT(id, title) {
@@ -533,69 +577,39 @@
             },
 
             async playVideo(id) {
-                const db = await this.ensureDb();
-                const tx = db.transaction('videos', 'readonly');
+                const tx = this.state.localDb.transaction('videos', 'readonly');
                 const req = tx.objectStore('videos').get(id);
-                req.onsuccess = async () => {
+                req.onsuccess = () => {
                     if (req.result) {
                         const url = URL.createObjectURL(req.result.data);
-                        if(!this.state.profile.history) this.state.profile.history = [];
                         this.state.profile.history.unshift({ title: req.result.name, type: 'MP4', date: Date.now() });
-                        await this.saveUserDB(this.state.profile);
+                        this.saveUserDB(this.state.profile);
                         document.getElementById('player-view').classList.remove('hidden');
                         document.getElementById('video-mount').innerHTML = `<video controls autoplay style="width:100%; height:100%; border-radius:30px;"><source src="${url}" type="video/mp4"></video>`;
                     }
                 };
             },
 
-            async toggleFav(id, title) {
-                if(!this.state.profile.favorites) this.state.profile.favorites = [];
-                const idx = this.state.profile.favorites.findIndex(f => f.id === id);
-                if(idx > -1) this.state.profile.favorites.splice(idx, 1);
-                else this.state.profile.favorites.push({ id, title, date: Date.now() });
-                await this.saveUserDB(this.state.profile);
-                this.showMsg("Záznam aktualizovaný.");
-            },
-
             async toggleAdminModal() {
-                const m = document.getElementById('admin-modal');
-                m.classList.toggle('hidden');
+                const m = document.getElementById('admin-modal'); m.classList.toggle('hidden');
                 if(!m.classList.contains('hidden')) {
-                    const db = await this.ensureDb();
-                    const tx = db.transaction('users', 'readonly');
+                    const tx = this.state.localDb.transaction('users', 'readonly');
                     const req = tx.objectStore('users').getAll();
                     req.onsuccess = () => {
                         const users = req.result;
                         document.getElementById('admin-user-list').innerHTML = users.map(u => `
                             <div class="log-item">
-                                <div><b>${u.fullName}</b> (@${u.nick || 'null'})<br><small>${u.email} | ${u.credits}🪙</small></div>
-                                <div>
-                                    <button class="danger" style="padding:5px 10px; font-size:9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
-                                    <button class="secondary" style="padding:5px 10px; font-size:9px;" onclick="app.adminDeleteUser('${u.email}')">DELETE</button>
-                                </div>
+                                <div><b>${u.fullName}</b> (@${u.nick})<br><small>${u.email}</small></div>
+                                <button class="danger" style="padding:5px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
                             </div>
-                        `).join('') || "Jadro je prázdne.";
+                        `).join('');
                     };
                 }
             },
 
             async adminStrike(email) {
                 const u = await this.getUserByEmail(email);
-                if(u) {
-                    if(!u.strikes) u.strikes = [];
-                    u.strikes.push({ reason: "Admin disciplína", date: Date.now() });
-                    await this.saveUserDB(u);
-                    this.showMsg("Strike udelený: " + email);
-                    this.toggleAdminModal(); this.toggleAdminModal();
-                }
-            },
-
-            async adminDeleteUser(email) {
-                if(!confirm("TRVALO VYMAZAŤ LICENCIU?")) return;
-                const db = await this.ensureDb();
-                const tx = db.transaction('users', 'readwrite');
-                tx.objectStore('users').delete(email);
-                tx.oncomplete = () => { this.showMsg("Subjekt odstránený."); this.toggleAdminModal(); this.toggleAdminModal(); };
+                if(u) { u.strikes.push({ reason: "Admin strike", date: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); this.toggleAdminModal(); }
             },
 
             async toggleHistoryModal() {
@@ -607,26 +621,16 @@
                 this.state.historyTab = tab;
                 const p = this.state.profile;
                 const content = document.getElementById('history-content-list');
-                ['h','f','s','q'].forEach(t => {
-                    const el = document.getElementById('tab-'+t);
-                    if(el) el.style.opacity = '0.5';
-                });
+                ['h','f','s','q'].forEach(t => document.getElementById('tab-'+t).style.opacity = '0.5');
                 const activeId = tab === 'history' ? 'h' : tab === 'favs' ? 'f' : tab === 'strikes' ? 's' : 'q';
-                const tabEl = document.getElementById('tab-' + activeId);
-                if (tabEl) tabEl.style.opacity = '1';
-                
-                if(tab === 'history') {
-                    content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('') || "História je prázdna.";
-                } else if(tab === 'favs') {
-                    content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('') || "Žiadne Elite záznamy.";
-                } else if(tab === 'strikes') {
-                    content.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.reason}</span><span class="log-tag danger">STRIKE</span></div>`).join('') || "Bez priestupkov.";
-                } else {
-                    content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Hľadané</span></div>`).join('') || "Žiadne hľadania.";
-                }
+                document.getElementById('tab-' + activeId).style.opacity = '1';
+                if(tab === 'history') content.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.title}</span><span class="log-tag">${h.type}</span></div>`).join('');
+                else if(tab === 'favs') content.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('');
+                else if(tab === 'strikes') content.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.reason}</span><span class="log-tag danger">STRIKE</span></div>`).join('');
+                else content.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.query}</span><span class="log-tag">Hľadané</span></div>`).join('');
             },
 
-            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
+            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view, #face-auth-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
             showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); this.syncVideosUI(); },
             tickVault() {
                 if (!this.state.profile || document.getElementById('section-vault').classList.contains('hidden')) return;
@@ -640,7 +644,7 @@
                     if (el) el.innerText = `${h}h ${m}m ${s}s`;
                 }
             },
-            async instantUnlockVault() { this.state.profile.unlocked = true; await this.saveUserDB(this.state.profile); this.showMsg("Vault odomknutý!"); this.tickVault(); },
+            async instantUnlockVault() { this.state.profile.unlocked = true; await this.saveUserDB(this.state.profile); this.showMsg("Vault odomknutý!"); },
             updateAvatarDisplay(d) { const def = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='gray' viewBox='0 0 24 24'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"; document.getElementById('user-avatar').src = d || def; document.getElementById('modal-avatar').src = d || def; },
             updateAvatar() { const f = document.getElementById('avatar-input').files[0]; if(!f) return; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.updateAvatarDisplay(e.target.result); }; rd.readAsDataURL(f); },
             async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.onLogin(this.state.profile); },
@@ -649,9 +653,8 @@
             saveApiKey() { this.state.apiKey = document.getElementById('api-key-input').value.trim(); localStorage.setItem('bt_key_v3', this.state.apiKey); this.switchSettings('main'); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             showMsg(t) { const b = document.getElementById('msg-box'); if(b){ b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); } },
-            logout() { localStorage.removeItem('bannatube_chrome_v500'); location.reload(); }
+            logout() { localStorage.removeItem('bannatube_stable_v500'); location.reload(); }
         };
     </script>
 </body>
 </html>
-
