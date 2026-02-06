@@ -74,6 +74,7 @@
         header {
             padding: 25px 0; display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative; z-index: 9000; /* Zabezpečenie klikateľnosti hlavičky */
         }
 
         .logo { font-size: 28px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
@@ -107,12 +108,17 @@
         .video-info { padding: 20px; }
 
         /* ACTION CENTER */
-        .action-center { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; }
+        .action-center { 
+            position: fixed; bottom: 30px; right: 30px; 
+            display: flex; flex-direction: column; gap: 15px; 
+            z-index: 9999; /* Musí byť nad všetkým */
+        }
         .action-fab {
             width: 60px; height: 60px; border-radius: 20px; background: var(--surface);
             border: 1px solid var(--glass-border); color: var(--primary); display: flex;
             align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(20px);
+            pointer-events: auto; /* Zaručenie klikov */
         }
         .action-fab:hover { transform: scale(1.1); border-color: var(--primary); }
 
@@ -141,8 +147,8 @@
                 <div style="background:rgba(255,215,0,0.1); padding:10px 20px; border-radius:14px; font-weight:800; color:var(--primary); border:1px solid var(--glass-border);">
                     🪙 <span id="header-credits">0</span>
                 </div>
-                <div class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:48px; height:48px; border-radius:15px; border:2px solid var(--primary); overflow:hidden; cursor:pointer;">
-                    <img id="user-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
+                <div id="profile-trigger" class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:48px; height:48px; border-radius:15px; border:2px solid var(--primary); overflow:hidden; cursor:pointer; position: relative; z-index: 9500;">
+                    <img id="user-avatar" src="" style="width:100%; height:100%; object-fit:cover; pointer-events: none;">
                 </div>
                 <button onclick="app.logout()" class="secondary" style="padding:10px; width:40px; height:40px;">✕</button>
             </div>
@@ -201,7 +207,7 @@
                     
                     <div class="reg-full"><label class="reg-label">9 NOVÝCH FUNKCIÍ REGISTRÁCIE</label></div>
                     <div><label class="reg-label">1. Prezývka</label><input type="text" id="reg-nick" placeholder="GamerX"></div>
-                    <div><label class="reg-label">2. Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iná</option></select></div>
+                    <div><label class="reg-label">2. Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
                     <div><label class="reg-label">3. Telefón</label><input type="tel" id="reg-phone" placeholder="+421"></div>
                     <div><label class="reg-label">4. Citizen Level</label><select id="reg-level"><option>Standard</option><option>Elite</option><option>Prime</option></select></div>
                     <div class="reg-full"><label class="reg-label">5. Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Mesto narodenia?</option></select></div>
@@ -247,10 +253,10 @@
         </div>
     </div>
 
-    <!-- ACTION CENTER (RE-RESTORED) -->
+    <!-- ACTION CENTER -->
     <div id="action-center" class="action-center hidden">
-        <div class="action-fab" onclick="app.toggleAdminModal()" title="Admin Panel">🛡️</div>
-        <div class="action-fab" onclick="app.toggleHistoryModal()" title="Moja Aktivita">📊</div>
+        <div class="action-fab" onclick="app.toggleAdminModal()" title="Admin Oversight">🛡️</div>
+        <div class="action-fab" onclick="app.toggleHistoryModal()" title="Centrum Aktivít">📊</div>
     </div>
 
     <!-- MODALS -->
@@ -266,7 +272,7 @@
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:30px 0;">
             <div class="glass-card" style="padding:20px;"><label style="font-size:10px; opacity:0.5;">KREDITY</label><b id="stat-credits" style="color:var(--primary); font-size:18px;">0</b></div>
-            <div class="glass-card" style="padding:20px;"><label style="font-size:10px; opacity:0.5;">RESET</label><b>01.01</b></div>
+            <div class="glass-card" style="padding:20px;"><label style="font-size:10px; opacity:0.5;">RESET</label><b id="last-reset-display">01.01</b></div>
         </div>
         <button onclick="app.claimCredits()" style="width:100%; margin-bottom:15px;">+500 KREDITOV</button>
         <button onclick="app.toggleProfileModal()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
@@ -323,8 +329,8 @@
                     const req = indexedDB.open('BannaTube_Elite_Local_V600', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
-                        d.createObjectStore('users', { keyPath: 'email' });
-                        d.createObjectStore('videos', { keyPath: 'id' });
+                        if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
+                        if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
                     };
                     req.onsuccess = (e) => { this.state.localDb = e.target.result; resolve(); };
                 });
@@ -349,12 +355,13 @@
 
             checkAnnualReset(user) {
                 const now = new Date();
-                if (now.getMonth() === 0 && now.getDate() === 1) {
-                    if (!user.lastResetYear || user.lastResetYear < now.getFullYear()) {
-                        user.credits = 10000;
-                        user.lastResetYear = now.getFullYear();
-                        this.saveUserDB(user);
-                    }
+                const currentYear = now.getFullYear();
+                // Automatizácia: Ak rok posledného resetu chýba alebo je starší ako aktuálny, resetuj
+                if (!user.lastResetYear || user.lastResetYear < currentYear) {
+                    user.credits = 10000;
+                    user.lastResetYear = currentYear;
+                    this.saveUserDB(user);
+                    this.showMsg("Ročný systémový reset: Kredity obnovené na 10 000!");
                 }
             },
 
@@ -441,7 +448,6 @@
                 this.showView('login-view');
             },
 
-            // --- AUTH HANDLERS ---
             async handleLogin() {
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
@@ -461,7 +467,7 @@
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
                     country: document.getElementById('reg-country').value, level: document.getElementById('reg-level').value,
-                    history: [], favorites: [], strikes: [], searchHistory: []
+                    history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear()
                 };
                 await this.saveUserDB(newUser);
                 this.startBiometricVerification(newUser);
@@ -471,9 +477,18 @@
                 this.showView('app-view');
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('action-center').classList.remove('hidden');
+                
+                // Aktualizácia všetkých UI prvkov s kreditmi a dátami
+                this.updateUI(user);
+            },
+
+            updateUI(user) {
                 document.getElementById('header-credits').innerText = user.credits.toLocaleString();
                 document.getElementById('profile-name-title').innerText = user.fullName;
-                document.getElementById('stat-level-display').innerText = user.level || "Citizen";
+                document.getElementById('stat-level-display').innerText = user.level || "Standard";
+                document.getElementById('stat-credits').innerText = user.credits.toLocaleString();
+                document.getElementById('last-reset-display').innerText = user.lastResetYear || "01.01";
+                
                 const avatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.nick;
                 document.getElementById('user-avatar').src = user.avatar || avatarUrl;
                 document.getElementById('modal-avatar').src = user.avatar || avatarUrl;
@@ -506,6 +521,7 @@
             async search() {
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
+                if(!this.state.profile.searchHistory) this.state.profile.searchHistory = [];
                 this.state.profile.searchHistory.unshift({ q, d: Date.now() });
                 await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
@@ -521,7 +537,7 @@
                 this.state.profile.history.unshift({ t: title, type: 'YT', d: Date.now() });
                 this.state.profile.credits -= 10;
                 await this.saveUserDB(this.state.profile);
-                document.getElementById('header-credits').innerText = this.state.profile.credits.toLocaleString();
+                this.updateUI(this.state.profile);
                 document.getElementById('player-view').classList.remove('hidden');
                 document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
             },
@@ -559,7 +575,7 @@
 
             async adminStrike(email) {
                 const u = await this.getUserByEmail(email);
-                if(u) { u.strikes.push({ r: "Admin strike", d: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); }
+                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin strike", d: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); }
             },
 
             async toggleHistoryModal() { document.getElementById('history-modal').classList.toggle('hidden'); this.switchTab('h'); },
@@ -580,9 +596,12 @@
             showMsg(t) { const b = document.getElementById('msg-box'); b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); },
             logout() { localStorage.removeItem('bannatube_ultimate_v600'); location.reload(); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
-            updateAvatar() { const f = document.getElementById('avatar-input').files[0]; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.onLogin(this.state.profile); }; rd.readAsDataURL(f); },
-            async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.onLogin(this.state.profile); },
-            toggleProfileModal() { document.getElementById('profile-modal').classList.toggle('hidden'); }
+            updateAvatar() { const f = document.getElementById('avatar-input').files[0]; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }; rd.readAsDataURL(f); },
+            async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); },
+            toggleProfileModal() { 
+                this.updateUI(this.state.profile);
+                document.getElementById('profile-modal').classList.toggle('hidden'); 
+            }
         };
     </script>
 </body>
