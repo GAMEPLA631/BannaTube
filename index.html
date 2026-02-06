@@ -86,7 +86,7 @@
 
         .auth-card { padding: 40px; max-width: 550px; margin: 60px auto; text-align: center; position: relative; z-index: 100; }
 
-        /* FACE DETECTOR - MOBILE READY */
+        /* FACE DETECTOR */
         .face-scanner-wrap {
             position: relative; width: 280px; height: 280px; margin: 20px auto;
             border-radius: 50%; padding: 8px; border: 2px dashed rgba(255, 215, 0, 0.3);
@@ -112,7 +112,7 @@
         .video-thumb { width: 100%; aspect-ratio: 16/9; background: #111; display: flex; align-items: center; justify-content: center; font-size: 40px; }
         .video-info { padding: 20px; }
 
-        /* ACTION CENTER - Z-INDEX FIX */
+        /* ACTION CENTER */
         .action-center { 
             position: fixed; bottom: 30px; right: 30px; 
             display: flex; flex-direction: column; gap: 15px; 
@@ -137,7 +137,6 @@
         .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); z-index: 120000; display: flex; align-items: center; justify-content: center; }
         .player-wrapper { width: 95%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 32px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.3); }
 
-        /* MODAL FIX */
         .modal-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
@@ -164,8 +163,8 @@
             </div>
         </header>
 
-        <!-- VIEWS -->
-        <div id="login-view" class="view-container">
+        <!-- AUTH VIEWS -->
+        <div id="login-view">
             <div class="auth-card glass-card">
                 <div style="font-size:50px; margin-bottom:20px;">🔒</div>
                 <h2 style="font-size:30px; font-weight:800; margin-bottom:10px;">BANNATUBE LOGIN</h2>
@@ -213,15 +212,11 @@
                     <div><label class="reg-label">Meno</label><input type="text" id="reg-name" placeholder="Meno"></div>
                     <div><label class="reg-label">Priezvisko</label><input type="text" id="reg-surname" placeholder="Priezvisko"></div>
                     <div class="reg-full-wide"><label class="reg-label">Email</label><input type="email" id="reg-email" placeholder="Email"></div>
-                    
-                    <div><label class="reg-label">1. Prezývka</label><input type="text" id="reg-nick" placeholder="GamerX"></div>
-                    <div><label class="reg-label">2. Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iná</option></select></div>
-                    <div><label class="reg-label">3. Telefón</label><input type="tel" id="reg-phone" placeholder="+421"></div>
-                    <div><label class="reg-label">4. Citizen Level</label><select id="reg-level"><option>Standard Citizen</option><option>Elite Access</option><option>Prime Admin</option></select></div>
-                    
-                    <div class="reg-full-wide"><label class="reg-label">5. Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Obľúbená farba?</option></select></div>
-                    <div class="reg-full-wide"><label class="reg-label">6. Odpoveď</label><input type="text" id="reg-answer" placeholder="Tvoja tajná odpoveď"></div>
-                    
+                    <div><label class="reg-label">Prezývka</label><input type="text" id="reg-nick" placeholder="GamerX"></div>
+                    <div><label class="reg-label">Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
+                    <div class="reg-full-wide"><label class="reg-label">Citizen Level</label><select id="reg-level"><option>Standard Citizen</option><option>Elite Access</option><option>Prime Admin</option></select></div>
+                    <div class="reg-full-wide"><label class="reg-label">Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Obľúbená farba?</option></select></div>
+                    <div class="reg-full-wide"><label class="reg-label">Odpoveď</label><input type="text" id="reg-answer" placeholder="Tvoja tajná odpoveď"></div>
                     <div class="reg-full-wide" style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:0.8;">
                         <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> 8. Súhlas s BannaTube TOS (Lokal Storage).
                     </div>
@@ -250,8 +245,12 @@
                 </div>
                 <div class="glass-card" style="padding:40px; text-align:center; margin-bottom:40px;">
                     <h2 style="margin-bottom:20px; font-size: 20px;">PRIDAŤ MP4 DO ARCHÍVU</h2>
+                    <!-- FUNKCIA NAHRÁVANIA MP4 -->
                     <input type="file" id="local-video-input" accept="video/mp4" class="hidden" onchange="app.uploadLocalVideo()">
-                    <button onclick="document.getElementById('local-video-input').click()" style="height:55px; padding:0 40px;">VYBRAŤ SÚBOR</button>
+                    <button onclick="document.getElementById('local-video-input').click()" style="height:55px; padding:0 40px;">
+                        <span style="font-size: 18px; margin-right: 10px;">📤</span> VYBRAŤ SÚBOR .MP4
+                    </button>
+                    <p style="font-size: 11px; opacity: 0.4; margin-top: 15px;">Maximálna kapacita: Neobmedzené (podľa tvojho disku)</p>
                 </div>
                 <div id="local-videos-results" class="video-grid"></div>
             </div>
@@ -264,9 +263,8 @@
         <div class="action-fab" onclick="app.toggleHistoryModal()" title="Centrum Aktivít">📊</div>
     </div>
 
-    <!-- MODALS (WRAPPED FOR CLICKABILITY) -->
+    <!-- MODALS -->
     <div id="modal-overlay" class="modal-container hidden">
-        <!-- Profile Modal -->
         <div id="profile-modal" class="modal hidden" style="width:95%; max-width:400px; padding:35px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px; text-align:center;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
                 <div style="position:relative; width:120px; height:120px; border-radius:28px; border:4px solid var(--primary); overflow:hidden;">
@@ -285,14 +283,12 @@
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
         </div>
 
-        <!-- Admin Modal -->
         <div id="admin-modal" class="modal hidden" style="width:95%; max-width:550px; padding:30px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px;">
             <h3 style="color:var(--admin-color); font-weight:800; margin-bottom:20px; text-align:center;">🛡️ BANNATUBE ADMIN JADRO</h3>
             <div id="admin-user-list" style="max-height:350px; overflow-y:auto; padding-right: 5px;"></div>
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ODPOJIŤ</button>
         </div>
 
-        <!-- History Modal -->
         <div id="history-modal" class="modal hidden" style="width:95%; max-width:550px; padding:30px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px;">
             <h3 style="color:var(--primary); font-weight:800; margin-bottom:20px; text-align:center;">📊 LOGY AKTIVITY</h3>
             <div style="display:flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom:15px; overflow-x: auto; padding-bottom: 5px; gap: 5px;">
@@ -308,7 +304,7 @@
 
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <button class="close-player-btn" onclick="app.closePlayer()" style="position: absolute; top: 15px; right: 15px; z-index: 120000; background: var(--primary); color: #000; width: 40px; height: 40px; border-radius: 50%; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+            <button class="close-player-btn" onclick="app.closePlayer()">✕</button>
             <div id="video-mount" style="width:100%; height:100%;"></div>
         </div>
     </div>
@@ -323,18 +319,15 @@
             async init() {
                 try {
                     await this.initLocalDB();
-                    // Požiadame o perzistentné úložisko (bez limitu)
                     if (navigator.storage && navigator.storage.persist) {
                         await navigator.storage.persist();
                     }
-                    
                     if (this.state.session) {
                         const user = await this.getUserByEmail(this.state.session);
                         if (user) { 
                             this.state.profile = user; 
                             this.checkAnnualReset(user);
                             this.onLogin(user); 
-                            this.showMsg("BannaTube: Relácia obnovená.");
                         } else {
                             this.logout();
                         }
@@ -380,6 +373,7 @@
                     user.credits = 10000;
                     user.lastResetYear = currentYear;
                     this.saveUserDB(user);
+                    this.showMsg("BannaTube: Šťastný Nový Rok! Kredity obnovené.");
                 }
             },
 
@@ -391,8 +385,8 @@
                     document.getElementById('face-video').srcObject = this.state.stream;
                     this.runDetection();
                 } catch (e) { 
-                    this.showMsg("BannaTube: Biometrický senzor blokovaný."); 
-                    this.finalizeLogin(); // Fallback
+                    this.showMsg("BannaTube: Senzor blokovaný, vstupujem..."); 
+                    this.finalizeLogin();
                 }
             },
 
@@ -413,7 +407,7 @@
                         bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    if (progress < 100) { this.showMsg("BannaTube: Overenie zamietnuté."); return this.cancelVerification(); }
+                    if (progress < 100) { this.showMsg("BannaTube: Verifikácia zamietnutá."); return this.cancelVerification(); }
                     dots[i].style.background = "var(--success)";
                     bar.style.width = "0%";
                     await new Promise(r => setTimeout(r, 300));
@@ -450,7 +444,6 @@
                 localStorage.setItem('bannatube_unlimited_session_v1', u.email);
                 if (this.state.stream) this.state.stream.getTracks().forEach(t => t.stop());
                 this.onLogin(u);
-                this.showMsg("BannaTube: Identita overená.");
             },
 
             cancelVerification() {
@@ -462,7 +455,7 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Prístup odopretý.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Prístup zamietnutý.");
                 this.startBiometricVerification(user);
             },
 
@@ -471,8 +464,7 @@
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
-                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Vyplňte všetky polia.");
-                
+                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte polia.");
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
@@ -502,13 +494,26 @@
             },
 
             async uploadLocalVideo() {
-                const file = document.getElementById('local-video-input').files[0];
+                const fileInput = document.getElementById('local-video-input');
+                const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("UKLADÁM DO NEOBMEDZENÉHO JADRA...");
+                
+                this.showMsg("UKLADÁM DO SYSTÉMOVÉHO JADRA...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
-                tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.name });
-                tx.oncomplete = () => { this.showMsg("BannaTube: Video archivované."); this.syncVideosUI(); };
+                tx.objectStore('videos').put({ 
+                    id: videoId, 
+                    name: file.name, 
+                    data: file, 
+                    uploader: this.state.profile.nick,
+                    timestamp: Date.now()
+                });
+                
+                tx.oncomplete = () => { 
+                    this.showMsg("BannaTube: MP4 úspešne archivované."); 
+                    this.syncVideosUI(); 
+                    fileInput.value = ""; // Reset inputu
+                };
             },
 
             async syncVideosUI() {
@@ -520,9 +525,9 @@
                     document.getElementById('local-videos-results').innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="video-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><small>BannaTube Vault</small></div>
+                            <div class="video-info"><b>${v.name}</b><small>Identita: ${v.uploader}</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Váš trezor je prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Váš trezor je momentálne prázdny.</p>';
                 };
             },
 
@@ -533,12 +538,12 @@
                 this.state.profile.searchHistory.unshift({ q, d: Date.now() });
                 await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">BannaTube Skenovanie...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Skenovanie...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${q}&type=video&key=${localStorage.getItem('bt_key_v3')}`);
                     const data = await res.json();
                     grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}" style="width:100%"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
-                } catch(e) { this.showMsg("BannaTube: Chyba API Key."); }
+                } catch(e) { this.showMsg("BannaTube: Chýba API Key."); }
             },
 
             async playYT(id, title) {
@@ -620,10 +625,10 @@
                 else list.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.q}</span><span class="log-tag">Scan</span></div>`).join('');
             },
 
-            showView(id) { document.querySelectorAll('.view-container, #register-view, #app-view, #face-auth-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
-            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
+            showView(id) { document.querySelectorAll('.view-container, #login-view, #register-view, #app-view, #face-auth-view').forEach(v => v.classList.add('hidden')); if(document.getElementById(id)) document.getElementById(id).classList.remove('hidden'); },
+            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); if(s==='vault') this.syncVideosUI(); },
             showMsg(t) { const b = document.getElementById('msg-box'); b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); },
-            logout() { localStorage.removeItem('bannatube_unlimited_session_v1'); location.reload(); },
+            logout() { localStorage.removeItem('bannatube_pro_v700_session'); location.reload(); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             updateAvatar() { const f = document.getElementById('avatar-input').files[0]; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }; rd.readAsDataURL(f); },
             async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }
