@@ -65,6 +65,7 @@
         button:active { transform: scale(0.96); }
         button.secondary { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--glass-border); }
         button.danger { background: linear-gradient(135deg, #ff2a2a, #900); color: #fff; }
+        button.pro-btn { background: linear-gradient(135deg, #00ff95, #008855); color: #000; font-size: 9px; padding: 10px 15px; }
 
         input, select, textarea {
             background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
@@ -153,6 +154,11 @@
         <header>
             <div class="logo" onclick="app.showAppSection('main')" style="cursor:pointer">BANNA<span style="opacity:0.4">TUBE</span></div>
             <div id="user-nav" class="hidden" style="display:flex; align-items:center; gap:15px;">
+                <!-- NOVÉ TLAČIDLO V LIŠTE PRE PRO POUŽÍVATEĽOV -->
+                <button id="header-upload-btn" onclick="document.getElementById('local-video-input').click()" class="pro-btn hidden">
+                    NAHRAŤ MP4 📤
+                </button>
+                
                 <div style="background:rgba(255,215,0,0.1); padding:10px 20px; border-radius:14px; font-weight:800; color:var(--primary); font-size: 14px; border:1px solid var(--glass-border);">
                     🪙 <span id="header-credits">0</span>
                 </div>
@@ -215,7 +221,6 @@
                     <div><label class="reg-label">Prezývka</label><input type="text" id="reg-nick" placeholder="GamerX"></div>
                     <div><label class="reg-label">Krajina</label><select id="reg-country"><option>Slovensko</option><option>Česko</option><option>Iné</option></select></div>
                     
-                    <!-- CITIZEN LEVEL VÝBER -->
                     <div class="reg-full-wide">
                         <label class="reg-label">Citizen Level</label>
                         <select id="reg-level">
@@ -255,7 +260,6 @@
                     <p style="opacity:0.6;">Dáta sú uložené lokálne bez limitu veľkosti.</p>
                 </div>
 
-                <!-- NAHRÁVANIE MP4 (OBLAST S OCHRANOU LEVELU) -->
                 <div id="vault-upload-block" class="glass-card" style="padding:50px; text-align:center; margin-bottom:40px; border: 2px dashed var(--primary);">
                     <div id="pro-required-ui" class="hidden">
                         <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
@@ -410,7 +414,7 @@
                         this.runDetection();
                     };
                 } catch (e) { 
-                    this.showMsg("BannaTube: Biometria nie je dostupná."); 
+                    this.showMsg("BannaTube: Biometria blokovaná."); 
                     this.finalizeLogin();
                 }
             },
@@ -485,7 +489,7 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné údaje.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
                 this.startBiometricVerification(user);
             },
 
@@ -526,18 +530,19 @@
                 document.getElementById('user-avatar').src = user.avatar || avatarUrl;
                 document.getElementById('modal-avatar').src = user.avatar || avatarUrl;
 
-                // AKTUALIZÁCIA PRÍSTUPU K VAULT UPLOADU
                 const isPro = (user.level === 'Pro' || user.level === 'Admin');
                 document.getElementById('pro-granted-ui').classList.toggle('hidden', !isPro);
                 document.getElementById('pro-required-ui').classList.toggle('hidden', isPro);
+                
+                // ZOBRAZENIE TLAČIDLA V HEADER LIŠTE PRE PRO POUŽÍVATEĽOV
+                const headerUpload = document.getElementById('header-upload-btn');
+                if(headerUpload) headerUpload.classList.toggle('hidden', !isPro);
             },
 
             async uploadLocalVideo() {
-                // Posledná poistka pre úroveň
                 if (this.state.profile.level === 'Standard') {
                     return this.showMsg("BannaTube: Pre nahrávanie vyžadujete PRO licenciu.");
                 }
-
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
