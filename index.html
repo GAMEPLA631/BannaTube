@@ -202,10 +202,10 @@
             <div class="auth-card glass-card">
                 <div style="font-size:50px; margin-bottom:20px;">🔒</div>
                 <h2 style="font-size:30px; font-weight:800; margin-bottom:10px;">BANNATUBE LOGIN</h2>
-                <p style="opacity:0.5; margin-bottom:35px;">Prístup k neobmedzenému lokálnemu jadru.</p>
+                <p style="opacity:0.5; margin-bottom:35px;">Vstup do Cloudu pre akékoľvek zariadenie.</p>
                 <input type="email" id="login-email" placeholder="Emailová adresa" style="margin-bottom:15px;">
                 <input type="password" id="login-pass" placeholder="Prístupový kód">
-                <button onclick="app.handleLogin()" style="width:100%; margin-top:35px; height:65px;">AUTORIZOVAŤ</button>
+                <button onclick="app.handleLogin()" style="width:100%; margin-top:35px; height:65px;">AUTORIZOVAŤ V CLOUDE</button>
                 <p style="margin-top:25px; font-size:14px;">Nová licencia? <span onclick="app.showView('register-view')" style="color:var(--primary); cursor:pointer; font-weight:700;">Registrovať</span></p>
             </div>
         </div>
@@ -384,15 +384,15 @@
     </div>
 
     <script>
-        // --- KONFIGURÁCIA SUPABASE ---
-        const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; // VLOŽTE SUPABASE URL
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; // VLOŽTE SUPABASE ANON KEY
+        // --- KONFIGURÁCIA SUPABASE (ZADAJTE SVOJE ÚDAJE SEM) ---
+        const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; 
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; 
         let sb = null;
         try {
             if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
                 sb = supabase.createClient(supabaseUrl, supabaseKey);
             }
-        } catch(e) { console.warn("Supabase initialization failed."); }
+        } catch(e) { console.error("Supabase fail"); }
 
         window.app = {
             state: {
@@ -417,7 +417,7 @@
                         }
                     }
                     this.syncVideosUI();
-                } catch(e) { console.error("DB Init Error", e); }
+                } catch(e) { console.error("Init Error", e); }
             },
 
             async initLocalDB() {
@@ -430,7 +430,7 @@
                     };
                     req.onsuccess = (e) => { 
                         this.state.localDb = e.target.result; 
-                        // --- PREMAZANIE STARÝCH LOKÁLNYCH ÚČTOV PRE CLOUD MIGRÁCIU ---
+                        // PREMAZANIE STARÝCH LOKÁLNYCH DÁT PRI ŠTARTE PRE ČISTÝ CLOUD SYNC
                         const tx = this.state.localDb.transaction('users', 'readwrite');
                         tx.objectStore('users').clear();
                         resolve(); 
@@ -438,12 +438,11 @@
                 });
             },
 
-            // HLAVNÁ FUNKCIA: CLOUD PRIMÁRNY (ZARUČUJE CROSS-DEVICE LOGIN)
+            // HLAVNÁ FUNKCIA: CLOUD JE PRIMÁRNY (CROSS-DEVICE)
             async getUserByEmail(email) {
                 if (!email) return null;
                 const formattedEmail = email.toLowerCase().trim();
 
-                // VŽDY SKÚSIŤ SUPABASE AKO PRVÉ (ZDROJ PRAVDY PRE VŠETKY ZARIADENIA)
                 if (sb) {
                     try {
                         const { data, error } = await sb
@@ -451,15 +450,17 @@
                             .select('*')
                             .eq('email', formattedEmail)
                             .single();
+                        
                         if (!error && data) {
-                            // Synchronizácia do lokálnej zálohy pre offline prístup neskôr
-                            this.syncToLocal(data);
+                            this.syncToLocal(data); // Stiahne do lokálnej pamäte aktuálneho zariadenia
                             return data;
+                        } else {
+                            console.warn("User not found in Cloud.");
                         }
-                    } catch (e) { console.warn("Supabase Cloud offline."); }
+                    } catch (e) { console.error("Cloud error"); }
                 }
 
-                // AK CLOUD ZLYHÁ, SKÚSIŤ LOKÁLNU ZÁLOHU NA TOMTO ZARIADENÍ
+                // Fallback na lokálnu pamäť tohto zariadenia (IndexedDB)
                 if (!this.state.localDb) return null;
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readonly');
@@ -479,14 +480,18 @@
                 const formattedEmail = user.email.toLowerCase().trim();
                 user.email = formattedEmail;
 
-                // TRVALÉ ULOŽENIE DO CLOUDU (DOSTUPNÉ VŠADE)
+                // TRVALÝ ZÁPIS DO SUPABASE (VŠETKY ZARIADENIA)
                 if (sb) {
                     try {
-                        await sb.from('users').upsert(user);
-                    } catch (e) { console.error("Supabase Save Error"); }
+                        const { error } = await sb.from('users').upsert(user);
+                        if (error) throw error;
+                    } catch (e) { 
+                        console.error("Supabase Save Error"); 
+                        this.showMsg("BannaTube: Cloud je momentálne nedostupný.");
+                    }
                 }
 
-                // LOKÁLNA ZÁLOHA
+                // LOKÁLNA ZÁLOHA PRE TOTO ZARIADENIE
                 if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
@@ -516,8 +521,8 @@
                     video.srcObject = stream;
                     video.onloadedmetadata = () => { video.play(); this.runDetection(); };
                 } catch (e) { 
-                    this.showMsg("BannaTube: Biometria blokovaná."); 
-                    this.finalizeLogin();
+                    this.showMsg("BannaTube: Biometria nie je detegovaná."); 
+                    this.finalizeLogin(); // Fallback pre rýchle prihlásenie
                 }
             },
 
@@ -539,7 +544,7 @@
                         bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    if (progress < 100) { this.showMsg("BannaTube: Verifikácia zlyhala."); return this.cancelVerification(); }
+                    if (progress < 100) { this.showMsg("BannaTube: Sken neúspešný."); return this.cancelVerification(); }
                     dots[i].style.background = "var(--success)";
                     bar.style.width = "0%";
                     await new Promise(r => setTimeout(r, 300));
@@ -577,7 +582,7 @@
                 const u = this.state.tempUser;
                 this.state.profile = u;
                 localStorage.setItem(this.state.sessionKey, u.email);
-                this.saveUserDB(u); // Trvalá synchronizácia cloudu s týmto zariadením
+                this.saveUserDB(u); // Trvalá aktualizácia
                 if (this.state.stream) this.state.stream.getTracks().forEach(t => t.stop());
                 this.onLogin(u);
             },
@@ -588,8 +593,11 @@
             },
 
             async handleLogin() {
+                if(!sb) return this.showMsg("BannaTube: Cloud nie je nakonfigurovaný.");
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
+                
+                // SKÚSI SUPABASE AJ KEĎ TU EŠTE NIČ NIE JE ULOŽENÉ
                 const user = await this.getUserByEmail(email);
                 
                 if (user && user.banned) {
@@ -597,17 +605,18 @@
                     return;
                 }
                 
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Identita alebo kód nesúhlasí.");
                 this.startBiometricVerification(user);
             },
 
             async handleRegister() {
+                if(!sb) return this.showMsg("BannaTube: Cloud fail.");
                 const email = document.getElementById('reg-email').value.trim().toLowerCase();
                 const pass = document.getElementById('reg-pass').value.trim();
                 const name = document.getElementById('reg-name').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
                 const level = document.getElementById('reg-level').value;
-                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte údaje.");
+                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte polia.");
                 
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
@@ -627,13 +636,13 @@
                     const willBan = !u.banned;
                     let reason = "";
                     if(willBan) {
-                        reason = prompt("Dôvod banu:", "Porušenie pravidiel");
+                        reason = prompt("Dôvod verejného banu:", "Porušenie pravidiel");
                         if(reason === null) return;
                     }
                     u.banned = willBan;
                     u.banReason = reason;
-                    await this.saveUserDB(u); // Okamžitý cloud sync
-                    this.showMsg(`BannaTube: Status užívateľa aktualizovaný.`);
+                    await this.saveUserDB(u); 
+                    this.showMsg(`Identita ${u.fullName} zmenená globálne.`);
                     this.toggleAdminModal();
                 }
             },
@@ -642,7 +651,7 @@
                 const reason = prompt("Dôvod:");
                 if (reason === null) return;
                 this.state.profile.banned = true;
-                this.state.profile.banReason = reason || "Vlastná deaktivácia.";
+                this.state.profile.banReason = reason || "Deaktivácia.";
                 await this.saveUserDB(this.state.profile);
                 this.logout();
             },
@@ -651,7 +660,7 @@
                 document.getElementById('modal-overlay').classList.remove('hidden');
                 document.getElementById('ban-notification-modal').classList.remove('hidden');
                 document.getElementById('ban-user-name').innerText = user.fullName;
-                document.getElementById('ban-reason-text').innerText = user.banReason || "Nebol uvedený.";
+                document.getElementById('ban-reason-text').innerText = user.banReason || "Nie je špecifikovaný.";
             },
 
             onLogin(user) {
@@ -688,7 +697,7 @@
                 if(!key) return this.showMsg("API Key prázdny.");
                 this.state.apiKey = key;
                 localStorage.setItem('bt_key_v3', key);
-                this.showMsg("BannaTube: YT API prepojené.");
+                this.showMsg("BannaTube: Cloud API Sync.");
             },
 
             async uploadLocalVideo() {
@@ -696,7 +705,7 @@
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("BannaTube: Zápis MP4...");
+                this.showMsg("BannaTube: Nahrávanie MP4...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
@@ -715,7 +724,7 @@
                             <div class="video-thumb">📽️</div>
                             <div class="video-info"><b>${v.name}</b><small>Miestny disk</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdny trezor.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Trezor prázdny.</p>';
                 };
             },
 
@@ -727,7 +736,7 @@
                 this.state.profile.searchHistory.unshift({ q, d: Date.now() });
                 await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Hľadám...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Skenujem...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${q}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -764,8 +773,8 @@
                 document.getElementById('admin-modal').classList.remove('hidden');
                 
                 if(sb) {
-                    const { data } = await sb.from('users').select('*');
-                    if(data) {
+                    const { data, error } = await sb.from('users').select('*');
+                    if(!error && data) {
                         document.getElementById('admin-user-list').innerHTML = data.map(u => `
                             <div class="log-item">
                                 <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 BAN' : '🟢 OK'}</small></div>
@@ -782,7 +791,7 @@
 
             async adminStrike(email) {
                 const u = await this.getUserByEmail(email);
-                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); }
+                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("BannaTube: Strike udelený."); this.toggleAdminModal(); }
             },
 
             async toggleHistoryModal() { document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('history-modal').classList.remove('hidden'); this.switchTab('h'); },
