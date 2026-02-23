@@ -385,6 +385,7 @@
 
     <script>
         // --- KONFIGURÁCIA SUPABASE (ZADAJTE SVOJE ÚDAJE SEM) ---
+        // Vložte vaše projektové URL a Anon API Key zo Supabase Dashboardu
         const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; 
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; 
         
@@ -399,11 +400,11 @@
 
             async init() {
                 try {
-                    // Inicializácia Supabase až po načítaní stránky
+                    // Inicializácia Supabase bezpečne pri štarte
                     if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
                         sb = supabase.createClient(supabaseUrl, supabaseKey);
                     } else {
-                        console.warn("BannaTube: Cloud config missing or lib not loaded.");
+                        console.warn("BannaTube: Cloud config missing or project data empty.");
                     }
 
                     await this.initLocalDB();
@@ -433,7 +434,7 @@
                     };
                     req.onsuccess = (e) => { 
                         this.state.localDb = e.target.result; 
-                        // ČISTENIE STARÉHO CACHE (POZOR: LEN STARÝCH LOKÁLNYCH IDENTITY)
+                        // Čistenie lokálnej pamäte užívateľov pri štarte pre čistú cloud synchronizáciu
                         try {
                             const tx = this.state.localDb.transaction('users', 'readwrite');
                             tx.objectStore('users').clear();
@@ -443,7 +444,7 @@
                 });
             },
 
-            // HLAVNÁ FUNKCIA: CLOUD JE JEDINÝ ZDROJ PRAVDY (CROSS-DEVICE)
+            // HLAVNÁ FUNKCIA: CLOUD JE JEDINÝ ZDROJ PRAVDY (Zabezpečuje prístup z akéhokoľvek zariadenia)
             async getUserByEmail(email) {
                 if (!email) return null;
                 const formattedEmail = email.toLowerCase().trim();
@@ -454,16 +455,15 @@
                             .from('users')
                             .select('*')
                             .eq('email', formattedEmail)
-                            .maybeSingle(); // maybeSingle nezhadzuje chybu ak nič nenájde
+                            .maybeSingle(); 
                         
                         if (!error && data) {
                             this.syncToLocal(data); 
                             return data;
                         }
-                    } catch (e) { console.error("Cloud fetch fail"); }
+                    } catch (e) { console.error("Cloud fetch failed."); }
                 }
 
-                // Fallback na lokálnu cache ak je cloud nedostupný
                 if (this.state.localDb) {
                     return new Promise((resolve) => {
                         const tx = this.state.localDb.transaction('users', 'readonly');
@@ -490,18 +490,12 @@
                 if (sb) {
                     try {
                         const { error } = await sb.from('users').upsert(user);
-                        if (error) {
-                            console.error("Supabase Save Error:", error);
-                            this.showMsg("Cloud Sync Error: " + error.message);
-                        }
+                        if (error) throw error;
                     } catch (e) { 
-                        this.showMsg("BannaTube: Cloud zápis zlyhal.");
+                        this.showMsg("BannaTube: Cloud Sync Error.");
                     }
-                } else {
-                    this.showMsg("BannaTube: Cloud nie je prepojený.");
                 }
 
-                // Vždy uložiť aj lokálne ako zálohu
                 if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
@@ -531,7 +525,7 @@
                     video.srcObject = stream;
                     video.onloadedmetadata = () => { video.play(); this.runDetection(); };
                 } catch (e) { 
-                    this.showMsg("BannaTube: Kamera odmietnutá."); 
+                    this.showMsg("BannaTube: Biometria nie je detegovaná."); 
                     this.finalizeLogin(); 
                 }
             },
@@ -554,7 +548,7 @@
                         bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    if (progress < 100) { this.showMsg("BannaTube: Verifikácia zlyhala."); return this.cancelVerification(); }
+                    if (progress < 100) { this.showMsg("BannaTube: Sken neúspešný."); return this.cancelVerification(); }
                     dots[i].style.background = "var(--success)";
                     bar.style.width = "0%";
                     await new Promise(r => setTimeout(r, 300));
@@ -606,7 +600,7 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 
-                if (!email || !pass) return this.showMsg("BannaTube: Zadajte email a kód.");
+                if (!email || !pass) return this.showMsg("BannaTube: Zadajte údaje.");
                 
                 const user = await this.getUserByEmail(email);
                 
@@ -615,7 +609,7 @@
                     return;
                 }
                 
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Nesprávne poverenia.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Identita alebo kód nesúhlasí.");
                 this.startBiometricVerification(user);
             },
 
@@ -625,7 +619,7 @@
                 const name = document.getElementById('reg-name').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
                 const level = document.getElementById('reg-level').value;
-                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte polia.");
+                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte údaje.");
                 
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
@@ -645,13 +639,13 @@
                     const willBan = !u.banned;
                     let reason = "";
                     if(willBan) {
-                        reason = prompt("Dôvod banu:", "Porušenie pravidiel");
+                        reason = prompt("Dôvod verejného banu:", "Porušenie pravidiel");
                         if(reason === null) return;
                     }
                     u.banned = willBan;
                     u.banReason = reason;
                     await this.saveUserDB(u); 
-                    this.showMsg(`Status identity aktualizovaný.`);
+                    this.showMsg(`Status identity aktualizovaný globálne.`);
                     this.toggleAdminModal();
                 }
             },
@@ -669,7 +663,7 @@
                 document.getElementById('modal-overlay').classList.remove('hidden');
                 document.getElementById('ban-notification-modal').classList.remove('hidden');
                 document.getElementById('ban-user-name').innerText = user.fullName;
-                document.getElementById('ban-reason-text').innerText = user.banReason || "Nebol uvedený.";
+                document.getElementById('ban-reason-text').innerText = user.banReason || "Nie je špecifikovaný.";
             },
 
             onLogin(user) {
@@ -706,7 +700,7 @@
                 if(!key) return this.showMsg("API Key prázdny.");
                 this.state.apiKey = key;
                 localStorage.setItem('bt_key_v3', key);
-                this.showMsg("BannaTube: Cloud API Sync.");
+                this.showMsg("BannaTube: YT API prepojené.");
             },
 
             async uploadLocalVideo() {
