@@ -135,7 +135,6 @@
         @media (min-width: 641px) { .reg-full-wide { grid-column: span 2; } }
         .reg-label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 5px; display: block; }
         
-        /* VIDEO PLAYER */
         .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); z-index: 120000; display: flex; align-items: center; justify-content: center; }
         .player-wrapper { width: 95%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 32px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.3); }
         
@@ -257,6 +256,7 @@
                     </div>
                     <div class="reg-full-wide"><label class="reg-label">Tajná otázka</label><select id="reg-question"><option>Meno miláčika?</option><option>Obľúbená farba?</option></select></div>
                     <div class="reg-full-wide"><label class="reg-label">Odpoveď</label><input type="text" id="reg-answer" placeholder="Tvoja tajná odpoveď"></div>
+                    
                     <div class="reg-full-wide" style="display:flex; gap:10px; align-items:center; font-size:12px; opacity:0.8;">
                         <input type="checkbox" id="reg-terms" style="width:18px; height:18px;"> 8. Súhlas s BannaTube TOS (Lokal Storage).
                     </div>
@@ -357,6 +357,21 @@
             <div id="history-content" style="max-height:350px; overflow-y:auto;"></div>
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ZAVRIEŤ</button>
         </div>
+
+        <!-- NEW BAN MODAL -->
+        <div id="ban-notification-modal" class="modal hidden" style="width:95%; max-width:400px; padding:35px; background:#0a0a0a; border:2px solid var(--danger); border-radius:32px; text-align:center;">
+            <div style="font-size: 60px; margin-bottom: 20px;">🚫</div>
+            <h2 style="color:var(--danger); font-weight:900; font-size: 24px; margin-bottom: 10px;">PRÍSTUP ZAMIETNUTÝ</h2>
+            <p style="font-weight: 800; margin-bottom: 5px;">Identita: <span id="ban-user-name" style="color: white;">--</span></p>
+            <p style="opacity: 0.6; font-size: 13px; margin-bottom: 20px;">Tento účet bol zablokovaný správcom systému.</p>
+            
+            <div style="background: rgba(255,0,0,0.1); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,0,0,0.2); margin-bottom: 25px; text-align: left;">
+                <label style="font-size: 9px; text-transform: uppercase; font-weight: 800; color: var(--danger); display: block; margin-bottom: 5px;">Dôvod zablokovania:</label>
+                <p id="ban-reason-text" style="font-size: 14px; font-weight: 600; color: white;">Žiadna špecifikácia.</p>
+            </div>
+            
+            <button onclick="app.closeAllModals()" class="secondary" style="width:100%;">POTVRDIŤ</button>
+        </div>
     </div>
 
     <div id="player-view" class="player-overlay hidden">
@@ -385,7 +400,7 @@
                             this.checkAnnualReset(user);
                             this.onLogin(user); 
                         } else {
-                            if(user && user.banned) this.showMsg("BannaTube: Identita zablokovaná.");
+                            if(user && user.banned) this.showBanNotice(user);
                             this.logout();
                         }
                     }
@@ -519,7 +534,10 @@
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
                 
-                if (user && user.banned) return this.showMsg("BannaTube: Účet zabanovaný.");
+                if (user && user.banned) {
+                    this.showBanNotice(user);
+                    return;
+                }
                 
                 if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
                 this.startBiometricVerification(user);
@@ -537,7 +555,7 @@
                     credits: 10000, createdAt: Date.now(), unlocked: false,
                     country: document.getElementById('reg-country').value, level: level,
                     history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear(),
-                    banned: false
+                    banned: false, banReason: ""
                 };
                 await this.saveUserDB(newUser);
                 this.startBiometricVerification(newUser);
@@ -547,18 +565,34 @@
             async adminToggleBan(email) {
                 const u = await this.getUserByEmail(email);
                 if(u) {
-                    u.banned = !u.banned;
+                    const willBan = !u.banned;
+                    let reason = "";
+                    if(willBan) {
+                        reason = prompt("Zadajte dôvod zablokovania (banu):", "Porušenie pravidiel systému");
+                        if(reason === null) return; // Storno
+                    }
+                    u.banned = willBan;
+                    u.banReason = reason;
                     await this.saveUserDB(u);
-                    this.showMsg(`BannaTube: Subjekt ${u.fullName} - ${u.banned ? 'ZABANOVANÝ' : 'ODBLOKOVANÝ'}.`);
-                    this.toggleAdminModal(); // Refresh UI
+                    this.showMsg(`BannaTube: Identita ${u.fullName} aktualizovaná.`);
+                    this.toggleAdminModal();
                 }
             },
 
             async handleLocalBan() {
-                if (!confirm("BannaTube: Zabanovať svoj vlastný účet?")) return;
+                const reason = prompt("Zadajte dôvod vlastného banu (bude zobrazený pri prihlásení):");
+                if (reason === null) return;
                 this.state.profile.banned = true;
+                this.state.profile.banReason = reason || "Vlastná deaktivácia účtu.";
                 await this.saveUserDB(this.state.profile);
                 this.logout();
+            },
+
+            showBanNotice(user) {
+                document.getElementById('modal-overlay').classList.remove('hidden');
+                document.getElementById('ban-notification-modal').classList.remove('hidden');
+                document.getElementById('ban-user-name').innerText = user.fullName;
+                document.getElementById('ban-reason-text').innerText = user.banReason || "Žiadna špecifikácia nebola uvedená správcom.";
             },
 
             onLogin(user) {
@@ -622,7 +656,7 @@
                             <div class="video-thumb">📽️</div>
                             <div class="video-info"><b>${v.name}</b><small>BannaTube Archive</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Prázdny trezor.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Trezor prázdny.</p>';
                 };
             },
 
