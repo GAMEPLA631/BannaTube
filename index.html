@@ -135,11 +135,10 @@
         @media (min-width: 641px) { .reg-full-wide { grid-column: span 2; } }
         .reg-label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 5px; display: block; }
         
-        /* VIDEO PLAYER FIX */
+        /* VIDEO PLAYER */
         .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); z-index: 120000; display: flex; align-items: center; justify-content: center; }
         .player-wrapper { width: 95%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 32px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.3); }
         
-        /* OPRAVENÝ KRÍŽIK NA ZATVORENIE */
         .close-player-btn { 
             position: absolute; 
             top: 20px; 
@@ -160,10 +159,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .close-player-btn:hover {
-            transform: scale(1.1) rotate(90deg);
-            background: #fff;
-        }
+        .close-player-btn:hover { transform: scale(1.1) rotate(90deg); background: #fff; }
 
         .modal-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -171,6 +167,10 @@
             display: flex; align-items: center; justify-content: center;
             z-index: 130000;
         }
+
+        .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        .log-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--primary); color: black; }
+        .log-tag.danger { background: var(--danger); color: white; }
     </style>
 </head>
 <body onload="app.init()">
@@ -336,6 +336,7 @@
             </div>
 
             <button onclick="app.claimCredits()" style="width:100%; margin-bottom:15px;">ZÍSKAŤ +500 KREDITOV</button>
+            <button onclick="app.handleLocalBan()" class="danger" style="width:100%; margin-bottom:15px;">BANNIŤ VLASTNÝ ÚČET ⛔</button>
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
         </div>
 
@@ -360,7 +361,6 @@
 
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
-            <!-- OPRAVENÝ KRÍŽIK -->
             <button class="close-player-btn" onclick="app.closePlayer()">✕</button>
             <div id="video-mount" style="width:100%; height:100%;"></div>
         </div>
@@ -380,11 +380,14 @@
                     const session = localStorage.getItem(this.state.sessionKey);
                     if (session) {
                         const user = await this.getUserByEmail(session);
-                        if (user) { 
+                        if (user && !user.banned) { 
                             this.state.profile = user; 
                             this.checkAnnualReset(user);
                             this.onLogin(user); 
-                        } else { this.logout(); }
+                        } else {
+                            if(user && user.banned) this.showMsg("BannaTube: Identita zablokovaná.");
+                            this.logout();
+                        }
                     }
                     this.syncVideosUI();
                 } catch(e) { console.error("DB Init Error", e); }
@@ -392,7 +395,7 @@
 
             async initLocalDB() {
                 return new Promise((resolve) => {
-                    const req = indexedDB.open('BannaTube_Unlimited_V800', 1);
+                    const req = indexedDB.open('BannaTube_Elite_Local_V600', 1);
                     req.onupgradeneeded = (e) => {
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
@@ -441,7 +444,7 @@
                     video.srcObject = stream;
                     video.onloadedmetadata = () => { video.play(); this.runDetection(); };
                 } catch (e) { 
-                    this.showMsg("BannaTube: Biometria blokovaná."); 
+                    this.showMsg("BannaTube: Biometria nie je dostupná."); 
                     this.finalizeLogin();
                 }
             },
@@ -464,7 +467,7 @@
                         bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    if (progress < 100) { this.showMsg("BannaTube: Zlyhanie."); return this.cancelVerification(); }
+                    if (progress < 100) { this.showMsg("BannaTube: Verifikácia zlyhala."); return this.cancelVerification(); }
                     dots[i].style.background = "var(--success)";
                     bar.style.width = "0%";
                     await new Promise(r => setTimeout(r, 300));
@@ -515,7 +518,10 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 const user = await this.getUserByEmail(email);
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné údaje.");
+                
+                if (user && user.banned) return this.showMsg("BannaTube: Účet zabanovaný.");
+                
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
                 this.startBiometricVerification(user);
             },
 
@@ -525,15 +531,34 @@
                 const name = document.getElementById('reg-name').value.trim();
                 const nick = document.getElementById('reg-nick').value.trim();
                 const level = document.getElementById('reg-level').value;
-                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Vyplňte polia.");
+                if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte údaje.");
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
                     country: document.getElementById('reg-country').value, level: level,
-                    history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear()
+                    history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear(),
+                    banned: false
                 };
                 await this.saveUserDB(newUser);
                 this.startBiometricVerification(newUser);
+            },
+
+            // --- ADMIN & BAN LOGIC ---
+            async adminToggleBan(email) {
+                const u = await this.getUserByEmail(email);
+                if(u) {
+                    u.banned = !u.banned;
+                    await this.saveUserDB(u);
+                    this.showMsg(`BannaTube: Subjekt ${u.fullName} - ${u.banned ? 'ZABANOVANÝ' : 'ODBLOKOVANÝ'}.`);
+                    this.toggleAdminModal(); // Refresh UI
+                }
+            },
+
+            async handleLocalBan() {
+                if (!confirm("BannaTube: Zabanovať svoj vlastný účet?")) return;
+                this.state.profile.banned = true;
+                await this.saveUserDB(this.state.profile);
+                this.logout();
             },
 
             onLogin(user) {
@@ -567,10 +592,10 @@
 
             saveApiKeyFromModal() {
                 const key = document.getElementById('api-key-input-modal').value.trim();
-                if(!key) return this.showMsg("Zadajte platný API kľúč.");
+                if(!key) return this.showMsg("Zadajte API.");
                 this.state.apiKey = key;
                 localStorage.setItem('bt_key_v3', key);
-                this.showMsg("YouTube Database pripojená.");
+                this.showMsg("BannaTube: API synchronizované.");
             },
 
             async uploadLocalVideo() {
@@ -578,11 +603,11 @@
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("BannaTube: Zápis do jadra...");
+                this.showMsg("BannaTube: Archivujem...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
-                tx.oncomplete = () => { this.showMsg("Video uložené!"); this.syncVideosUI(); fileInput.value = ""; };
+                tx.oncomplete = () => { this.showMsg("Hotovo!"); this.syncVideosUI(); fileInput.value = ""; };
             },
 
             async syncVideosUI() {
@@ -595,26 +620,26 @@
                     if(grid) grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="video-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><small>BannaTube Vault</small></div>
+                            <div class="video-info"><b>${v.name}</b><small>BannaTube Archive</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Trezor prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Prázdny trezor.</p>';
                 };
             },
 
             async search() {
-                if(!this.state.apiKey) return this.showMsg("V profile zadajte YouTube API kľúč.");
+                if(!this.state.apiKey) return this.showMsg("Nastavte API.");
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
                 if(!this.state.profile.searchHistory) this.state.profile.searchHistory = [];
                 this.state.profile.searchHistory.unshift({ q, d: Date.now() });
                 await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Skenujem...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Hľadám v YouTube...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${q}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
                     grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}" style="width:100%"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
-                } catch(e) { this.showMsg("BannaTube: Chyba API."); }
+                } catch(e) { this.showMsg("Chyba API."); }
             },
 
             async playYT(id, title) {
@@ -641,15 +666,19 @@
             },
 
             async toggleAdminModal() {
-                document.getElementById('modal-overlay').classList.remove('hidden');
+                const overlay = document.getElementById('modal-overlay');
+                overlay.classList.remove('hidden');
                 document.getElementById('admin-modal').classList.remove('hidden');
                 const tx = this.state.localDb.transaction('users', 'readonly');
                 const req = tx.objectStore('users').getAll();
                 req.onsuccess = () => {
                     document.getElementById('admin-user-list').innerHTML = req.result.map(u => `
                         <div class="log-item">
-                            <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}]</small></div>
-                            <button class="danger" style="padding:6px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
+                            <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 ZABANOVANÝ' : '🟢 AKTÍVNY'}</small></div>
+                            <div style="display:flex; gap: 5px;">
+                                <button class="danger" style="padding:6px; font-size: 9px;" onclick="app.adminToggleBan('${u.email}')">${u.banned ? 'UNBAN' : 'BAN'}</button>
+                                <button class="secondary" style="padding:6px; font-size: 9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
+                            </div>
                         </div>
                     `).join('');
                 };
