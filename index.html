@@ -372,8 +372,9 @@
                 </div>
                 <h2 id="pub-name" style="font-size: 26px; font-weight: 900;">Meno</h2>
                 <div style="display:flex; gap:15px; margin-bottom:10px;">
-                    <button id="btn-subscribe" onclick="app.toggleInteraction('sub')" style="padding:10px 20px; font-size:10px;">ODOBERAŤ</button>
-                    <button id="btn-like" onclick="app.toggleInteraction('like')" class="secondary" style="padding:10px 20px; font-size:10px;">👍 PÁČI SA MI</button>
+                    <!-- SYSTÉM PRIDÁVANIA DONEKONEČNA -->
+                    <button id="btn-subscribe" onclick="app.addInteraction('sub')" style="padding:10px 20px; font-size:10px;">ODOBERAŤ</button>
+                    <button id="btn-like" onclick="app.addInteraction('like')" class="secondary" style="padding:10px 20px; font-size:10px;">👍 PÁČI SA MI</button>
                 </div>
             </div>
             
@@ -462,6 +463,7 @@
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
                         if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
+                        // TABULKA PRE INTERAKCIE (LAJKY A ODBERY - UKLADANÉ DONEKONEČNA)
                         if(!d.objectStoreNames.contains('interactions')) d.createObjectStore('interactions', { keyPath: 'id' });
                     };
                     req.onsuccess = (e) => { 
@@ -528,27 +530,25 @@
                 });
             },
 
-            async toggleInteraction(type) {
+            // --- SOCIÁLNA LOGIKA (INTERAKCIE PRIDÁVANÉ DONEKONEČNA DO LOKÁLNEJ DB) ---
+            async addInteraction(type) {
                 const target = this.state.viewingUser;
                 if(!target || !this.state.profile) return;
                 
-                const id = `${this.state.profile.email}_${target.email}_${type}`;
+                // Každý klik vytvorí UNIKÁTNY záznam (vďaka náhodnému ID)
+                const id = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('interactions', 'readwrite');
                 const store = tx.objectStore('interactions');
                 
-                const existing = await new Promise(r => {
-                    const req = store.get(id);
-                    req.onsuccess = () => r(req.result);
+                store.put({ 
+                    id, 
+                    type, 
+                    target: target.email, 
+                    from: this.state.profile.email, 
+                    date: Date.now() 
                 });
-
-                if(existing) {
-                    store.delete(id);
-                    this.showMsg(`${type === 'sub' ? 'Odber zrušený' : 'Lajk odobraný'}`);
-                } else {
-                    store.put({ id, type, target: target.email, date: Date.now() });
-                    this.showMsg(`${type === 'sub' ? 'Odoberáte používateľa' : 'Profil sa vám páči'}`);
-                }
                 
+                this.showMsg(`${type === 'sub' ? 'Odber pridaný' : 'Lajk pridaný'}`);
                 tx.oncomplete = () => this.openPublicProfile(target.email); 
             },
 
@@ -588,13 +588,9 @@
                 const subs = await this.getInteractionCount(email, 'sub');
                 const likes = await this.getInteractionCount(email, 'like');
                 
-                const tx = this.state.localDb.transaction('interactions', 'readonly');
-                const store = tx.objectStore('interactions');
-                const hasSub = await new Promise(r => { const req = store.get(`${this.state.profile.email}_${email}_sub`); req.onsuccess = () => r(req.result); });
-                const hasLike = await new Promise(r => { const req = store.get(`${this.state.profile.email}_${email}_like`); req.onsuccess = () => r(req.result); });
-
-                document.getElementById('btn-subscribe').innerText = hasSub ? "ZRUŠIŤ ODBER" : `ODOBERAŤ (${subs})`;
-                document.getElementById('btn-like').innerText = hasLike ? "❤️ PÁČI SA MI" : `👍 PÁČI SA MI (${likes})`;
+                // Tlačidlá teraz pripočítavajú donekonečna
+                document.getElementById('btn-subscribe').innerText = `ODOBERAŤ (${subs})`;
+                document.getElementById('btn-like').innerText = `👍 PÁČI SA MI (${likes})`;
             },
 
             checkAnnualReset(user) {
