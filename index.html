@@ -317,7 +317,7 @@
     <div id="modal-overlay" class="modal-container hidden">
         <div id="profile-modal" class="modal hidden" style="width:95%; max-width:400px; padding:35px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px; text-align:center;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
-                <div style="position:relative; width:110px; height:120px; border-radius:28px; border:4px solid var(--primary); overflow:hidden;">
+                <div style="position:relative; width:110px; height:110px; border-radius:28px; border:4px solid var(--primary); overflow:hidden;">
                     <img id="modal-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
                     <label for="avatar-input" style="position:absolute; bottom:6px; right:6px; background:var(--primary); color:#000; padding:8px; border-radius:12px; cursor:pointer; font-size: 11px;">✎</label>
                     <input type="file" id="avatar-input" class="hidden" onchange="app.updateAvatar()">
@@ -385,14 +385,14 @@
 
     <script>
         // --- KONFIGURÁCIA SUPABASE ---
-        const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; // VLOŽTE SUPABASE URL
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; // VLOŽTE SUPABASE ANON KEY
+        const supabaseUrl = ""; // VLOŽTE SUPABASE URL
+        const supabaseKey = ""; // VLOŽTE SUPABASE ANON KEY
         let sb = null;
         try {
             if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
                 sb = supabase.createClient(supabaseUrl, supabaseKey);
             }
-        } catch(e) { console.warn("Supabase initialization skipped or failed."); }
+        } catch(e) { console.warn("Supabase initialization failed."); }
 
         window.app = {
             state: {
@@ -428,14 +428,22 @@
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
                         if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
                     };
-                    req.onsuccess = (e) => { this.state.localDb = e.target.result; resolve(); };
+                    req.onsuccess = (e) => { 
+                        this.state.localDb = e.target.result; 
+                        // --- PREMAZANIE STARÝCH LOKÁLNYCH ÚČTOV PRE CLOUD MIGRÁCIU ---
+                        const tx = this.state.localDb.transaction('users', 'readwrite');
+                        tx.objectStore('users').clear();
+                        resolve(); 
+                    };
                 });
             },
 
+            // HLAVNÁ FUNKCIA: CLOUD PRIMÁRNY (ZARUČUJE CROSS-DEVICE LOGIN)
             async getUserByEmail(email) {
                 if (!email) return null;
                 const formattedEmail = email.toLowerCase().trim();
 
+                // VŽDY SKÚSIŤ SUPABASE AKO PRVÉ (ZDROJ PRAVDY PRE VŠETKY ZARIADENIA)
                 if (sb) {
                     try {
                         const { data, error } = await sb
@@ -443,10 +451,15 @@
                             .select('*')
                             .eq('email', formattedEmail)
                             .single();
-                        if (!error && data) return data;
-                    } catch (e) { console.warn("Supabase Fetch Failed."); }
+                        if (!error && data) {
+                            // Synchronizácia do lokálnej zálohy pre offline prístup neskôr
+                            this.syncToLocal(data);
+                            return data;
+                        }
+                    } catch (e) { console.warn("Supabase Cloud offline."); }
                 }
 
+                // AK CLOUD ZLYHÁ, SKÚSIŤ LOKÁLNU ZÁLOHU NA TOMTO ZARIADENÍ
                 if (!this.state.localDb) return null;
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readonly');
@@ -456,18 +469,24 @@
                 });
             },
 
+            async syncToLocal(user) {
+                if (!this.state.localDb) return;
+                const tx = this.state.localDb.transaction('users', 'readwrite');
+                tx.objectStore('users').put(user);
+            },
+
             async saveUserDB(user) {
                 const formattedEmail = user.email.toLowerCase().trim();
                 user.email = formattedEmail;
 
+                // TRVALÉ ULOŽENIE DO CLOUDU (DOSTUPNÉ VŠADE)
                 if (sb) {
                     try {
-                        await sb
-                            .from('users')
-                            .upsert(user);
-                    } catch (e) { console.warn("Supabase Sync Failed."); }
+                        await sb.from('users').upsert(user);
+                    } catch (e) { console.error("Supabase Save Error"); }
                 }
 
+                // LOKÁLNA ZÁLOHA
                 if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
@@ -558,7 +577,7 @@
                 const u = this.state.tempUser;
                 this.state.profile = u;
                 localStorage.setItem(this.state.sessionKey, u.email);
-                this.saveUserDB(u); // Sync cloud to local on the new device
+                this.saveUserDB(u); // Trvalá synchronizácia cloudu s týmto zariadením
                 if (this.state.stream) this.state.stream.getTracks().forEach(t => t.stop());
                 this.onLogin(u);
             },
@@ -578,7 +597,7 @@
                     return;
                 }
                 
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné údaje.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
                 this.startBiometricVerification(user);
             },
 
@@ -608,19 +627,19 @@
                     const willBan = !u.banned;
                     let reason = "";
                     if(willBan) {
-                        reason = prompt("Zadajte dôvod zablokovania (verejný ban):", "Porušenie pravidiel");
+                        reason = prompt("Dôvod banu:", "Porušenie pravidiel");
                         if(reason === null) return;
                     }
                     u.banned = willBan;
                     u.banReason = reason;
-                    await this.saveUserDB(u);
-                    this.showMsg(`BannaTube: Identita ${u.fullName} zmenená.`);
+                    await this.saveUserDB(u); // Okamžitý cloud sync
+                    this.showMsg(`BannaTube: Status užívateľa aktualizovaný.`);
                     this.toggleAdminModal();
                 }
             },
 
             async handleLocalBan() {
-                const reason = prompt("Zadajte dôvod vlastného banu:");
+                const reason = prompt("Dôvod:");
                 if (reason === null) return;
                 this.state.profile.banned = true;
                 this.state.profile.banReason = reason || "Vlastná deaktivácia.";
@@ -632,7 +651,7 @@
                 document.getElementById('modal-overlay').classList.remove('hidden');
                 document.getElementById('ban-notification-modal').classList.remove('hidden');
                 document.getElementById('ban-user-name').innerText = user.fullName;
-                document.getElementById('ban-reason-text').innerText = user.banReason || "Nie je špecifikovaný.";
+                document.getElementById('ban-reason-text').innerText = user.banReason || "Nebol uvedený.";
             },
 
             onLogin(user) {
@@ -666,10 +685,10 @@
 
             saveApiKeyFromModal() {
                 const key = document.getElementById('api-key-input-modal').value.trim();
-                if(!key) return this.showMsg("Zadajte API.");
+                if(!key) return this.showMsg("API Key prázdny.");
                 this.state.apiKey = key;
                 localStorage.setItem('bt_key_v3', key);
-                this.showMsg("BannaTube: API synchronizované.");
+                this.showMsg("BannaTube: YT API prepojené.");
             },
 
             async uploadLocalVideo() {
@@ -677,11 +696,11 @@
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("BannaTube: Zápis do jadra...");
+                this.showMsg("BannaTube: Zápis MP4...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
-                tx.oncomplete = () => { this.showMsg("Video uložené!"); this.syncVideosUI(); fileInput.value = ""; };
+                tx.oncomplete = () => { this.showMsg("MP4 uložené!"); this.syncVideosUI(); fileInput.value = ""; };
             },
 
             async syncVideosUI() {
@@ -694,21 +713,21 @@
                     if(grid) grid.innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="video-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><small>BannaTube Archive</small></div>
+                            <div class="video-info"><b>${v.name}</b><small>Miestny disk</small></div>
                         </div>
-                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Trezor prázdny.</p>';
+                    `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center;">Prázdny trezor.</p>';
                 };
             },
 
             async search() {
-                if(!this.state.apiKey) return this.showMsg("Nastavte API.");
+                if(!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
                 if(!this.state.profile.searchHistory) this.state.profile.searchHistory = [];
                 this.state.profile.searchHistory.unshift({ q, d: Date.now() });
                 await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Skenujem...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Hľadám...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${q}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -749,7 +768,7 @@
                     if(data) {
                         document.getElementById('admin-user-list').innerHTML = data.map(u => `
                             <div class="log-item">
-                                <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 ZABANOVANÝ' : '🟢 AKTÍVNY'}</small></div>
+                                <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 BAN' : '🟢 OK'}</small></div>
                                 <div style="display:flex; gap: 5px;">
                                     <button class="danger" style="padding:6px; font-size: 9px;" onclick="app.adminToggleBan('${u.email}')">${u.banned ? 'UNBAN' : 'BAN'}</button>
                                     <button class="secondary" style="padding:6px; font-size: 9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
@@ -759,25 +778,11 @@
                         return;
                     }
                 }
-                
-                const tx = this.state.localDb.transaction('users', 'readonly');
-                const req = tx.objectStore('users').getAll();
-                req.onsuccess = () => {
-                    document.getElementById('admin-user-list').innerHTML = req.result.map(u => `
-                        <div class="log-item">
-                            <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 BAN' : '🟢 OK'}</small></div>
-                            <div style="display:flex; gap: 5px;">
-                                <button class="danger" style="padding:6px; font-size: 9px;" onclick="app.adminToggleBan('${u.email}')">${u.banned ? 'UNBAN' : 'BAN'}</button>
-                                <button class="secondary" style="padding:6px; font-size: 9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
-                            </div>
-                        </div>
-                    `).join('');
-                };
             },
 
             async adminStrike(email) {
                 const u = await this.getUserByEmail(email);
-                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("BannaTube: Strike udelený."); this.toggleAdminModal(); }
+                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); }
             },
 
             async toggleHistoryModal() { document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('history-modal').classList.remove('hidden'); this.switchTab('h'); },
@@ -806,4 +811,5 @@
     </script>
 </body>
 </html>
+
 
