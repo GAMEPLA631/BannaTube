@@ -384,10 +384,9 @@
     </div>
 
     <script>
-        // --- KONFIGURÁCIA SUPABASE (ZADAJTE SVOJE ÚDAJE SEM) ---
-        // Vložte vaše projektové URL a Anon API Key zo Supabase Dashboardu
-        const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; 
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; 
+        // --- KONFIGURÁCIA SUPABASE ---
+        const supabaseUrl = ""; 
+        const supabaseKey = ""; 
         
         let sb = null;
 
@@ -434,21 +433,18 @@
                     };
                     req.onsuccess = (e) => { 
                         this.state.localDb = e.target.result; 
-                        // Čistenie lokálnej pamäte užívateľov pri štarte pre čistú cloud synchronizáciu
-                        try {
-                            const tx = this.state.localDb.transaction('users', 'readwrite');
-                            tx.objectStore('users').clear();
-                        } catch(err) {}
+                        // ODSTRÁNENÉ CLEAR() PRE TRVALÉ LOKÁLNE ZÁLOHOVANIE ÚČTOV
                         resolve(); 
                     };
                 });
             },
 
-            // HLAVNÁ FUNKCIA: CLOUD JE JEDINÝ ZDROJ PRAVDY (Zabezpečuje prístup z akéhokoľvek zariadenia)
+            // HLAVNÁ FUNKCIA: CLOUD JE JEDINÝ ZDROJ PRAVDY, LOKÁLNA DB JE FULL BACKUP
             async getUserByEmail(email) {
                 if (!email) return null;
                 const formattedEmail = email.toLowerCase().trim();
 
+                // 1. SKÚSIME CLOUD
                 if (sb) {
                     try {
                         const { data, error } = await sb
@@ -458,17 +454,25 @@
                             .maybeSingle(); 
                         
                         if (!error && data) {
-                            this.syncToLocal(data); 
+                            await this.syncToLocal(data); // Okamžitá aktualizácia lokálnej zálohy
                             return data;
                         }
                     } catch (e) { console.error("Cloud fetch failed."); }
                 }
 
+                // 2. BACKUP: SKÚSIME LOKÁLNU DB (POUŽITEĽNÉ PRI VÝPADKU CLOUDU)
                 if (this.state.localDb) {
                     return new Promise((resolve) => {
                         const tx = this.state.localDb.transaction('users', 'readonly');
                         const req = tx.objectStore('users').get(formattedEmail);
-                        req.onsuccess = () => resolve(req.result || null);
+                        req.onsuccess = () => {
+                            if (req.result) {
+                                console.log("BannaTube: Načítané z lokálneho trezoru (Offline mode).");
+                                resolve(req.result);
+                            } else {
+                                resolve(null);
+                            }
+                        };
                         req.onerror = () => resolve(null);
                     });
                 }
@@ -477,25 +481,28 @@
 
             async syncToLocal(user) {
                 if (!this.state.localDb) return;
-                try {
+                return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     tx.objectStore('users').put(user);
-                } catch(e) {}
+                    tx.oncomplete = () => resolve();
+                });
             },
 
             async saveUserDB(user) {
                 const formattedEmail = user.email.toLowerCase().trim();
                 user.email = formattedEmail;
 
+                // TRVALÝ ZÁPIS DO CLOUDU
                 if (sb) {
                     try {
                         const { error } = await sb.from('users').upsert(user);
                         if (error) throw error;
                     } catch (e) { 
-                        this.showMsg("BannaTube: Cloud Sync Error.");
+                        this.showMsg("BannaTube: Cloud Sync Error - Ukladám len lokálne.");
                     }
                 }
 
+                // VŽDY ULOŽIŤ DO LOKÁLNEJ DB AKO ZÁLOHU (ZABEZPEČUJE PRIHLÁSENIE PRI VÝPADKU)
                 if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
