@@ -115,6 +115,23 @@
         .video-thumb { width: 100%; aspect-ratio: 16/9; background: #111; display: flex; align-items: center; justify-content: center; font-size: 40px; }
         .video-info { padding: 20px; }
 
+        /* USER PROFILE CARD IN SEARCH */
+        .user-card {
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(15, 15, 15, 0.9));
+            border: 2px solid var(--primary); border-radius: 32px; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            transition: 0.3s; cursor: pointer;
+        }
+        .user-card:hover { transform: scale(1.05); box-shadow: 0 10px 30px var(--primary-glow); }
+        .user-card-avatar { width: 80px; height: 80px; border-radius: 22px; border: 3px solid var(--primary); margin-bottom: 15px; position: relative; }
+
+        /* ONLINE STATUS DOT */
+        .online-dot {
+            width: 14px; height: 14px; background: var(--success); border-radius: 50%;
+            position: absolute; bottom: -5px; right: -5px; border: 3px solid #000;
+            box-shadow: 0 0 10px var(--success);
+        }
+
         /* ACTION CENTER */
         .action-center { 
             position: fixed; bottom: 30px; right: 30px; 
@@ -192,6 +209,7 @@
                 </div>
                 <div id="profile-trigger" class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:46px; height:46px; border-radius:14px; border:2px solid var(--primary); overflow:hidden; cursor:pointer; position: relative; z-index: 10500; pointer-events: auto !important;">
                     <img id="user-avatar" src="" style="width:100%; height:100%; object-fit:cover; pointer-events: none;">
+                    <div class="online-dot"></div>
                 </div>
                 <button onclick="app.logout()" class="secondary" style="padding:10px; width:40px; height:40px; border-radius: 14px; position: relative; z-index: 10501;">✕</button>
             </div>
@@ -273,7 +291,7 @@
                 <div class="search-area" style="text-align:center; padding:50px 0;">
                     <h1 style="font-size:clamp(35px, 9vw, 65px); font-weight:900; letter-spacing:-3px;">BANNA<span style="color:var(--primary)">TUBE</span></h1>
                     <div class="search-bar-container glass-card" style="max-width:850px; margin:40px auto; padding:10px 25px; display:flex; gap:12px; align-items:center;">
-                        <input type="text" id="query" placeholder="Skenovať YouTube databázu..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; padding:10px; font-size:18px;">
+                        <input type="text" id="query" placeholder="Skenovať YouTube alebo BannaTube profil..." onkeypress="if(event.key==='Enter')app.search()" style="background:transparent; border:none; padding:10px; font-size:18px;">
                         <button onclick="app.search()" style="min-width:120px;">SCAN</button>
                     </div>
                 </div>
@@ -315,20 +333,23 @@
 
     <!-- MODALS -->
     <div id="modal-overlay" class="modal-container hidden">
+        <!-- MOJ PROFIL MODAL -->
         <div id="profile-modal" class="modal hidden" style="width:95%; max-width:400px; padding:35px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px; text-align:center;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
                 <div style="position:relative; width:110px; height:110px; border-radius:28px; border:4px solid var(--primary); overflow:hidden;">
                     <img id="modal-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
-                    <label for="avatar-input" style="position:absolute; bottom:6px; right:6px; background:var(--primary); color:#000; padding:8px; border-radius:12px; cursor:pointer; font-size: 11px;">✎</label>
-                    <input type="file" id="avatar-input" class="hidden" onchange="app.updateAvatar()">
+                    <div class="online-dot"></div>
                 </div>
                 <h2 id="profile-name-title" style="font-size: 24px; font-weight: 800;">Identita</h2>
-                <span class="status-badge" id="stat-level-display">Standard</span>
+                <div style="display:flex; gap:10px;">
+                    <span class="status-badge" id="stat-level-display">Standard</span>
+                    <span id="stat-subs-count" style="font-size:10px; opacity:0.5; font-weight:800;">ODBERY: 0</span>
+                </div>
             </div>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:25px 0;">
                 <div class="glass-card" style="padding:18px; border-radius: 20px;"><label style="font-size:10px; opacity:0.5; display:block;">KREDITY</label><b id="stat-credits" style="color:var(--primary); font-size:18px;">0</b></div>
-                <div class="glass-card" style="padding:18px; border-radius: 20px;"><label style="font-size:10px; opacity:0.5; display:block;">RESET ROK</label><b id="last-reset-display" style="font-size: 18px;">2026</b></div>
+                <div class="glass-card" style="padding:18px; border-radius: 20px;"><label style="font-size:10px; opacity:0.5; display:block;">LAJKY</label><b id="stat-likes" style="font-size: 18px;">0</b></div>
             </div>
 
             <div style="margin-bottom: 25px; text-align: left; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);">
@@ -342,6 +363,29 @@
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%;">ZAVRIEŤ</button>
         </div>
 
+        <!-- VEREJNY PROFIL MODAL -->
+        <div id="public-profile-modal" class="modal hidden" style="width:95%; max-width:550px; padding:35px; background:#0a0a0a; border:2px solid var(--primary); border-radius:32px; text-align:center;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+                <div style="position:relative; width:100px; height:100px; border-radius:24px; border:3px solid var(--primary); overflow:hidden;">
+                    <img id="pub-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
+                    <div class="online-dot"></div>
+                </div>
+                <h2 id="pub-name" style="font-size: 26px; font-weight: 900;">Meno</h2>
+                <div style="display:flex; gap:15px; margin-bottom:10px;">
+                    <button id="btn-subscribe" onclick="app.toggleInteraction('sub')" style="padding:10px 20px; font-size:10px;">ODOBERAŤ</button>
+                    <button id="btn-like" onclick="app.toggleInteraction('like')" class="secondary" style="padding:10px 20px; font-size:10px;">👍 PÁČI SA MI</button>
+                </div>
+            </div>
+            
+            <div style="text-align:left; margin-top:20px;">
+                <h3 style="font-size:12px; opacity:0.5; text-transform:uppercase; margin-bottom:10px; font-weight:800;">Naposledy sledované videá:</h3>
+                <div id="pub-history-list" style="max-height:200px; overflow-y:auto; background:rgba(255,255,255,0.02); border-radius:16px; padding:10px;">
+                    <!-- Tu sa vygeneruje história -->
+                </div>
+            </div>
+            <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ZAVRIEŤ</button>
+        </div>
+
         <div id="admin-modal" class="modal hidden" style="width:95%; max-width:550px; padding:30px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px;">
             <h3 style="color:var(--admin-color); font-weight:800; margin-bottom:20px; text-align:center;">🛡️ BANNATUBE ADMIN JADRO</h3>
             <div id="admin-user-list" style="max-height:350px; overflow-y:auto; padding-right: 5px;"></div>
@@ -350,29 +394,20 @@
 
         <div id="history-modal" class="modal hidden" style="width:95%; max-width:550px; padding:30px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px;">
             <h3 style="color:var(--primary); font-weight:800; margin-bottom:20px; text-align:center;">📊 LOGY AKTIVITY</h3>
-            <div style="display:flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom:15px; overflow-x: auto; padding-bottom: 5px; gap: 5px;">
-                <div onclick="app.switchTab('h')" id="t-h" style="padding:10px; cursor:pointer; color:var(--primary); font-size: 11px; font-weight: 800;">HISTÓRIA</div>
-                <div onclick="app.switchTab('f')" id="t-f" style="padding:10px; cursor:pointer; opacity:0.5; font-size: 11px; font-weight: 800;">OBĽÚBENÉ</div>
-                <div onclick="app.switchTab('s')" id="t-s" style="padding:10px; cursor:pointer; opacity:0.5; font-size: 11px; font-weight: 800;">STRIKY</div>
-                <div onclick="app.switchTab('q')" id="t-q" style="padding:10px; cursor:pointer; opacity:0.5; font-size: 11px; font-weight: 800;">SCAN LOG</div>
-            </div>
             <div id="history-content" style="max-height:350px; overflow-y:auto;"></div>
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ZAVRIEŤ</button>
         </div>
 
-        <!-- BAN MODAL -->
+        <!-- BAN NOTIFICATION -->
         <div id="ban-notification-modal" class="modal hidden" style="width:95%; max-width:400px; padding:35px; background:#0a0a0a; border:2px solid var(--danger); border-radius:32px; text-align:center;">
             <div style="font-size: 60px; margin-bottom: 20px;">🚫</div>
             <h2 style="color:var(--danger); font-weight:900; font-size: 24px; margin-bottom: 10px;">PRÍSTUP ZAMIETNUTÝ</h2>
-            <p style="font-weight: 800; margin-bottom: 5px;">Identita: <span id="ban-user-name" style="color: white;">--</span></p>
-            <p style="opacity: 0.6; font-size: 13px; margin-bottom: 20px;">Tento účet bol zablokovaný správcom systému.</p>
-            
-            <div style="background: rgba(255,0,0,0.1); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,0,0,0.2); margin-bottom: 25px; text-align: left;">
-                <label style="font-size: 9px; text-transform: uppercase; font-weight: 800; color: var(--danger); display: block; margin-bottom: 5px;">Dôvod zablokovania:</label>
-                <p id="ban-reason-text" style="font-size: 14px; font-weight: 600; color: white;">Žiadna špecifikácia.</p>
+            <p id="ban-user-name" style="font-weight: 800; margin-bottom: 5px;">--</p>
+            <div style="background: rgba(255,0,0,0.1); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,0,0,0.2); margin-top: 20px; text-align: left;">
+                <label style="font-size: 9px; text-transform: uppercase; font-weight: 800; color: var(--danger); display: block; margin-bottom: 5px;">Dôvod:</label>
+                <p id="ban-reason-text" style="font-size: 14px; font-weight: 600; color: white;">--</p>
             </div>
-            
-            <button onclick="app.closeAllModals()" class="secondary" style="width:100%;">POTVRDIŤ</button>
+            <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top: 20px;">POTVRDIŤ</button>
         </div>
     </div>
 
@@ -394,18 +429,15 @@
             state: {
                 sessionKey: 'bannatube_unlimited_session_v1',
                 localDb: null, profile: null, stream: null, lastFrame: null, currentTab: 'h',
-                apiKey: localStorage.getItem('bt_key_v3') || ''
+                apiKey: localStorage.getItem('bt_key_v3') || '',
+                viewingUser: null
             },
 
             async init() {
                 try {
-                    // Inicializácia Supabase bezpečne pri štarte
                     if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
                         sb = supabase.createClient(supabaseUrl, supabaseKey);
-                    } else {
-                        console.warn("BannaTube: Cloud config missing or project data empty.");
                     }
-
                     await this.initLocalDB();
                     const session = localStorage.getItem(this.state.sessionKey);
                     if (session) {
@@ -430,6 +462,7 @@
                         const d = e.target.result;
                         if(!d.objectStoreNames.contains('users')) d.createObjectStore('users', { keyPath: 'email' });
                         if(!d.objectStoreNames.contains('videos')) d.createObjectStore('videos', { keyPath: 'id' });
+                        if(!d.objectStoreNames.contains('interactions')) d.createObjectStore('interactions', { keyPath: 'id' });
                     };
                     req.onsuccess = (e) => { 
                         this.state.localDb = e.target.result; 
@@ -441,22 +474,15 @@
             async getUserByEmail(email) {
                 if (!email) return null;
                 const formattedEmail = email.toLowerCase().trim();
-
                 if (sb) {
                     try {
-                        const { data, error } = await sb
-                            .from('users')
-                            .select('*')
-                            .eq('email', formattedEmail)
-                            .maybeSingle(); 
-                        
+                        const { data, error } = await sb.from('users').select('*').eq('email', formattedEmail).maybeSingle();
                         if (!error && data) {
                             await this.syncToLocal(data); 
                             return data;
                         }
                     } catch (e) { console.error("Cloud fetch failed."); }
                 }
-
                 if (this.state.localDb) {
                     return new Promise((resolve) => {
                         const tx = this.state.localDb.transaction('users', 'readonly');
@@ -486,7 +512,6 @@
             async saveUserDB(user) {
                 const formattedEmail = user.email.toLowerCase().trim();
                 user.email = formattedEmail;
-
                 if (sb) {
                     try {
                         const { error } = await sb.from('users').upsert(user);
@@ -495,13 +520,81 @@
                         this.showMsg("BannaTube: Cloud Sync Error - Ukladám len lokálne.");
                     }
                 }
-
                 if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
                     tx.objectStore('users').put(user);
                     tx.oncomplete = () => resolve();
                 });
+            },
+
+            async toggleInteraction(type) {
+                const target = this.state.viewingUser;
+                if(!target || !this.state.profile) return;
+                
+                const id = `${this.state.profile.email}_${target.email}_${type}`;
+                const tx = this.state.localDb.transaction('interactions', 'readwrite');
+                const store = tx.objectStore('interactions');
+                
+                const existing = await new Promise(r => {
+                    const req = store.get(id);
+                    req.onsuccess = () => r(req.result);
+                });
+
+                if(existing) {
+                    store.delete(id);
+                    this.showMsg(`${type === 'sub' ? 'Odber zrušený' : 'Lajk odobraný'}`);
+                } else {
+                    store.put({ id, type, target: target.email, date: Date.now() });
+                    this.showMsg(`${type === 'sub' ? 'Odoberáte používateľa' : 'Profil sa vám páči'}`);
+                }
+                
+                tx.oncomplete = () => this.openPublicProfile(target.email); 
+            },
+
+            async getInteractionCount(email, type) {
+                if(!this.state.localDb) return 0;
+                return new Promise(r => {
+                    const tx = this.state.localDb.transaction('interactions', 'readonly');
+                    const store = tx.objectStore('interactions');
+                    const req = store.getAll();
+                    req.onsuccess = () => {
+                        const count = req.result.filter(i => i.target === email && i.type === type).length;
+                        r(count);
+                    };
+                });
+            },
+
+            async openPublicProfile(email) {
+                if(this.state.profile && email === this.state.profile.email) return this.toggleProfileModal();
+                
+                const user = await this.getUserByEmail(email);
+                if(!user) return this.showMsg("Profil nenájdený.");
+                
+                this.state.viewingUser = user;
+                document.getElementById('modal-overlay').classList.remove('hidden');
+                document.getElementById('public-profile-modal').classList.remove('hidden');
+                
+                document.getElementById('pub-avatar').src = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nick}`;
+                document.getElementById('pub-name').innerText = user.nick;
+                
+                const historyHtml = (user.history || []).slice(0, 5).map(h => `
+                    <div style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;">
+                        <b>${h.t}</b> <br> <small style="opacity:0.4;">${h.type} • ${new Date(h.d).toLocaleDateString()}</small>
+                    </div>
+                `).join('') || '<p style="opacity:0.3; font-size:10px;">Žiadna verejná aktivita.</p>';
+                document.getElementById('pub-history-list').innerHTML = historyHtml;
+
+                const subs = await this.getInteractionCount(email, 'sub');
+                const likes = await this.getInteractionCount(email, 'like');
+                
+                const tx = this.state.localDb.transaction('interactions', 'readonly');
+                const store = tx.objectStore('interactions');
+                const hasSub = await new Promise(r => { const req = store.get(`${this.state.profile.email}_${email}_sub`); req.onsuccess = () => r(req.result); });
+                const hasLike = await new Promise(r => { const req = store.get(`${this.state.profile.email}_${email}_like`); req.onsuccess = () => r(req.result); });
+
+                document.getElementById('btn-subscribe').innerText = hasSub ? "ZRUŠIŤ ODBER" : `ODOBERAŤ (${subs})`;
+                document.getElementById('btn-like').innerText = hasLike ? "❤️ PÁČI SA MI" : `👍 PÁČI SA MI (${likes})`;
             },
 
             checkAnnualReset(user) {
@@ -540,15 +633,14 @@
                     let progress = 0; let timeout = 5.0;
                     while (progress < 100 && timeout > 0) {
                         timeout -= 0.1;
-                        const t = document.getElementById('scan-timer');
-                        if (t) t.innerText = `TIMEOUT: ${timeout.toFixed(1)}s`;
+                        document.getElementById('scan-timer').innerText = `TIMEOUT: ${timeout.toFixed(1)}s`;
                         const motion = await this.detectMotion(steps[i].d);
                         if (motion > 10) progress += 25; else progress -= 3;
                         if (progress < 0) progress = 0;
                         bar.style.width = Math.min(progress, 100) + "%";
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    if (progress < 100) { this.showMsg("BannaTube: Sken neúspešný."); return this.cancelVerification(); }
+                    if (progress < 100) return this.cancelVerification();
                     dots[i].style.background = "var(--success)";
                     bar.style.width = "0%";
                     await new Promise(r => setTimeout(r, 300));
@@ -599,17 +691,10 @@
             async handleLogin() {
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
-                
                 if (!email || !pass) return this.showMsg("BannaTube: Zadajte údaje.");
-                
                 const user = await this.getUserByEmail(email);
-                
-                if (user && user.banned) {
-                    this.showBanNotice(user);
-                    return;
-                }
-                
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Identita alebo kód nesúhlasí.");
+                if (user && user.banned) return this.showBanNotice(user);
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Nesprávne poverenia.");
                 this.startBiometricVerification(user);
             },
 
@@ -620,7 +705,6 @@
                 const nick = document.getElementById('reg-nick').value.trim();
                 const level = document.getElementById('reg-level').value;
                 if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte údaje.");
-                
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
@@ -628,7 +712,6 @@
                     history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear(),
                     banned: false, banReason: ""
                 };
-                
                 await this.saveUserDB(newUser);
                 this.startBiometricVerification(newUser);
             },
@@ -673,20 +756,18 @@
                 this.updateUI(user);
             },
 
-            updateUI(user) {
-                const creditsEl = document.getElementById('header-credits');
-                const nameEl = document.getElementById('profile-name-title');
-                const statCreditsEl = document.getElementById('stat-credits');
-                const apiInput = document.getElementById('api-key-input-modal');
-                if (creditsEl) creditsEl.innerText = (user.credits || 0).toLocaleString();
-                if (nameEl) nameEl.innerText = user.fullName;
-                if (statCreditsEl) statCreditsEl.innerText = (user.credits || 0).toLocaleString();
-                if (apiInput) apiInput.value = this.state.apiKey;
+            async updateUI(user) {
+                document.getElementById('header-credits').innerText = (user.credits || 0).toLocaleString();
+                document.getElementById('profile-name-title').innerText = user.nick;
                 document.getElementById('stat-level-display').innerText = user.level || "Standard";
-                document.getElementById('last-reset-display').innerText = user.lastResetYear || "2026";
-                const avatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.nick;
-                document.getElementById('user-avatar').src = user.avatar || avatarUrl;
-                document.getElementById('modal-avatar').src = user.avatar || avatarUrl;
+                document.getElementById('stat-credits').innerText = (user.credits || 0).toLocaleString();
+                document.getElementById('user-avatar').src = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nick}`;
+                document.getElementById('modal-avatar').src = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nick}`;
+                
+                const subs = await this.getInteractionCount(user.email, 'sub');
+                const likes = await this.getInteractionCount(user.email, 'like');
+                document.getElementById('stat-subs-count').innerText = `ODBERY: ${subs}`;
+                document.getElementById('stat-likes').innerText = likes;
 
                 const isPro = (user.level === 'Pro' || user.level === 'Admin');
                 document.getElementById('pro-granted-ui').classList.toggle('hidden', !isPro);
@@ -695,20 +776,10 @@
                 if(headerUpload) headerUpload.classList.toggle('hidden', !isPro);
             },
 
-            saveApiKeyFromModal() {
-                const key = document.getElementById('api-key-input-modal').value.trim();
-                if(!key) return this.showMsg("API Key prázdny.");
-                this.state.apiKey = key;
-                localStorage.setItem('bt_key_v3', key);
-                this.showMsg("BannaTube: YT API prepojené.");
-            },
-
             async uploadLocalVideo() {
-                if (this.state.profile.level === 'Standard') return this.showMsg("BannaTube: Vyžadujete PRO licenciu.");
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("BannaTube: Nahrávanie MP4...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
@@ -721,33 +792,54 @@
                 const req = tx.objectStore('videos').getAll();
                 req.onsuccess = () => {
                     const videos = req.result;
-                    const grid = document.getElementById('local-videos-results');
-                    if(grid) grid.innerHTML = videos.map(v => `
+                    document.getElementById('local-videos-results').innerHTML = videos.map(v => `
                         <div class="video-card" onclick="app.playVideo('${v.id}')">
                             <div class="video-thumb">📽️</div>
-                            <div class="video-info"><b>${v.name}</b><small>Miestny disk</small></div>
+                            <div class="video-info"><b>${v.name}</b></div>
                         </div>
                     `).join('') || '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Trezor prázdny.</p>';
                 };
             },
 
             async search() {
-                if(!this.state.apiKey) return this.showMsg("Vložte API kľúč.");
                 const q = document.getElementById('query').value.trim();
                 if(!q) return;
-                if(!this.state.profile.searchHistory) this.state.profile.searchHistory = [];
-                this.state.profile.searchHistory.unshift({ q, d: Date.now() });
-                await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Skenujem...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Skenujem databázy...</p>';
+                
+                let userHtml = "";
+                if(sb) {
+                    try {
+                        const { data } = await sb.from('users').select('*').ilike('nick', `%${q}%`).limit(3);
+                        if(data) {
+                            userHtml = data.map(u => `
+                                <div class="user-card" onclick="app.openPublicProfile('${u.email}')">
+                                    <div class="user-card-avatar">
+                                        <img src="${u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.nick}`}" style="width:100%; height:100%; object-fit:cover; border-radius:18px;">
+                                        <div class="online-dot"></div>
+                                    </div>
+                                    <b style="color:var(--primary); font-size:16px;">${u.nick}</b>
+                                    <small style="opacity:0.5; font-size:9px;">BannaTube Citizen</small>
+                                </div>
+                            `).join('');
+                        }
+                    } catch(e) {}
+                }
+
                 try {
-                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${q}&type=video&key=${this.state.apiKey}`);
+                    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(q)}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
-                    grid.innerHTML = data.items.map(i => `<div class="video-card" onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "")}')"><img src="${i.snippet.thumbnails.medium.url}" style="width:100%"><div class="video-info"><b>${i.snippet.title}</b></div></div>`).join('');
-                } catch(e) { this.showMsg("Chyba API."); }
+                    const ytHtml = (data.items || []).map(i => `
+                        <div class="video-card" onclick="app.playYT('${i.id.videoId}', '${i.snippet.title.replace(/'/g, "").replace(/"/g, "")}')">
+                            <img src="${i.snippet.thumbnails.medium.url}" style="width:100%">
+                            <div class="video-info"><b>${i.snippet.title}</b></div>
+                        </div>`).join('');
+                    grid.innerHTML = userHtml + ytHtml;
+                } catch(e) { grid.innerHTML = userHtml || "Chyba API."; }
             },
 
             async playYT(id, title) {
+                if(!this.state.profile.history) this.state.profile.history = [];
                 this.state.profile.history.unshift({ t: title, type: 'YT', d: Date.now() });
                 this.state.profile.credits -= 10;
                 await this.saveUserDB(this.state.profile);
@@ -770,31 +862,23 @@
                 };
             },
 
-            // --- ADMIN HUB FIX ---
             async toggleAdminModal() {
                 const overlay = document.getElementById('modal-overlay');
                 overlay.classList.remove('hidden');
                 document.getElementById('admin-modal').classList.remove('hidden');
-                
                 const listEl = document.getElementById('admin-user-list');
                 listEl.innerHTML = '<p style="text-align:center; opacity:0.5;">Načítavam identity...</p>';
-
                 let users = [];
-                // 1. Skúsime cloud
                 if(sb) {
                     try {
                         const { data, error } = await sb.from('users').select('*');
                         if(!error && data) users = data;
-                    } catch(e) { console.error("Admin hub cloud fail"); }
+                    } catch(e) { console.error("Admin hub fail"); }
                 }
-
-                // 2. Ak cloud nevrátil nič alebo je offline, skúsime lokálnu DB
                 if (users.length === 0 && this.state.localDb) {
                     const tx = this.state.localDb.transaction('users', 'readonly');
                     const req = tx.objectStore('users').getAll();
-                    req.onsuccess = () => {
-                        this.renderAdminUsers(req.result);
-                    };
+                    req.onsuccess = () => this.renderAdminUsers(req.result);
                 } else {
                     this.renderAdminUsers(users);
                 }
@@ -819,32 +903,28 @@
 
             async adminStrike(email) {
                 const u = await this.getUserByEmail(email);
-                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("BannaTube: Strike udelený."); this.toggleAdminModal(); }
+                if(u) { if(!u.strikes) u.strikes = []; u.strikes.push({ r: "Admin", d: Date.now() }); await this.saveUserDB(u); this.showMsg("Strike udelený."); this.toggleAdminModal(); }
             },
 
-            async toggleHistoryModal() { document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('history-modal').classList.remove('hidden'); this.switchTab('h'); },
-            toggleProfileModal() { this.updateUI(this.state.profile); document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('profile-modal').classList.remove('hidden'); },
-            closeAllModals() { document.getElementById('modal-overlay').classList.add('hidden'); document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); },
-            switchTab(tab) {
-                this.state.currentTab = tab;
-                ['h','f','s','q'].forEach(t => document.getElementById('t-'+t).style.opacity = '0.5');
-                document.getElementById('t-'+tab).style.opacity = '1';
-                const list = document.getElementById('history-content');
+            async toggleHistoryModal() { 
+                document.getElementById('modal-overlay').classList.remove('hidden'); 
+                document.getElementById('history-modal').classList.remove('hidden'); 
                 const p = this.state.profile;
-                if(tab==='h') list.innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.t}</span><span class="log-tag">${h.type}</span></div>`).join('');
-                else if(tab==='f') list.innerHTML = (p.favorites || []).map(f => `<div class="log-item"><span>${f.title}</span><span class="log-tag">Fav</span></div>`).join('');
-                else if(tab==='s') list.innerHTML = (p.strikes || []).map(s => `<div class="log-item"><span>${s.r}</span><span class="log-tag danger">STRIKE</span></div>`).join('');
-                else list.innerHTML = (p.searchHistory || []).map(q => `<div class="log-item"><span>${q.q}</span><span class="log-tag">Scan</span></div>`).join('');
+                document.getElementById('history-content').innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.t}</span><span class="log-tag">${h.type}</span></div>`).join('');
             },
 
-            showView(id) { document.querySelectorAll('.view-container, #login-view, #register-view, #app-view, #face-auth-view').forEach(v => {if(v) v.classList.add('hidden')}); if(document.getElementById(id)) document.getElementById(id).classList.remove('hidden'); },
-            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); if(s==='vault') this.syncVideosUI(); },
+            toggleProfileModal() { this.updateUI(this.state.profile); document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('profile-modal').classList.remove('hidden'); },
+            closeAllModals() { document.querySelectorAll('.modal, #modal-overlay').forEach(m => m.classList.add('hidden')); },
+            showView(id) { document.querySelectorAll('#login-view, #register-view, #app-view, #face-auth-view').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); },
+            showAppSection(s) { document.getElementById('section-main').classList.toggle('hidden', s !== 'main'); document.getElementById('section-vault').classList.toggle('hidden', s !== 'vault'); },
             showMsg(t) { const b = document.getElementById('msg-box'); b.innerText = t; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 3000); },
+            showBanNotice(user) { document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('ban-notification-modal').classList.remove('hidden'); document.getElementById('ban-user-name').innerText = user.fullName; document.getElementById('ban-reason-text').innerText = user.banReason; },
             logout() { localStorage.removeItem(this.state.sessionKey); location.reload(); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
-            updateAvatar() { const f = document.getElementById('avatar-input').files[0]; const rd = new FileReader(); rd.onload = async (e) => { this.state.profile.avatar = e.target.result; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }; rd.readAsDataURL(f); },
+            saveApiKeyFromModal() { const key = document.getElementById('api-key-input-modal').value; this.state.apiKey = key; localStorage.setItem('bt_key_v3', key); this.showMsg("API Key uložený."); },
             async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }
         };
     </script>
 </body>
 </html>
+
