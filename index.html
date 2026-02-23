@@ -387,7 +387,6 @@
         // --- KONFIGURÁCIA SUPABASE ---
         const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; // VLOŽTE SUPABASE URL
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; // VLOŽTE SUPABASE ANON KEY
-        // Oprava identifikátora: v CDN v2 je to objekt 'supabase' s metódou 'createClient'
         let sb = null;
         try {
             if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
@@ -559,6 +558,7 @@
                 const u = this.state.tempUser;
                 this.state.profile = u;
                 localStorage.setItem(this.state.sessionKey, u.email);
+                this.saveUserDB(u); // Sync cloud to local on the new device
                 if (this.state.stream) this.state.stream.getTracks().forEach(t => t.stop());
                 this.onLogin(u);
             },
@@ -677,11 +677,11 @@
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("BannaTube: Nahrávanie MP4...");
+                this.showMsg("BannaTube: Zápis do jadra...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
-                tx.oncomplete = () => { this.showMsg("Hotovo!"); this.syncVideosUI(); fileInput.value = ""; };
+                tx.oncomplete = () => { this.showMsg("Video uložené!"); this.syncVideosUI(); fileInput.value = ""; };
             },
 
             async syncVideosUI() {
@@ -806,3 +806,4 @@
     </script>
 </body>
 </html>
+
