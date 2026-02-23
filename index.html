@@ -433,18 +433,15 @@
                     };
                     req.onsuccess = (e) => { 
                         this.state.localDb = e.target.result; 
-                        // ODSTRÁNENÉ CLEAR() PRE TRVALÉ LOKÁLNE ZÁLOHOVANIE ÚČTOV
                         resolve(); 
                     };
                 });
             },
 
-            // HLAVNÁ FUNKCIA: CLOUD JE JEDINÝ ZDROJ PRAVDY, LOKÁLNA DB JE FULL BACKUP
             async getUserByEmail(email) {
                 if (!email) return null;
                 const formattedEmail = email.toLowerCase().trim();
 
-                // 1. SKÚSIME CLOUD
                 if (sb) {
                     try {
                         const { data, error } = await sb
@@ -454,20 +451,18 @@
                             .maybeSingle(); 
                         
                         if (!error && data) {
-                            await this.syncToLocal(data); // Okamžitá aktualizácia lokálnej zálohy
+                            await this.syncToLocal(data); 
                             return data;
                         }
                     } catch (e) { console.error("Cloud fetch failed."); }
                 }
 
-                // 2. BACKUP: SKÚSIME LOKÁLNU DB (POUŽITEĽNÉ PRI VÝPADKU CLOUDU)
                 if (this.state.localDb) {
                     return new Promise((resolve) => {
                         const tx = this.state.localDb.transaction('users', 'readonly');
                         const req = tx.objectStore('users').get(formattedEmail);
                         req.onsuccess = () => {
                             if (req.result) {
-                                console.log("BannaTube: Načítané z lokálneho trezoru (Offline mode).");
                                 resolve(req.result);
                             } else {
                                 resolve(null);
@@ -492,7 +487,6 @@
                 const formattedEmail = user.email.toLowerCase().trim();
                 user.email = formattedEmail;
 
-                // TRVALÝ ZÁPIS DO CLOUDU
                 if (sb) {
                     try {
                         const { error } = await sb.from('users').upsert(user);
@@ -502,7 +496,6 @@
                     }
                 }
 
-                // VŽDY ULOŽIŤ DO LOKÁLNEJ DB AKO ZÁLOHU (ZABEZPEČUJE PRIHLÁSENIE PRI VÝPADKU)
                 if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
@@ -652,7 +645,7 @@
                     u.banned = willBan;
                     u.banReason = reason;
                     await this.saveUserDB(u); 
-                    this.showMsg(`Status identity aktualizovaný globálne.`);
+                    this.showMsg(`Status identity aktualizovaný.`);
                     this.toggleAdminModal();
                 }
             },
@@ -777,26 +770,51 @@
                 };
             },
 
+            // --- ADMIN HUB FIX ---
             async toggleAdminModal() {
                 const overlay = document.getElementById('modal-overlay');
                 overlay.classList.remove('hidden');
                 document.getElementById('admin-modal').classList.remove('hidden');
                 
+                const listEl = document.getElementById('admin-user-list');
+                listEl.innerHTML = '<p style="text-align:center; opacity:0.5;">Načítavam identity...</p>';
+
+                let users = [];
+                // 1. Skúsime cloud
                 if(sb) {
-                    const { data, error } = await sb.from('users').select('*');
-                    if(!error && data) {
-                        document.getElementById('admin-user-list').innerHTML = data.map(u => `
-                            <div class="log-item">
-                                <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 BAN' : '🟢 OK'}</small></div>
-                                <div style="display:flex; gap: 5px;">
-                                    <button class="danger" style="padding:6px; font-size: 9px;" onclick="app.adminToggleBan('${u.email}')">${u.banned ? 'UNBAN' : 'BAN'}</button>
-                                    <button class="secondary" style="padding:6px; font-size: 9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
-                                </div>
-                            </div>
-                        `).join('');
-                        return;
-                    }
+                    try {
+                        const { data, error } = await sb.from('users').select('*');
+                        if(!error && data) users = data;
+                    } catch(e) { console.error("Admin hub cloud fail"); }
                 }
+
+                // 2. Ak cloud nevrátil nič alebo je offline, skúsime lokálnu DB
+                if (users.length === 0 && this.state.localDb) {
+                    const tx = this.state.localDb.transaction('users', 'readonly');
+                    const req = tx.objectStore('users').getAll();
+                    req.onsuccess = () => {
+                        this.renderAdminUsers(req.result);
+                    };
+                } else {
+                    this.renderAdminUsers(users);
+                }
+            },
+
+            renderAdminUsers(users) {
+                const listEl = document.getElementById('admin-user-list');
+                if (!users || users.length === 0) {
+                    listEl.innerHTML = '<p style="opacity:0.3; text-align:center; padding: 20px;">Databáza je prázdna.</p>';
+                    return;
+                }
+                listEl.innerHTML = users.map(u => `
+                    <div class="log-item">
+                        <div><b>${u.fullName || u.email}</b><br><small>${u.email} [${u.level || 'Standard'}] ${u.banned ? '🔴 BAN' : '🟢 OK'}</small></div>
+                        <div style="display:flex; gap: 5px;">
+                            <button class="danger" style="padding:6px; font-size: 9px;" onclick="app.adminToggleBan('${u.email}')">${u.banned ? 'UNBAN' : 'BAN'}</button>
+                            <button class="secondary" style="padding:6px; font-size: 9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
+                        </div>
+                    </div>
+                `).join('');
             },
 
             async adminStrike(email) {
@@ -830,4 +848,3 @@
     </script>
 </body>
 </html>
-
