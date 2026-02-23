@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=1.0, user-scalable=no">
     <title>BannaTube - Unlimited Local Core PRO</title>
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
@@ -358,7 +360,7 @@
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ZAVRIEŤ</button>
         </div>
 
-        <!-- NEW BAN MODAL -->
+        <!-- BAN MODAL -->
         <div id="ban-notification-modal" class="modal hidden" style="width:95%; max-width:400px; padding:35px; background:#0a0a0a; border:2px solid var(--danger); border-radius:32px; text-align:center;">
             <div style="font-size: 60px; margin-bottom: 20px;">🚫</div>
             <h2 style="color:var(--danger); font-weight:900; font-size: 24px; margin-bottom: 10px;">PRÍSTUP ZAMIETNUTÝ</h2>
@@ -382,6 +384,17 @@
     </div>
 
     <script>
+        // --- KONFIGURÁCIA SUPABASE ---
+        const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; // VLOŽTE SUPABASE URL
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; // VLOŽTE SUPABASE ANON KEY
+        // Oprava identifikátora: v CDN v2 je to objekt 'supabase' s metódou 'createClient'
+        let sb = null;
+        try {
+            if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
+                sb = supabase.createClient(supabaseUrl, supabaseKey);
+            }
+        } catch(e) { console.warn("Supabase initialization skipped or failed."); }
+
         window.app = {
             state: {
                 sessionKey: 'bannatube_unlimited_session_v1',
@@ -421,15 +434,41 @@
             },
 
             async getUserByEmail(email) {
-                if (!email || !this.state.localDb) return null;
+                if (!email) return null;
+                const formattedEmail = email.toLowerCase().trim();
+
+                if (sb) {
+                    try {
+                        const { data, error } = await sb
+                            .from('users')
+                            .select('*')
+                            .eq('email', formattedEmail)
+                            .single();
+                        if (!error && data) return data;
+                    } catch (e) { console.warn("Supabase Fetch Failed."); }
+                }
+
+                if (!this.state.localDb) return null;
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readonly');
-                    const req = tx.objectStore('users').get(email.toLowerCase().trim());
+                    const req = tx.objectStore('users').get(formattedEmail);
                     req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
                 });
             },
 
             async saveUserDB(user) {
+                const formattedEmail = user.email.toLowerCase().trim();
+                user.email = formattedEmail;
+
+                if (sb) {
+                    try {
+                        await sb
+                            .from('users')
+                            .upsert(user);
+                    } catch (e) { console.warn("Supabase Sync Failed."); }
+                }
+
                 if(!this.state.localDb) await this.initLocalDB();
                 return new Promise((resolve) => {
                     const tx = this.state.localDb.transaction('users', 'readwrite');
@@ -459,7 +498,7 @@
                     video.srcObject = stream;
                     video.onloadedmetadata = () => { video.play(); this.runDetection(); };
                 } catch (e) { 
-                    this.showMsg("BannaTube: Biometria nie je dostupná."); 
+                    this.showMsg("BannaTube: Biometria blokovaná."); 
                     this.finalizeLogin();
                 }
             },
@@ -539,7 +578,7 @@
                     return;
                 }
                 
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné poverenia.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Neplatné údaje.");
                 this.startBiometricVerification(user);
             },
 
@@ -550,6 +589,7 @@
                 const nick = document.getElementById('reg-nick').value.trim();
                 const level = document.getElementById('reg-level').value;
                 if (!email || !pass || !name || !nick || !document.getElementById('reg-terms').checked) return this.showMsg("BannaTube: Doplňte údaje.");
+                
                 const newUser = { 
                     email, pass, name, fullName: name + " " + document.getElementById('reg-surname').value, nick,
                     credits: 10000, createdAt: Date.now(), unlocked: false,
@@ -557,33 +597,33 @@
                     history: [], favorites: [], strikes: [], searchHistory: [], lastResetYear: new Date().getFullYear(),
                     banned: false, banReason: ""
                 };
+                
                 await this.saveUserDB(newUser);
                 this.startBiometricVerification(newUser);
             },
 
-            // --- ADMIN & BAN LOGIC ---
             async adminToggleBan(email) {
                 const u = await this.getUserByEmail(email);
                 if(u) {
                     const willBan = !u.banned;
                     let reason = "";
                     if(willBan) {
-                        reason = prompt("Zadajte dôvod zablokovania (banu):", "Porušenie pravidiel systému");
-                        if(reason === null) return; // Storno
+                        reason = prompt("Zadajte dôvod zablokovania (verejný ban):", "Porušenie pravidiel");
+                        if(reason === null) return;
                     }
                     u.banned = willBan;
                     u.banReason = reason;
                     await this.saveUserDB(u);
-                    this.showMsg(`BannaTube: Identita ${u.fullName} aktualizovaná.`);
+                    this.showMsg(`BannaTube: Identita ${u.fullName} zmenená.`);
                     this.toggleAdminModal();
                 }
             },
 
             async handleLocalBan() {
-                const reason = prompt("Zadajte dôvod vlastného banu (bude zobrazený pri prihlásení):");
+                const reason = prompt("Zadajte dôvod vlastného banu:");
                 if (reason === null) return;
                 this.state.profile.banned = true;
-                this.state.profile.banReason = reason || "Vlastná deaktivácia účtu.";
+                this.state.profile.banReason = reason || "Vlastná deaktivácia.";
                 await this.saveUserDB(this.state.profile);
                 this.logout();
             },
@@ -592,7 +632,7 @@
                 document.getElementById('modal-overlay').classList.remove('hidden');
                 document.getElementById('ban-notification-modal').classList.remove('hidden');
                 document.getElementById('ban-user-name').innerText = user.fullName;
-                document.getElementById('ban-reason-text').innerText = user.banReason || "Žiadna špecifikácia nebola uvedená správcom.";
+                document.getElementById('ban-reason-text').innerText = user.banReason || "Nie je špecifikovaný.";
             },
 
             onLogin(user) {
@@ -637,7 +677,7 @@
                 const fileInput = document.getElementById('local-video-input');
                 const file = fileInput.files[0];
                 if (!file) return;
-                this.showMsg("BannaTube: Archivujem...");
+                this.showMsg("BannaTube: Nahrávanie MP4...");
                 const videoId = crypto.randomUUID();
                 const tx = this.state.localDb.transaction('videos', 'readwrite');
                 tx.objectStore('videos').put({ id: videoId, name: file.name, data: file, uploader: this.state.profile.nick, timestamp: Date.now() });
@@ -668,7 +708,7 @@
                 this.state.profile.searchHistory.unshift({ q, d: Date.now() });
                 await this.saveUserDB(this.state.profile);
                 const grid = document.getElementById('results');
-                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Hľadám v YouTube...</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">Skenujem...</p>';
                 try {
                     const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${q}&type=video&key=${this.state.apiKey}`);
                     const data = await res.json();
@@ -703,12 +743,29 @@
                 const overlay = document.getElementById('modal-overlay');
                 overlay.classList.remove('hidden');
                 document.getElementById('admin-modal').classList.remove('hidden');
+                
+                if(sb) {
+                    const { data } = await sb.from('users').select('*');
+                    if(data) {
+                        document.getElementById('admin-user-list').innerHTML = data.map(u => `
+                            <div class="log-item">
+                                <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 ZABANOVANÝ' : '🟢 AKTÍVNY'}</small></div>
+                                <div style="display:flex; gap: 5px;">
+                                    <button class="danger" style="padding:6px; font-size: 9px;" onclick="app.adminToggleBan('${u.email}')">${u.banned ? 'UNBAN' : 'BAN'}</button>
+                                    <button class="secondary" style="padding:6px; font-size: 9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
+                                </div>
+                            </div>
+                        `).join('');
+                        return;
+                    }
+                }
+                
                 const tx = this.state.localDb.transaction('users', 'readonly');
                 const req = tx.objectStore('users').getAll();
                 req.onsuccess = () => {
                     document.getElementById('admin-user-list').innerHTML = req.result.map(u => `
                         <div class="log-item">
-                            <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 ZABANOVANÝ' : '🟢 AKTÍVNY'}</small></div>
+                            <div><b>${u.fullName}</b><br><small>${u.email} [${u.level}] ${u.banned ? '🔴 BAN' : '🟢 OK'}</small></div>
                             <div style="display:flex; gap: 5px;">
                                 <button class="danger" style="padding:6px; font-size: 9px;" onclick="app.adminToggleBan('${u.email}')">${u.banned ? 'UNBAN' : 'BAN'}</button>
                                 <button class="secondary" style="padding:6px; font-size: 9px;" onclick="app.adminStrike('${u.email}')">STRIKE</button>
