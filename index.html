@@ -202,7 +202,7 @@
             <div class="auth-card glass-card">
                 <div style="font-size:50px; margin-bottom:20px;">🔒</div>
                 <h2 style="font-size:30px; font-weight:800; margin-bottom:10px;">BANNATUBE LOGIN</h2>
-                <p style="opacity:0.5; margin-bottom:35px;">Vstup do Cloudu pre akékoľvek zariadenie.</p>
+                <p style="opacity:0.5; margin-bottom:35px;">Cloud prístup pre akékoľvek zariadenie.</p>
                 <input type="email" id="login-email" placeholder="Emailová adresa" style="margin-bottom:15px;">
                 <input type="password" id="login-pass" placeholder="Prístupový kód">
                 <button onclick="app.handleLogin()" style="width:100%; margin-top:35px; height:65px;">AUTORIZOVAŤ V CLOUDE</button>
@@ -387,6 +387,7 @@
         // --- KONFIGURÁCIA SUPABASE (ZADAJTE SVOJE ÚDAJE SEM) ---
         const supabaseUrl = "https://tzurlmafxywnroojswah.supabase.co"; 
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dXJsbWFmeHl3bnJvb2pzd2FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTUyODQsImV4cCI6MjA4NzM5MTI4NH0.HD8WX4cDMpBMLl1D5fvp3epyVuB-Cn0MpwkFKigh7XU"; 
+        
         let sb = null;
         try {
             if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
@@ -430,74 +431,88 @@
                     };
                     req.onsuccess = (e) => { 
                         this.state.localDb = e.target.result; 
-                        // PREMAZANIE STARÝCH LOKÁLNYCH DÁT PRI ŠTARTE PRE ČISTÝ CLOUD SYNC
-                        const tx = this.state.localDb.transaction('users', 'readwrite');
-                        tx.objectStore('users').clear();
+                        // VYMAZANIE STARÝCH LOKÁLNYCH ÚČTOV NA TOMTO ZARIADENÍ PRE ČISTÝ CLOUD SYNC
+                        try {
+                            const tx = this.state.localDb.transaction('users', 'readwrite');
+                            tx.objectStore('users').clear();
+                        } catch(err) { console.warn("Cache clean skipped."); }
                         resolve(); 
                     };
                 });
             },
 
-            // HLAVNÁ FUNKCIA: CLOUD JE PRIMÁRNY (CROSS-DEVICE)
+            // HLAVNÁ FUNKCIA: CLOUD JE JEDINÝ ZDROJ PRAVDY (CROSS-DEVICE)
             async getUserByEmail(email) {
                 if (!email) return null;
                 const formattedEmail = email.toLowerCase().trim();
 
-                if (sb) {
-                    try {
-                        const { data, error } = await sb
-                            .from('users')
-                            .select('*')
-                            .eq('email', formattedEmail)
-                            .single();
-                        
-                        if (!error && data) {
-                            this.syncToLocal(data); // Stiahne do lokálnej pamäte aktuálneho zariadenia
-                            return data;
-                        } else {
-                            console.warn("User not found in Cloud.");
-                        }
-                    } catch (e) { console.error("Cloud error"); }
+                if (!sb) {
+                    this.showMsg("BannaTube: Cloud nie je nakonfigurovaný (Chýba URL/Key).");
+                    return null;
                 }
 
-                // Fallback na lokálnu pamäť tohto zariadenia (IndexedDB)
-                if (!this.state.localDb) return null;
-                return new Promise((resolve) => {
-                    const tx = this.state.localDb.transaction('users', 'readonly');
-                    const req = tx.objectStore('users').get(formattedEmail);
-                    req.onsuccess = () => resolve(req.result || null);
-                    req.onerror = () => resolve(null);
-                });
+                try {
+                    // PRIORITNÝ CLOUD FETCH
+                    const { data, error } = await sb
+                        .from('users')
+                        .select('*')
+                        .eq('email', formattedEmail)
+                        .single();
+                    
+                    if (!error && data) {
+                        this.syncToLocal(data); // Uložiť cache pre offline Face ID neskôr
+                        return data;
+                    } else if (error && error.code === 'PGRST116') {
+                        console.warn("User not found in Cloud.");
+                        return null;
+                    } else {
+                        throw error;
+                    }
+                } catch (e) { 
+                    console.error("Cloud error", e);
+                    this.showMsg("BannaTube: Problém s cloudovou databázou.");
+                    
+                    // FALLBACK NA LOKÁLNU CACHE AK CLOUD ZLYHÁ (NETWORK ERROR)
+                    if (this.state.localDb) {
+                        return new Promise((resolve) => {
+                            const tx = this.state.localDb.transaction('users', 'readonly');
+                            const req = tx.objectStore('users').get(formattedEmail);
+                            req.onsuccess = () => resolve(req.result || null);
+                            req.onerror = () => resolve(null);
+                        });
+                    }
+                }
+                return null;
             },
 
             async syncToLocal(user) {
                 if (!this.state.localDb) return;
-                const tx = this.state.localDb.transaction('users', 'readwrite');
-                tx.objectStore('users').put(user);
+                try {
+                    const tx = this.state.localDb.transaction('users', 'readwrite');
+                    tx.objectStore('users').put(user);
+                } catch(e) {}
             },
 
             async saveUserDB(user) {
                 const formattedEmail = user.email.toLowerCase().trim();
                 user.email = formattedEmail;
 
-                // TRVALÝ ZÁPIS DO SUPABASE (VŠETKY ZARIADENIA)
-                if (sb) {
-                    try {
-                        const { error } = await sb.from('users').upsert(user);
-                        if (error) throw error;
-                    } catch (e) { 
-                        console.error("Supabase Save Error"); 
-                        this.showMsg("BannaTube: Cloud je momentálne nedostupný.");
-                    }
+                if (!sb) {
+                    this.showMsg("BannaTube: Nie je možné uložiť do cloudu.");
+                    return;
                 }
 
-                // LOKÁLNA ZÁLOHA PRE TOTO ZARIADENIE
-                if(!this.state.localDb) await this.initLocalDB();
-                return new Promise((resolve) => {
-                    const tx = this.state.localDb.transaction('users', 'readwrite');
-                    tx.objectStore('users').put(user);
-                    tx.oncomplete = () => resolve();
-                });
+                try {
+                    // TRVALÝ CLOUD ZÁPIS (DOSTUPNÝ VŠADE)
+                    const { error } = await sb.from('users').upsert(user);
+                    if (error) throw error;
+                    
+                    // LOKÁLNA ZÁLOHA (SYNC)
+                    await this.syncToLocal(user);
+                } catch (e) { 
+                    console.error("Supabase Save Error", e); 
+                    this.showMsg("BannaTube: Cloud zápis zlyhal.");
+                }
             },
 
             checkAnnualReset(user) {
@@ -522,7 +537,7 @@
                     video.onloadedmetadata = () => { video.play(); this.runDetection(); };
                 } catch (e) { 
                     this.showMsg("BannaTube: Biometria nie je detegovaná."); 
-                    this.finalizeLogin(); // Fallback pre rýchle prihlásenie
+                    this.finalizeLogin(); 
                 }
             },
 
@@ -582,7 +597,7 @@
                 const u = this.state.tempUser;
                 this.state.profile = u;
                 localStorage.setItem(this.state.sessionKey, u.email);
-                this.saveUserDB(u); // Trvalá aktualizácia
+                this.saveUserDB(u); 
                 if (this.state.stream) this.state.stream.getTracks().forEach(t => t.stop());
                 this.onLogin(u);
             },
@@ -597,7 +612,6 @@
                 const email = document.getElementById('login-email').value.trim().toLowerCase();
                 const pass = document.getElementById('login-pass').value.trim();
                 
-                // SKÚSI SUPABASE AJ KEĎ TU EŠTE NIČ NIE JE ULOŽENÉ
                 const user = await this.getUserByEmail(email);
                 
                 if (user && user.banned) {
@@ -605,7 +619,7 @@
                     return;
                 }
                 
-                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Identita alebo kód nesúhlasí.");
+                if (!user || user.pass !== pass) return this.showMsg("BannaTube: Nesprávne poverenia.");
                 this.startBiometricVerification(user);
             },
 
@@ -636,7 +650,7 @@
                     const willBan = !u.banned;
                     let reason = "";
                     if(willBan) {
-                        reason = prompt("Dôvod verejného banu:", "Porušenie pravidiel");
+                        reason = prompt("Dôvod banu:", "Porušenie pravidiel");
                         if(reason === null) return;
                     }
                     u.banned = willBan;
@@ -660,7 +674,7 @@
                 document.getElementById('modal-overlay').classList.remove('hidden');
                 document.getElementById('ban-notification-modal').classList.remove('hidden');
                 document.getElementById('ban-user-name').innerText = user.fullName;
-                document.getElementById('ban-reason-text').innerText = user.banReason || "Nie je špecifikovaný.";
+                document.getElementById('ban-reason-text').innerText = user.banReason || "Nebol uvedený.";
             },
 
             onLogin(user) {
@@ -820,6 +834,4 @@
     </script>
 </body>
 </html>
-
-
 
