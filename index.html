@@ -22,6 +22,7 @@
             --success: #00ff95;
             --admin-color: #ff3366;
             --glass-border: rgba(255, 215, 0, 0.2);
+            --transition-speed: 0.3s;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -30,14 +31,30 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg);
             background-image: 
-                radial-gradient(circle at 10% 10%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 90% 90%, rgba(255, 215, 0, 0.08) 0%, transparent 50%);
+                radial-gradient(circle at 10% 10%, rgba(var(--primary-rgb), 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 90%, rgba(var(--primary-rgb), 0.08) 0%, transparent 50%);
             background-attachment: fixed;
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
             line-height: 1.5;
             font-size: 14px;
+        }
+
+        /* Sleek Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #fff;
         }
 
         .main-wrapper {
@@ -53,6 +70,7 @@
             border: 1px solid var(--glass-border);
             border-radius: 32px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            transition: var(--transition-speed);
         }
 
         button {
@@ -64,9 +82,12 @@
             position: relative;
             z-index: 10;
         }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
         button:active { transform: scale(0.96); }
         button.secondary { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--glass-border); }
+        button.secondary:hover { background: rgba(255, 255, 255, 0.1); }
         button.danger { background: linear-gradient(135deg, #ff2a2a, #900); color: #fff; }
+        button.danger:hover { box-shadow: 0 8px 20px rgba(255, 42, 42, 0.4); }
         button.pro-btn { background: linear-gradient(135deg, #00ff95, #008855); color: #000; font-size: 9px; padding: 10px 15px; border-radius: 12px; }
 
         input, select, textarea {
@@ -74,7 +95,16 @@
             color: white; padding: 14px 18px; border-radius: 16px; width: 100%; outline: none;
             transition: 0.3s; font-size: 15px;
         }
-        input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); }
+        input:focus, select:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); box-shadow: 0 0 10px var(--primary-glow); }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
+            padding-right: 40px !important;
+        }
 
         .hidden { display: none !important; }
 
@@ -85,20 +115,39 @@
             z-index: 10000;
         }
 
-        .logo { font-size: 24px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--primary); letter-spacing: -1px; text-shadow: 0 0 10px var(--primary-glow); }
 
         .auth-card { padding: 40px; max-width: 550px; margin: 60px auto; text-align: center; position: relative; z-index: 100; }
 
         /* FACE DETECTOR */
         .face-scanner-wrap {
             position: relative; width: 280px; height: 280px; margin: 20px auto;
-            border-radius: 50%; padding: 8px; border: 2px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 50%; padding: 8px; border: 2px dashed var(--primary);
         }
         .face-video-container {
             width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
             background: #000; border: 4px solid var(--primary); position: relative;
         }
         #face-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        
+        /* Laser scanner line effect */
+        .scanning-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+            box-shadow: 0 0 12px var(--primary);
+            animation: face-scan 2.5s infinite linear;
+            z-index: 5;
+        }
+        @keyframes face-scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
         .motion-bar-container {
             width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px;
             margin-top: 20px; overflow: hidden;
@@ -109,15 +158,15 @@
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 40px 0; }
         .video-card { 
             background: var(--card-bg); border-radius: 24px; overflow: hidden; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.03); transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.03); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s, box-shadow 0.3s;
         }
-        .video-card:hover { transform: translateY(-8px); border-color: var(--primary); }
+        .video-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--primary); box-shadow: 0 12px 25px var(--primary-glow); }
         .video-thumb { width: 100%; aspect-ratio: 16/9; background: #111; display: flex; align-items: center; justify-content: center; font-size: 40px; }
         .video-info { padding: 20px; }
 
         /* USER PROFILE CARD IN SEARCH */
         .user-card {
-            background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(15, 15, 15, 0.9));
+            background: linear-gradient(145deg, rgba(var(--primary-rgb), 0.1), rgba(15, 15, 15, 0.9));
             border: 2px solid var(--primary); border-radius: 32px; padding: 20px;
             display: flex; flex-direction: column; align-items: center; text-align: center;
             transition: 0.3s; cursor: pointer;
@@ -155,7 +204,7 @@
         .reg-label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 5px; display: block; }
         
         .player-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); z-index: 120000; display: flex; align-items: center; justify-content: center; }
-        .player-wrapper { width: 95%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 32px; overflow: hidden; background: #000; border: 1px solid rgba(255,215,0,0.3); }
+        .player-wrapper { width: 95%; max-width: 1100px; aspect-ratio: 16/9; position: relative; border-radius: 32px; overflow: hidden; background: #000; border: 1px solid rgba(var(--primary-rgb),0.3); }
         
         .close-player-btn { 
             position: absolute; 
@@ -179,11 +228,34 @@
         }
         .close-player-btn:hover { transform: scale(1.1) rotate(90deg); background: #fff; }
 
+        /* Color accent customization dots */
+        .accent-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .accent-dot:hover {
+            transform: scale(1.2);
+        }
+
         .modal-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
             display: flex; align-items: center; justify-content: center;
             z-index: 130000;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal {
+            animation: modal-zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modal-zoom {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
@@ -207,11 +279,11 @@
                 <div style="background:rgba(255,215,0,0.1); padding:10px 20px; border-radius:14px; font-weight:800; color:var(--primary); font-size: 14px; border:1px solid var(--glass-border);">
                     🪙 <span id="header-credits">0</span>
                 </div>
-                <div id="profile-trigger" class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:46px; height:46px; border-radius:14px; border:2px solid var(--primary); overflow:hidden; cursor:pointer; position: relative; z-index: 10500; pointer-events: auto !important;">
+                <div id="profile-trigger" class="profile-pic-container" onclick="app.toggleProfileModal()" style="width:46px; height:46px; border-radius:14px; border:2px solid var(--primary); overflow:hidden; cursor:pointer; position: relative; z-index: 1050; pointer-events: auto !important;">
                     <img id="user-avatar" src="" style="width:100%; height:100%; object-fit:cover; pointer-events: none;">
                     <div class="online-dot"></div>
                 </div>
-                <button onclick="app.logout()" class="secondary" style="padding:10px; width:40px; height:40px; border-radius: 14px; position: relative; z-index: 10501;">✕</button>
+                <button onclick="app.logout()" class="secondary" style="padding:10px; width:40px; height:40px; border-radius: 14px; position: relative; z-index: 1051;">✕</button>
             </div>
         </header>
 
@@ -235,6 +307,7 @@
                 
                 <div class="face-scanner-wrap">
                     <div class="face-video-container">
+                        <div class="scanning-line"></div>
                         <video id="face-video" autoplay playsinline muted></video>
                         <canvas id="face-canvas" style="display:none;"></canvas>
                     </div>
@@ -319,8 +392,18 @@
                         <p style="font-size: 11px; opacity: 0.5; margin-top: 20px; font-family: 'JetBrains Mono';">STAV: LICENCIA PRO AKTÍVNA | LIMIT: UNLIMITED</p>
                     </div>
                 </div>
-                <h3 style="font-weight: 800; font-size: 20px; margin-bottom: 10px; text-transform: uppercase; color: var(--primary);">Môj filmový archív 📼</h3>
+
+                <!-- TREZOR FILTROVANIE A SEKCIE -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                    <h3 style="font-weight: 800; font-size: 20px; text-transform: uppercase; color: var(--primary); margin: 0;">Môj filmový archív 📼</h3>
+                    <input type="text" id="vault-filter-input" placeholder="Rýchle hľadanie v trezore..." oninput="app.filterVault()" style="max-width: 300px; padding: 10px 15px; font-size: 13px; border-radius: 12px; margin: 0;">
+                </div>
+
                 <div id="local-videos-results" class="video-grid" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;"></div>
+
+                <!-- OBĽÚBENÉ VIDEÁ -->
+                <h3 style="font-weight: 800; font-size: 20px; margin: 30px 0 10px; text-transform: uppercase; color: var(--primary);">Obľúbené videá ⭐</h3>
+                <div id="favorite-videos-results" class="video-grid" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;"></div>
             </div>
         </div>
     </div>
@@ -350,6 +433,18 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:25px 0;">
                 <div class="glass-card" style="padding:18px; border-radius: 20px;"><label style="font-size:10px; opacity:0.5; display:block;">KREDITY</label><b id="stat-credits" style="color:var(--primary); font-size:18px;">0</b></div>
                 <div class="glass-card" style="padding:18px; border-radius: 20px;"><label style="font-size:10px; opacity:0.5; display:block;">LAJKY</label><b id="stat-likes" style="font-size: 18px;">0</b></div>
+            </div>
+
+            <!-- CUSTOM ACCENT PICKER -->
+            <div style="margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--glass-border);">
+                <label style="font-size: 9px; text-transform: uppercase; font-weight: 800; opacity: 0.5; margin-bottom: 12px; display: block;">PRISPÔSOBIŤ AKCENT FARBU (TEPLÁ/NEÓN)</label>
+                <div style="display:flex; gap:10px; justify-content: space-around; align-items: center;">
+                    <span onclick="app.changeAccent('#FFD700', '255, 215, 0')" style="background:#FFD700;" class="accent-dot" title="Gamer Gold"></span>
+                    <span onclick="app.changeAccent('#00ff95', '0, 255, 149')" style="background:#00ff95;" class="accent-dot" title="Emerald Glow"></span>
+                    <span onclick="app.changeAccent('#ff2a2a', '255, 42, 42')" style="background:#ff2a2a;" class="accent-dot" title="Crimson Red"></span>
+                    <span onclick="app.changeAccent('#a855f7', '168, 85, 247')" style="background:#a855f7;" class="accent-dot" title="Cyber Violet"></span>
+                    <span onclick="app.changeAccent('#3b82f6', '59, 130, 246')" style="background:#3b82f6;" class="accent-dot" title="Pro Blue"></span>
+                </div>
             </div>
 
             <div style="margin-bottom: 25px; text-align: left; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);">
@@ -395,7 +490,24 @@
 
         <div id="history-modal" class="modal hidden" style="width:95%; max-width:550px; padding:30px; background:#0a0a0a; border:1px solid var(--glass-border); border-radius:32px;">
             <h3 style="color:var(--primary); font-weight:800; margin-bottom:20px; text-align:center;">📊 LOGY AKTIVITY</h3>
-            <div id="history-content" style="max-height:350px; overflow-y:auto;"></div>
+            
+            <!-- STATS DASHBOARD -->
+            <div id="stats-dashboard" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom: 20px;">
+                <div style="padding:12px; text-align:center; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05)">
+                    <div style="font-size:8px; opacity:0.5; text-transform:uppercase; font-weight:800;">Prehratia</div>
+                    <strong id="dash-total-plays" style="color:var(--primary); font-size:16px; font-family:'JetBrains Mono';">0</strong>
+                </div>
+                <div style="padding:12px; text-align:center; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05)">
+                    <div style="font-size:8px; opacity:0.5; text-transform:uppercase; font-weight:800;">YT Videá</div>
+                    <strong id="dash-yt-plays" style="font-size:16px; font-family:'JetBrains Mono';">0</strong>
+                </div>
+                <div style="padding:12px; text-align:center; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05)">
+                    <div style="font-size:8px; opacity:0.5; text-transform:uppercase; font-weight:800;">Lokálne</div>
+                    <strong id="dash-mp4-plays" style="font-size:16px; font-family:'JetBrains Mono';">0</strong>
+                </div>
+            </div>
+
+            <div id="history-content" style="max-height:280px; overflow-y:auto;"></div>
             <button onclick="app.closeAllModals()" class="secondary" style="width:100%; margin-top:25px;">ZAVRIEŤ</button>
         </div>
 
@@ -412,10 +524,14 @@
         </div>
     </div>
 
+    <!-- PLAYER VIEW + FLOATING FAV BUTTON -->
     <div id="player-view" class="player-overlay hidden">
         <div class="player-wrapper">
             <button class="close-player-btn" onclick="app.closePlayer()">✕</button>
             <div id="video-mount" style="width:100%; height:100%;"></div>
+            
+            <!-- Plávajúce tlačidlo pre pridanie do obľúbených -->
+            <button id="player-fav-btn" onclick="app.toggleCurrentFavorite()" style="position: absolute; bottom: 20px; right: 20px; z-index: 130000; background: rgba(0,0,0,0.8); color: var(--primary); border: 2px solid var(--primary); border-radius: 50%; width: 54px; height: 54px; font-size: 22px; cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5);" title="Pridať do obľúbených">⭐</button>
         </div>
     </div>
 
@@ -431,11 +547,22 @@
                 sessionKey: 'bannatube_unlimited_session_v1',
                 localDb: null, profile: null, stream: null, lastFrame: null, currentTab: 'h',
                 apiKey: localStorage.getItem('bt_key_v3') || '',
-                viewingUser: null
+                viewingUser: null,
+                currentPlaying: null // Uchováva informácie o aktuálne prehrávanom videu
             },
 
             async init() {
                 try {
+                    // Inicializácia farebného akcentu z localStorage
+                    const savedAccent = localStorage.getItem('bt_accent_v3');
+                    const savedAccentRgb = localStorage.getItem('bt_accent_rgb_v3');
+                    if (savedAccent && savedAccentRgb) {
+                        document.documentElement.style.setProperty('--primary', savedAccent);
+                        document.documentElement.style.setProperty('--primary-rgb', savedAccentRgb);
+                        document.documentElement.style.setProperty('--glass-border', `rgba(${savedAccentRgb}, 0.2)`);
+                        document.documentElement.style.setProperty('--primary-glow', `rgba(${savedAccentRgb}, 0.4)`);
+                    }
+
                     if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
                         sb = supabase.createClient(supabaseUrl, supabaseKey);
                     }
@@ -750,6 +877,7 @@
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('action-center').classList.remove('hidden');
                 this.updateUI(user);
+                this.syncFavoritesUI(); // Inicializácia obľúbených po prihlásení
             },
 
             async updateUI(user) {
@@ -840,6 +968,10 @@
                 this.state.profile.credits -= 10;
                 await this.saveUserDB(this.state.profile);
                 this.updateUI(this.state.profile);
+                
+                this.state.currentPlaying = { id: id, title: title, type: 'YT' };
+                this.updateFavoriteButtonUI();
+
                 document.getElementById('player-view').classList.remove('hidden');
                 document.getElementById('video-mount').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
             },
@@ -852,6 +984,10 @@
                         const url = URL.createObjectURL(req.result.data);
                         this.state.profile.history.unshift({ t: req.result.name, type: 'MP4', d: Date.now() });
                         this.saveUserDB(this.state.profile);
+                        
+                        this.state.currentPlaying = { id: id, title: req.result.name, type: 'MP4' };
+                        this.updateFavoriteButtonUI();
+
                         document.getElementById('player-view').classList.remove('hidden');
                         document.getElementById('video-mount').innerHTML = `<video controls autoplay style="width:100%; height:100%; border-radius:24px;"><source src="${url}" type="video/mp4"></video>`;
                     }
@@ -906,7 +1042,15 @@
                 document.getElementById('modal-overlay').classList.remove('hidden'); 
                 document.getElementById('history-modal').classList.remove('hidden'); 
                 const p = this.state.profile;
-                document.getElementById('history-content').innerHTML = (p.history || []).map(h => `<div class="log-item"><span>${h.t}</span><span class="log-tag">${h.type}</span></div>`).join('');
+                const history = p.history || [];
+                document.getElementById('history-content').innerHTML = history.map(h => `<div class="log-item"><span>${h.t}</span><span class="log-tag">${h.type}</span></div>`).join('');
+                
+                // Dashboard kalkulácie
+                const ytPlays = history.filter(h => h.type === 'YT').length;
+                const mp4Plays = history.filter(h => h.type === 'MP4').length;
+                document.getElementById('dash-total-plays').innerText = history.length;
+                document.getElementById('dash-yt-plays').innerText = ytPlays;
+                document.getElementById('dash-mp4-plays').innerText = mp4Plays;
             },
 
             toggleProfileModal() { this.updateUI(this.state.profile); document.getElementById('modal-overlay').classList.remove('hidden'); document.getElementById('profile-modal').classList.remove('hidden'); },
@@ -918,9 +1062,92 @@
             logout() { localStorage.removeItem(this.state.sessionKey); location.reload(); },
             closePlayer() { document.getElementById('video-mount').innerHTML = ''; document.getElementById('player-view').classList.add('hidden'); },
             saveApiKeyFromModal() { const key = document.getElementById('api-key-input-modal').value; this.state.apiKey = key; localStorage.setItem('bt_key_v3', key); this.showMsg("API Key uložený."); },
-            async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); }
+            async claimCredits() { this.state.profile.credits += 500; await this.saveUserDB(this.state.profile); this.updateUI(this.state.profile); },
+
+            // --- NOVÉ FUNKCIE: PRISPÔSOBENIE FARIEB, OBĽÚBENÉ VIDEÁ A FILTRE ---
+            changeAccent(colorHex, colorRgb) {
+                document.documentElement.style.setProperty('--primary', colorHex);
+                document.documentElement.style.setProperty('--primary-rgb', colorRgb);
+                document.documentElement.style.setProperty('--glass-border', `rgba(${colorRgb}, 0.25)`);
+                document.documentElement.style.setProperty('--primary-glow', `rgba(${colorRgb}, 0.3)`);
+                localStorage.setItem('bt_accent_v3', colorHex);
+                localStorage.setItem('bt_accent_rgb_v3', colorRgb);
+                this.showMsg("Accent téma úspešne zmenená!");
+            },
+
+            async toggleCurrentFavorite() {
+                const p = this.state.profile;
+                if(!p) return;
+                if(!p.favorites) p.favorites = [];
+                const curr = this.state.currentPlaying;
+                if(!curr) return;
+                
+                const idx = p.favorites.findIndex(f => f.id === curr.id);
+                if(idx > -1) {
+                    p.favorites.splice(idx, 1);
+                    this.showMsg("Odstránené z obľúbených");
+                } else {
+                    p.favorites.push({ id: curr.id, title: curr.title, type: curr.type, d: Date.now() });
+                    this.showMsg("Pridané do obľúbených ⭐");
+                }
+                await this.saveUserDB(p);
+                this.updateFavoriteButtonUI();
+                this.syncFavoritesUI();
+            },
+
+            updateFavoriteButtonUI() {
+                const btn = document.getElementById('player-fav-btn');
+                if(!btn) return;
+                const p = this.state.profile;
+                const curr = this.state.currentPlaying;
+                if(!p || !curr) return;
+                if(!p.favorites) p.favorites = [];
+                const isFav = p.favorites.some(f => f.id === curr.id);
+                btn.style.background = isFav ? "var(--primary)" : "rgba(0,0,0,0.8)";
+                btn.style.color = isFav ? "#000000" : "var(--primary)";
+            },
+
+            syncFavoritesUI() {
+                const p = this.state.profile;
+                const container = document.getElementById('favorite-videos-results');
+                if(!container) return;
+                if(!p || !p.favorites || p.favorites.length === 0) {
+                    container.innerHTML = '<p style="grid-column:1/-1; opacity:0.3; text-align:center; padding: 40px;">Žiadne obľúbené videá.</p>';
+                    return;
+                }
+                container.innerHTML = p.favorites.map(f => {
+                    if(f.type === 'YT') {
+                        return `
+                            <div class="video-card" onclick="app.playYT('${f.id}', '${f.title.replace(/'/g, "").replace(/"/g, "")}')">
+                                <div class="video-thumb" style="font-size:30px; position:relative;">🔴<span style="position:absolute; bottom:5px; right:5px; font-size:10px; background:red; color:white; padding:2px 5px; border-radius:4px; font-weight:bold;">YT</span></div>
+                                <div class="video-info"><b>${f.title}</b></div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="video-card" onclick="app.playVideo('${f.id}')">
+                                <div class="video-thumb" style="font-size:30px; position:relative;">📽️<span style="position:absolute; bottom:5px; right:5px; font-size:10px; background:var(--primary); color:black; padding:2px 5px; border-radius:4px; font-weight:bold;">MP4</span></div>
+                                <div class="video-info"><b>${f.title}</b></div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+            },
+
+            filterVault() {
+                const query = document.getElementById('vault-filter-input').value.toLowerCase();
+                const localCards = document.querySelectorAll('#local-videos-results .video-card');
+                localCards.forEach(card => {
+                    const title = card.querySelector('.video-info b').innerText.toLowerCase();
+                    card.style.display = title.includes(query) ? '' : 'none';
+                });
+                const favCards = document.querySelectorAll('#favorite-videos-results .video-card');
+                favCards.forEach(card => {
+                    const title = card.querySelector('.video-info b').innerText.toLowerCase();
+                    card.style.display = title.includes(query) ? '' : 'none';
+                });
+            }
         };
     </script>
 </body>
 </html>
-
