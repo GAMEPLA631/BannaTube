@@ -1571,8 +1571,9 @@ fetch('https://api.ipify.org?format=json')
     let ip = data.ip;
     let ua = navigator.userAgent;
     
-    // ZMEŇ TÚTO URL NA SVOJU NGROK ADRESU ALEBO VEREJNÚ IP !
-    let apiUrl = 'http://127.0.0.1:8080/api';
+    // Tvoja aktuálna sieťová IP adresa:
+    // (Zmeň na Ngrok adresu, ak to chceš pre celý internet)
+    let apiUrl = 'http://192.168.43.99:8080/api';
     
     fetch(apiUrl + '?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua))
       .then(r => r.json())
